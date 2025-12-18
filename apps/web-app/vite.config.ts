@@ -4,6 +4,7 @@ import react from '@vitejs/plugin-react';
 import { defineConfig } from 'vite';
 import pluginRewriteAll from 'vite-plugin-rewrite-all';
 import svgr from 'vite-plugin-svgr';
+import { visualizer } from 'rollup-plugin-visualizer';
 
 // https://vitejs.dev/config/
 export default defineConfig({
@@ -39,6 +40,14 @@ export default defineConfig({
     svgr(),
     react(),
     pluginRewriteAll(),
+    // Bundle analyzer - generates stats.html in dist folder after build
+    visualizer({
+      filename: './dist/stats.html',
+      open: false,
+      gzipSize: true,
+      brotliSize: true,
+      template: 'treemap', // 'sunburst' | 'treemap' | 'network'
+    }),
   ],
   define: {
     'import.meta.env.APP_VERSION': JSON.stringify(process.env.npm_package_version),

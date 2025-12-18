@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "build": "tsc && vite build",
+    "build:analyze": "tsc && vite build && echo 'Bundle analysis available at dist/stats.html'",
     "preview": "vite preview",
     "test": "node scripts/test.js",
     "lint": "eslint --ext .ts,.tsx ./src --max-warnings=0",
