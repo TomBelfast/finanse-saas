@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { logger } from '~/utils/logger';
 import {
   Plus,
   Edit,
@@ -140,7 +141,9 @@ const Loans = () => {
         let attachments = [];
         try {
           attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents || row.attachments || []);
-        } catch (e) { console.error('Error parsing attachments', e); }
+        } catch (e) { 
+          logger.error('Error parsing attachments', e instanceof Error ? e : new Error(String(e)));
+        }
 
         // Mapowanie statusów z angielskiego (API) na polski (UI)
         const statusMap: Record<string, string> = {
@@ -169,7 +172,7 @@ const Loans = () => {
       });
       setData(mapped);
     } catch (error: any) {
-      console.error('Błąd podczas ładowania kredytów:', error);
+      logger.error('Błąd podczas ładowania kredytów', error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoading(false);
     }
@@ -322,7 +325,7 @@ const Loans = () => {
       await apiClient.deleteLoan(id);
       loadData();
     } catch (error) {
-      console.error('Błąd podczas usuwania:', error);
+      logger.error('Błąd podczas usuwania', error instanceof Error ? error : new Error(String(error)), { loanId: id });
     }
   };
 
@@ -354,7 +357,7 @@ const Loans = () => {
       setModalOpen(false);
       loadData();
     } catch (e: any) {
-      console.error(e);
+      logger.error('Błąd zapisu kredytu', e instanceof Error ? e : new Error(String(e)));
       alert('Błąd zapisu');
     }
   };
