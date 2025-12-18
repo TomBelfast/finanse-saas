@@ -1,11 +1,10 @@
 import { AppThunk } from '../../../index';
-import { COLLECTION } from '../../../../firestore/collectionNames';
+import { COLLECTION } from '../../../../constants/collectionNames';
 import {
   subscribeToCreatorStatsSuccess,
   subscribeToCreatorStatsStarted,
   subscribeToCreatorStatsFailed,
 } from '../reducer';
-import { firestoreDateMapper } from '../../../../helpers/firestoreDateMapper';
 import { CreatorStatsDocument } from '../../../../models/documents/Reports';
 import { fetchCurrentMonthStats } from './fetchCurrentMonthStats';
 

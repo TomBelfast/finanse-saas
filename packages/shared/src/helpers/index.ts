@@ -1,7 +1,6 @@
 export * from './cloudFunctionErrorHandler';
 export * from './createWeekdayOptions';
 export * from './enumValues';
-export * from './firestoreDateMapper';
 export * from './generateUniqId';
 export * from './getFlagEmoji';
 export * from './getUserInitials';

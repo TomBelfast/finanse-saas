@@ -1,5 +1,5 @@
 import { AppThunk } from '../../../index';
-import { COLLECTION } from '../../../../firestore/collectionNames';
+import { COLLECTION } from '../../../../constants/collectionNames';
 import {
   subscribeToSubscriptionFailed,
   subscribeToSubscriptionStarted,

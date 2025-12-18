@@ -1,5 +1,4 @@
 export * from './constants';
-export * from './firestore';
 export * from './enums';
 export * from './helpers';
 export * from './store';

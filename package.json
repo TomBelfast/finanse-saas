@@ -2,9 +2,6 @@
   "name": "akademiasaas",
   "private": true,
   "scripts": {
-    "emulator": "firebase emulators:start --import ./emulator-data --export-on-exit ./emulator-data",
-    "quick-start": "pnpm install && cd packages/shared && pnpm build && cd ../.. && firebase use develop && pnpm dev",
-    "quick-dev": "firebase use develop && pnpm dev",
     "release": "lerna version --yes",
     "bootstrap": "pnpm install",
     "dev": "cross-env NODE_OPTIONS=--max-old-space-size=16384 turbo run dev --concurrency 20",
@@ -45,8 +42,6 @@
     "@typescript-eslint/parser": "^8.26.1",
     "cross-env": "^7.0.3",
     "eslint-plugin-jsx-a11y": "^6.10.2",
-    "firebase-functions": "5.1.0",
-    "firebase-tools": "^13.25.0",
     "husky": "^8.0.3",
     "inquirer-directory": "^2.2.0",
     "lerna": "^7.4.2",

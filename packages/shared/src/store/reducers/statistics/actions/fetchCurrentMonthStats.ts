@@ -1,8 +1,7 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { AsyncThunkCreator } from '../../../index';
 import { STATISTICS_REDUCER_NAME } from '../types';
-import { COLLECTION } from '../../../../firestore/collectionNames';
-import { firestoreDateMapper } from '../../../../helpers/firestoreDateMapper';
+import { COLLECTION } from '../../../../constants/collectionNames';
 import { CreatorMonthStatsDocument } from '../../../../models/documents/Reports';
 import dayjs from 'dayjs';
 

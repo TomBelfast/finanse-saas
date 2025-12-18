@@ -1,9 +1,9 @@
 import { createAsyncThunk } from '@reduxjs/toolkit';
 import { AsyncThunkCreator } from '../../../index';
 import { NOTIFICATIONS_REDUCER_NAME } from '../types';
-import { COLLECTION } from '../../../../firestore/collectionNames';
+import { COLLECTION } from '../../../../constants/collectionNames';
 import { splitIntoChunks } from '../../../../helpers/splitIntoChunks';
-import { BATCH_SIZE_LIMIT } from '../../../../constants/firestore';
+import { BATCH_SIZE_LIMIT } from '../../../../constants/collectionNames';
 import { NotificationStatus } from '../../../../models/documents';
 
 export const markAllAsRead = createAsyncThunk<void, void, AsyncThunkCreator<number>>(

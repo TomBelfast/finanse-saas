@@ -5,8 +5,7 @@ import {
   subscribeToApiTokensSuccess,
 } from '../reducer';
 import { ApiTokenDocument } from '../../../../models/documents';
-import { firestoreDateMapper } from '../../../../helpers/firestoreDateMapper';
-import { COLLECTION, DOCUMENT } from '../../../../firestore';
+import { COLLECTION, DOCUMENT } from '../../../../constants';
 
 export const subscribeToApiTokens =
   (): AppThunk =>
