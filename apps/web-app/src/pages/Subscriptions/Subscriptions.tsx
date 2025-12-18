@@ -220,7 +220,7 @@ const Subscriptions = () => {
         setInitialDataLoaded(true)
       } catch (error: unknown) {
         logger.error('Błąd podczas ładowania subskrypcji', error instanceof Error ? error : new Error(String(error)));
-        const errorMessage = error?.message || error?.error || 'Nie udało się załadować subskrypcji'
+        const errorMessage = (error instanceof Error ? error.message : null) || (typeof error === 'object' && error !== null && 'error' in error ? String(error.error) : null) || 'Nie udało się załadować subskrypcji'
         toast.error(errorMessage)
         setData([])
       } finally {
