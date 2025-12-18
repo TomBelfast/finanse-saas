@@ -1,0 +1,48 @@
+name: Playwright E2E Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    timeout-minutes: 60
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v4
+    
+    - uses: pnpm/action-setup@v2
+      with:
+        version: 10.4.1
+    
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+        cache: 'pnpm'
+    
+    - name: Install dependencies
+      run: pnpm install --frozen-lockfile
+    
+    - name: Install Playwright Browsers
+      run: cd apps/web-app && pnpm exec playwright install --with-deps
+    
+    - name: Build application
+      run: pnpm build
+    
+    - name: Run Playwright tests
+      run: cd apps/web-app && pnpm test:e2e
+      env:
+        PLAYWRIGHT_TEST_EMAIL: ${{ secrets.PLAYWRIGHT_TEST_EMAIL }}
+        PLAYWRIGHT_TEST_PASSWORD: ${{ secrets.PLAYWRIGHT_TEST_PASSWORD }}
+        PLAYWRIGHT_TEST_BASE_URL: ${{ secrets.PLAYWRIGHT_TEST_BASE_URL || 'http://localhost:3005' }}
+    
+    - uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: playwright-report
+        path: apps/web-app/playwright-report/
+        retention-days: 30
+
