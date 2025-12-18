@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserDetails } from '../../../../packages/shared/src/store/reducers/user/actions/getUserDetails';
+import { logger } from '~/utils/logger';
 
 export const useUserDetails = () => {
   const dispatch = useDispatch();
@@ -10,11 +11,11 @@ export const useUserDetails = () => {
 
   useEffect(() => {
     if (import.meta.env.VITE_DEBUG === 'true') {
-      console.debug('[useUserDetails] useEffect start', { user, loading, error });
+      logger.debug('[useUserDetails] useEffect start', { hasUser: !!user, loading, hasError: !!error });
     }
     if (!user && !loading) {
       if (import.meta.env.VITE_DEBUG === 'true') {
-        console.debug('[useUserDetails] Dispatching getUserDetails');
+        logger.debug('[useUserDetails] Dispatching getUserDetails');
       }
       // Pobierz uid z Clerk, jeśli dostępny
       // TODO: Update to use Clerk instead of Firebase
@@ -23,17 +24,15 @@ export const useUserDetails = () => {
         dispatch(getUserDetails(uid) as any)
           .then((res: any) => {
             if (import.meta.env.VITE_DEBUG === 'true') {
-              console.debug('[useUserDetails] getUserDetails resolved', res);
+              logger.debug('[useUserDetails] getUserDetails resolved', { success: !!res });
             }
           })
           .catch((err: any) => {
-            if (import.meta.env.VITE_DEBUG === 'true') {
-              console.error('[useUserDetails] getUserDetails error', err);
-            }
+            logger.error('[useUserDetails] getUserDetails error', err);
           });
       } else {
         if (import.meta.env.VITE_DEBUG === 'true') {
-          console.warn('[useUserDetails] Brak uid, nie można pobrać szczegółów użytkownika');
+          logger.warn('[useUserDetails] Brak uid, nie można pobrać szczegółów użytkownika');
         }
       }
     }
@@ -41,9 +40,9 @@ export const useUserDetails = () => {
 
   useEffect(() => {
     if (import.meta.env.VITE_DEBUG === 'true') {
-      console.debug('[useUserDetails] user changed', user);
-      console.debug('[useUserDetails] loading changed', loading);
-      console.debug('[useUserDetails] error changed', error);
+      logger.debug('[useUserDetails] user changed', { hasUser: !!user, userId: user?.uid });
+      logger.debug('[useUserDetails] loading changed', { loading });
+      logger.debug('[useUserDetails] error changed', { hasError: !!error });
     }
   }, [user, loading, error]);
 
