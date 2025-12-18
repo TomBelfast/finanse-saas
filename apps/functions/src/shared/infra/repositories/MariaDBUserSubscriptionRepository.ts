@@ -6,6 +6,7 @@ import {
   UserSubscriptionStatus,
 } from '@akademiasaas/shared';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from '../../utils/logger';
 
 interface Dependencies {
   pool: Pool;
@@ -69,31 +70,32 @@ export class MariaDBUserSubscriptionRepository {
     const id = uuidv4();
     const now = new Date();
 
-    await this.dependencies.pool.execute(
-      `INSERT INTO user_subscriptions (
+    const query = `INSERT INTO user_subscriptions (
         id, user_id, name, amount, currency, period_start, period_end,
         renewal_date, provider, description, status, is_automatic_renewal,
         category, documents, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [
-        id,
-        dto.userId,
-        dto.name,
-        dto.amount,
-        dto.currency,
-        toDate(dto.periodStart),
-        toDate(dto.periodEnd),
-        toDate(dto.renewalDate),
-        dto.provider,
-        dto.description || null,
-        dto.status,
-        dto.isAutomaticRenewal,
-        dto.category || null,
-        dto.documents ? JSON.stringify(dto.documents) : null,
-        now,
-        now,
-      ]
-    );
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+    const params = [
+      id,
+      dto.userId,
+      dto.name,
+      dto.amount,
+      dto.currency,
+      toDate(dto.periodStart),
+      toDate(dto.periodEnd),
+      toDate(dto.renewalDate),
+      dto.provider,
+      dto.description || null,
+      dto.status,
+      dto.isAutomaticRenewal,
+      dto.category || null,
+      dto.documents ? JSON.stringify(dto.documents) : null,
+      now,
+      now,
+    ];
+
+    logger.sql(query, params);
+    await this.dependencies.pool.execute(query, params);
 
     return this.getById(id) as Promise<UserSubscriptionDocument>;
   }
@@ -154,10 +156,9 @@ export class MariaDBUserSubscriptionRepository {
     if (fields.length > 0) {
       fields.push('updated_at = NOW()');
       values.push(id);
-      await this.dependencies.pool.execute(
-        `UPDATE user_subscriptions SET ${fields.join(', ')} WHERE id = ?`,
-        values
-      );
+      const updateQuery = `UPDATE user_subscriptions SET ${fields.join(', ')} WHERE id = ?`;
+      logger.sql(updateQuery, values);
+      await this.dependencies.pool.execute(updateQuery, values);
     }
 
     const updated = await this.getById(id);
@@ -168,14 +169,15 @@ export class MariaDBUserSubscriptionRepository {
   }
 
   async delete(id: string): Promise<void> {
-    await this.dependencies.pool.execute('DELETE FROM user_subscriptions WHERE id = ?', [id]);
+    const query = 'DELETE FROM user_subscriptions WHERE id = ?';
+    logger.sql(query, [id]);
+    await this.dependencies.pool.execute(query, [id]);
   }
 
   async getById(id: string): Promise<UserSubscriptionDocument | null> {
-    const [rows] = await this.dependencies.pool.execute<SubscriptionRow[]>(
-      'SELECT * FROM user_subscriptions WHERE id = ?',
-      [id]
-    );
+    const query = 'SELECT * FROM user_subscriptions WHERE id = ?';
+    logger.sql(query, [id]);
+    const [rows] = await this.dependencies.pool.execute<SubscriptionRow[]>(query, [id]);
     if (rows.length === 0) return null;
     return this.mapRowToDocument(rows[0]);
   }
@@ -183,30 +185,27 @@ export class MariaDBUserSubscriptionRepository {
   // Database index on user_subscriptions(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
   // OPTIMIZATION: Consider adding pagination support (limit/offset) for users with many subscriptions
   async getByUserId(userId: string): Promise<UserSubscriptionDocument[]> {
-    const [rows] = await this.dependencies.pool.execute<SubscriptionRow[]>(
-      'SELECT * FROM user_subscriptions WHERE user_id = ? ORDER BY created_at DESC',
-      [userId]
-    );
+    const query = 'SELECT * FROM user_subscriptions WHERE user_id = ? ORDER BY created_at DESC';
+    logger.sql(query, [userId]);
+    const [rows] = await this.dependencies.pool.execute<SubscriptionRow[]>(query, [userId]);
     return rows.map((row) => this.mapRowToDocument(row));
   }
 
   async getActiveSubscriptionsForUser(userId: string): Promise<UserSubscriptionDocument[]> {
-    const [rows] = await this.dependencies.pool.execute<SubscriptionRow[]>(
-      'SELECT * FROM user_subscriptions WHERE user_id = ? AND status = ? ORDER BY created_at DESC',
-      [userId, 'active']
-    );
+    const query = 'SELECT * FROM user_subscriptions WHERE user_id = ? AND status = ? ORDER BY created_at DESC';
+    logger.sql(query, [userId, 'active']);
+    const [rows] = await this.dependencies.pool.execute<SubscriptionRow[]>(query, [userId, 'active']);
     return rows.map((row) => this.mapRowToDocument(row));
   }
 
   async getUpcomingRenewals(days: number): Promise<UserSubscriptionDocument[]> {
-    const [rows] = await this.dependencies.pool.execute<SubscriptionRow[]>(
-      `SELECT * FROM user_subscriptions 
+    const query = `SELECT * FROM user_subscriptions 
        WHERE renewal_date >= NOW() 
        AND renewal_date <= DATE_ADD(NOW(), INTERVAL ? DAY)
        AND status = ?
-       ORDER BY renewal_date ASC`,
-      [days, 'active']
-    );
+       ORDER BY renewal_date ASC`;
+    logger.sql(query, [days, 'active']);
+    const [rows] = await this.dependencies.pool.execute<SubscriptionRow[]>(query, [days, 'active']);
     return rows.map((row) => this.mapRowToDocument(row));
   }
 }
