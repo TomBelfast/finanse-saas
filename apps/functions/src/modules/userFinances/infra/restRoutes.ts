@@ -524,7 +524,8 @@ router.get('/loans', verifyClerkToken, async (req, res) => {
       
       if (cached) {
         logger.debug('Get loans: Cache hit', { userId });
-        return res.json(cached);
+        res.json(cached);
+        return;
       }
     }
     
@@ -805,7 +806,8 @@ router.get('/ai', verifyClerkToken, async (req, res) => {
       
       if (cached) {
         logger.debug('Get AI: Cache hit', { userId });
-        return res.json(cached);
+        res.json(cached);
+        return;
       }
     }
     
