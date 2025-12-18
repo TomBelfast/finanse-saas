@@ -5,6 +5,7 @@ import { MariaDBUserSubscriptionRepository } from '../../../shared/infra/reposit
 import { AuthenticatedRequest, getUserIdFromRequest, InsuranceRow, LoanRow } from '../../../shared/types/express';
 import { logger } from '../../../shared/utils/logger';
 import { handleError, createErrorResponse } from '../../../shared/utils/errorHandler';
+import { redisCache, RedisCache } from '../../../shared/infra/cache/RedisCache';
 
 const router = express.Router();
 const pool = getDatabasePool();
@@ -35,19 +36,11 @@ const toMySQLDate = (dateValue: string | undefined | null, fallback: string): st
 
 // Get user subscriptions
 // OPTIMIZATION: Repository method getByUserId doesn't support pagination yet
-// TODO: Add database index on user_subscriptions(user_id, created_at) for better query performance
-// TODO: Consider adding Redis cache for frequently accessed subscription lists (TTL: 5 minutes)
+// Database index on user_subscriptions(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
+// Redis cache implemented with 5 minute TTL
 router.get('/subscriptions', verifyClerkToken, async (req, res) => {
   try {
-    // Debug: Log request auth data
     const authReq = req as AuthenticatedRequest;
-    logger.info('Get subscriptions: Request auth data', {
-      hasAuth: !!authReq.auth,
-      authKeys: authReq.auth ? Object.keys(authReq.auth) : [],
-      userId: authReq.auth?.userId,
-      headers: { authorization: req.headers.authorization?.substring(0, 20) + '...' }
-    });
-
     const userId = getUserIdFromRequest(authReq);
     if (!userId) {
       logger.error('Get subscriptions: No userId', {
@@ -57,8 +50,23 @@ router.get('/subscriptions', verifyClerkToken, async (req, res) => {
       });
       return res.status(401).json({ error: 'Unauthorized' });
     }
+
+    // Try to get from cache first
+    const cacheKey = RedisCache.generateKey('user', userId, { type: 'subscriptions' });
+    const cached = await redisCache.get<unknown[]>(cacheKey);
+    
+    if (cached) {
+      logger.debug('Get subscriptions: Cache hit', { userId });
+      return res.json(cached);
+    }
+
+    // Cache miss - fetch from database
     logger.info('Get subscriptions: Fetching for user', { userId });
     const subscriptions = await subscriptionsRepo.getByUserId(userId);
+    
+    // Cache the result for 5 minutes
+    await redisCache.set(cacheKey, subscriptions, 300);
+    
     logger.info('Get subscriptions: Success', { userId, count: subscriptions.length });
     res.json(subscriptions);
   } catch (error: unknown) {
@@ -156,6 +164,11 @@ router.put('/subscriptions/:id', verifyClerkToken, async (req, res) => {
       updateData.status = subStatusMapUpdate[updateData.status] || updateData.status;
     }
     const subscription = await subscriptionsRepo.update(id, updateData);
+    
+    // Invalidate cache for this user's subscriptions
+    const cacheKey = RedisCache.generateKey('user', userId, { type: 'subscriptions' });
+    await redisCache.delete(cacheKey);
+    
     res.json(subscription);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -183,6 +196,11 @@ router.delete('/subscriptions/:id', verifyClerkToken, async (req, res) => {
     }
 
     await subscriptionsRepo.delete(id);
+    
+    // Invalidate cache for this user's subscriptions
+    const cacheKey = RedisCache.generateKey('user', userId, { type: 'subscriptions' });
+    await redisCache.delete(cacheKey);
+    
     res.json({ success: true });
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -222,8 +240,27 @@ router.get('/insurances', verifyClerkToken, async (req, res) => {
       }
     }
     
+    // Try to get from cache first (only if no pagination)
+    if (limit === undefined && offset === undefined) {
+      const cacheKey = RedisCache.generateKey('user', userId, { type: 'insurances' });
+      const cached = await redisCache.get<InsuranceRow[]>(cacheKey);
+      
+      if (cached) {
+        logger.debug('Get insurances: Cache hit', { userId });
+        return res.json(cached);
+      }
+    }
+    
     const [rows] = await pool.execute(query, params);
-    res.json(rows);
+    const insurances = rows as InsuranceRow[];
+    
+    // Cache the result for 5 minutes (only if no pagination)
+    if (limit === undefined && offset === undefined) {
+      const cacheKey = RedisCache.generateKey('user', userId, { type: 'insurances' });
+      await redisCache.set(cacheKey, insurances, 300);
+    }
+    
+    res.json(insurances);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
       operation: 'get_insurances',
@@ -307,6 +344,11 @@ router.post('/insurances', verifyClerkToken, async (req, res) => {
     if (!Array.isArray(rows) || rows.length === 0) {
       return res.status(500).json({ error: 'Failed to retrieve created insurance' });
     }
+    
+    // Invalidate cache for this user's insurances
+    const cacheKey = RedisCache.generateKey('user', userId, { type: 'insurances' });
+    await redisCache.delete(cacheKey);
+    
     res.status(201).json(rows[0]);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -397,6 +439,11 @@ router.put('/insurances/:id', verifyClerkToken, async (req, res) => {
     if (!Array.isArray(rows) || rows.length === 0) {
       return res.status(404).json({ error: 'Insurance not found' });
     }
+    
+    // Invalidate cache for this user's insurances
+    const cacheKey = RedisCache.generateKey('user', userId, { type: 'insurances' });
+    await redisCache.delete(cacheKey);
+    
     res.json(rows[0]);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -437,8 +484,9 @@ router.delete('/insurances/:id', verifyClerkToken, async (req, res) => {
 });
 
 // Get user loans
-// OPTIMIZATION: Consider adding pagination (limit/offset) for users with many loans
-// TODO: Add database index on user_loans(user_id, created_at) for better query performance
+// OPTIMIZATION: Pagination (limit/offset) implemented
+// Database index on user_loans(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
+// Redis cache implemented with 5 minute TTL
 router.get('/loans', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
@@ -449,6 +497,17 @@ router.get('/loans', verifyClerkToken, async (req, res) => {
     // Optional pagination parameters
     const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string, 10), 1000) : undefined;
     const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
+    
+    // Try to get from cache first (only if no pagination)
+    if (limit === undefined && offset === undefined) {
+      const cacheKey = RedisCache.generateKey('user', userId, { type: 'loans' });
+      const cached = await redisCache.get<LoanRow[]>(cacheKey);
+      
+      if (cached) {
+        logger.debug('Get loans: Cache hit', { userId });
+        return res.json(cached);
+      }
+    }
     
     let query = 'SELECT * FROM user_loans WHERE user_id = ? ORDER BY created_at DESC';
     const params: unknown[] = [userId];
@@ -463,7 +522,15 @@ router.get('/loans', verifyClerkToken, async (req, res) => {
     }
     
     const [rows] = await pool.execute(query, params);
-    res.json(rows);
+    const loans = rows as LoanRow[];
+    
+    // Cache the result for 5 minutes (only if no pagination)
+    if (limit === undefined && offset === undefined) {
+      const cacheKey = RedisCache.generateKey('user', userId, { type: 'loans' });
+      await redisCache.set(cacheKey, loans, 300);
+    }
+    
+    res.json(loans);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
       operation: 'get_loans',
@@ -689,8 +756,9 @@ router.delete('/loans/:id', verifyClerkToken, async (req, res) => {
 });
 
 // Get user AI items
-// OPTIMIZATION: Consider adding pagination (limit/offset) for users with many AI items
-// TODO: Add database index on user_ai(user_id, created_at) for better query performance
+// OPTIMIZATION: Pagination (limit/offset) implemented
+// Database index on user_ai(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
+// Redis cache implemented with 5 minute TTL
 router.get('/ai', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
@@ -701,6 +769,17 @@ router.get('/ai', verifyClerkToken, async (req, res) => {
     // Optional pagination parameters
     const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string, 10), 1000) : undefined;
     const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
+    
+    // Try to get from cache first (only if no pagination)
+    if (limit === undefined && offset === undefined) {
+      const cacheKey = RedisCache.generateKey('user', userId, { type: 'ai' });
+      const cached = await redisCache.get<InsuranceRow[]>(cacheKey);
+      
+      if (cached) {
+        logger.debug('Get AI: Cache hit', { userId });
+        return res.json(cached);
+      }
+    }
     
     let query = 'SELECT * FROM user_ai WHERE user_id = ? ORDER BY created_at DESC';
     const params: unknown[] = [userId];
@@ -715,7 +794,15 @@ router.get('/ai', verifyClerkToken, async (req, res) => {
     }
     
     const [rows] = await pool.execute(query, params);
-    res.json(rows);
+    const aiItems = rows as InsuranceRow[];
+    
+    // Cache the result for 5 minutes (only if no pagination)
+    if (limit === undefined && offset === undefined) {
+      const cacheKey = RedisCache.generateKey('user', userId, { type: 'ai' });
+      await redisCache.set(cacheKey, aiItems, 300);
+    }
+    
+    res.json(aiItems);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
       operation: 'get_ai',
