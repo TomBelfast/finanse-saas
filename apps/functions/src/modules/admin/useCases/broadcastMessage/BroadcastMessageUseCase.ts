@@ -49,7 +49,8 @@ export class BroadcastMessageUseCase
     } catch (error) {
       logger.error('Failed to send broadcast message', error);
 
-      return left(new BroadcastMessageErrors.BroadcastFailed(error.message));
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      return left(new BroadcastMessageErrors.BroadcastFailed(errorMessage));
     }
   }
 }

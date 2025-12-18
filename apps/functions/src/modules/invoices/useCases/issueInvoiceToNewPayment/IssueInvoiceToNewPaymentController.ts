@@ -19,15 +19,17 @@ export class IssueInvoiceToNewPaymentController extends PubSubEventController {
       } else {
         return this.ok(result.value.getValue());
       }
-    } catch (err) {
-      switch (err.constructor) {
-        case IssueInvoiceToNewPaymentErrors.DtoValidationError:
-          return this.invalid(err.errorValue().message);
-        case IssueInvoiceToNewPaymentErrors.UnsupportedFeature:
-          return this.todo(err.errorValue().message);
-        default:
-          return this.fail(err.errorValue?.().message ?? err.message);
+    } catch (err: unknown) {
+      if (err instanceof IssueInvoiceToNewPaymentErrors.DtoValidationError) {
+        return this.invalid(err.errorValue().message);
       }
+      if (err instanceof IssueInvoiceToNewPaymentErrors.UnsupportedFeature) {
+        return this.todo(err.errorValue().message);
+      }
+      const errorMessage = err instanceof Error 
+        ? (err as { errorValue?: () => { message: string } }).errorValue?.()?.message ?? err.message
+        : String(err);
+      return this.fail(errorMessage);
     }
   }
 }

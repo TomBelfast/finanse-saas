@@ -24,7 +24,7 @@ export const subscribeToBusinessEvents = functions
   .runWith({ timeoutSeconds: 210, memory: '512MB' })
   .region(DEFAULT_FIREBASE_REGION)
   .pubsub.topic(env.pubsub.invoicesEvents)
-  .onPublish(async (message) => {
+  .onPublish(async (message: { data?: Buffer }) => {
     const messageBody: BusinessEvent | null = message.data
       ? JSON.parse(Buffer.from(message.data, 'base64').toString())
       : null;
