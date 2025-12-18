@@ -362,6 +362,40 @@ pnpm dev
 - Implementacja Redis cache dla często używanych danych
 - Dodanie pagination do repository methods (nie tylko endpointów)
 
+### 4.4 Code Splitting Optimization
+
+**Status:** ✅ **Zakończone**
+
+**Zmiany:**
+- **Usunięto duplikację lazy imports:**
+  - W `App.tsx` były lazy imports dla komponentów, które są już lazy loaded w `Dashboard.tsx`
+  - Usunięto duplikację: Loans, Subscriptions, Insurances, Reports, Settings z App.tsx
+  - Zostawiono tylko Dashboard (który zawiera wszystkie sub-routes)
+- **Dodano lazy loading dla Auth:**
+  - `Auth` page jest teraz lazy loaded zamiast bezpośredniego importu
+  - Auth nie jest często używany, więc code splitting ma sens
+- **Struktura routes:**
+  - Dashboard jest głównym kontenerem z lazy loaded sub-routes
+  - Wszystkie sub-routes (Loans, Subscriptions, Insurances, AI, Reports, Settings, Finished) są lazy loaded w Dashboard.tsx
+  - Auth jest lazy loaded w App.tsx
+
+**Wpływ:**
+- 📦 Mniejszy initial bundle size - Auth nie jest ładowany przy starcie
+- ⚡ Szybsze ładowanie aplikacji - tylko Dashboard jest ładowany początkowo
+- 🎯 Lepsze code splitting - każda strona jest osobnym chunkiem
+- 🔄 Backward compatible - nie zmienia funkcjonalności
+
+**Pliki zmienione:**
+- `apps/web-app/src/App.tsx`
+
+**Commity:**
+- `[commit]` - Perf: Optymalizacja code splitting w App.tsx
+
+**Uwaga:**
+- Lazy loading jest już dobrze zaimplementowany w Dashboard.tsx
+- Wszystkie główne strony są lazy loaded
+- Code splitting działa poprawnie z Suspense boundaries
+
 ---
 
 ## 📝 Pozostałe Zadania do Wykonania
