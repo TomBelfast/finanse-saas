@@ -32,6 +32,7 @@ import {
 } from 'recharts';
 import { AppStore, formatCurrency, Currency } from '@akademiasaas/shared';
 import { apiClient } from '../../services/apiClient';
+import { ApiAI } from '~/types/api';
 import {
   ChartContainer,
   ChartTooltip,
@@ -152,7 +153,7 @@ const AI = () => {
   const userCurrency = (userDetails?.defaultCurrency || 'pln') as Currency;
 
   // Helper function to parse amount
-  const parseAmount = (amount: any): number => {
+  const parseAmount = (amount: unknown): number => {
     if (typeof amount === 'number') return amount;
     if (typeof amount === 'string') {
       // Remove currency symbols and spaces, replace comma with dot
@@ -167,7 +168,7 @@ const AI = () => {
     setLoading(true);
     try {
       const aiItems = await apiClient.getAI();
-      const mapped = (aiItems as any[]).map(row => {
+      const mapped = (aiItems as ApiAI[]).map(row => {
         // Parse documents
         let attachments = [];
         try {
@@ -178,11 +179,9 @@ const AI = () => {
 
         // Extract renewalCycle from description if needed
         let renewalCycle = 'monthly';
-        if (row.description && row.description.includes('Renewal Cycle:')) {
+        if (row.description && typeof row.description === 'string' && row.description.includes('Renewal Cycle:')) {
           const match = row.description.match(/Renewal Cycle:\s*(\w+)/);
           if (match) renewalCycle = match[1];
-        } else if (row.renewalCycle) {
-          renewalCycle = row.renewalCycle;
         }
 
         // Mapowanie statusów - API zwraca angielskie, ale możemy je zostawić jako są
@@ -224,7 +223,7 @@ const AI = () => {
         };
       });
       setData(mapped);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Błąd podczas ładowania AI', error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoading(false);
@@ -432,14 +431,14 @@ const AI = () => {
       if (editMode && editingAI) {
         await apiClient.updateAI(editingAI.id, payload);
       } else {
-        await apiClient.createAI(payload as any);
+        await apiClient.createAI(payload);
       }
 
       setModalOpen(false);
       loadData();
-    } catch (e: any) {
+    } catch (e: unknown) {
       logger.error('Błąd zapisu AI', e instanceof Error ? e : new Error(String(e)));
-      alert(e?.message || 'Błąd zapisu');
+      alert((e instanceof Error ? e.message : null) || (typeof e === 'object' && e !== null && 'message' in e ? String(e.message) : null) || 'Błąd zapisu');
     }
   };
 
@@ -686,7 +685,7 @@ const AI = () => {
                           cursor={false} 
                           content={<ChartTooltipContent 
                             hideLabel 
-                            formatter={(value: number, name: string, props: any) => {
+                            formatter={(value: unknown) => {
                               const paymentStatus = props.payload?.paymentStatus || '';
                               return [formatCurrency(value, userCurrency), paymentStatus];
                             }}
@@ -778,7 +777,7 @@ const AI = () => {
                         <ChartTooltip 
                           content={<ChartTooltipContent 
                             hideLabel
-                            formatter={(value: number, name: string, props: any) => {
+                            formatter={(value: unknown) => {
                               const paymentStatus = props.payload?.paymentStatus || '';
                               return [formatCurrency(value, userCurrency), paymentStatus];
                             }}
@@ -871,10 +870,9 @@ const AI = () => {
                         cursor={false} 
                         content={<ChartTooltipContent 
                           hideLabel 
-                          formatter={(value: number, name: string, props: any) => {
-                            const cycle = props.payload?.cycle || '';
-                            const paymentStatus = props.payload?.paymentStatus || '';
-                            return [formatCurrency(value, userCurrency), `${cycle} - ${paymentStatus}`];
+                          formatter={(value: unknown) => {
+                            const numValue = typeof value === 'number' ? value : Number(value) || 0;
+                            return formatCurrency(numValue, userCurrency);
                           }}
                           labelFormatter={(label) => label}
                         />} 
@@ -938,7 +936,7 @@ const AI = () => {
                 <Label htmlFor="paymentStatus">Płatność</Label>
                 <Select
                   value={formData.paymentStatus}
-                  onValueChange={(value) => setFormData({ ...formData, paymentStatus: value as any })}
+                  onValueChange={(value) => setFormData({ ...formData, paymentStatus: value as 'do_zaplaty' | 'zaplacono' })}
                 >
                   <SelectTrigger id="paymentStatus">
                     <SelectValue placeholder="Wybierz" />
@@ -955,7 +953,7 @@ const AI = () => {
               <Label htmlFor="renewalCycle">Cykl odnowienia</Label>
               <Select
                 value={formData.renewalCycle}
-                onValueChange={(value) => setFormData({ ...formData, renewalCycle: value as any })}
+                onValueChange={(value) => setFormData({ ...formData, renewalCycle: value as 'monthly' | 'yearly' })}
               >
                 <SelectTrigger id="renewalCycle">
                   <SelectValue placeholder="Wybierz" />
@@ -1005,7 +1003,7 @@ const AI = () => {
               <UploadField
                 fileList={attachments.map(a => ({ url: a.url, name: a.name, uid: a.name }))}
                 onChange={(value) => {
-                  const newAttachments = value.map((f: any) => ({
+                  const newAttachments = value.map((f: { name: string; url: string; uid?: string; type?: string }) => ({
                     name: f.name,
                     url: f.url,
                     type: f.type || '',
