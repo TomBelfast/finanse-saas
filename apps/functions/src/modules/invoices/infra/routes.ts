@@ -24,12 +24,12 @@ export const subscribeToBusinessEvents = functions
   .runWith({ timeoutSeconds: 210, memory: '512MB' })
   .region(DEFAULT_FIREBASE_REGION)
   .pubsub.topic(env.pubsub.invoicesEvents)
-  .onPublish(async (message: { data?: Buffer }) => {
+  .onPublish(async (message: { data?: Buffer; attributes?: Record<string, string> }) => {
     const messageBody: BusinessEvent | null = message.data
       ? JSON.parse(Buffer.from(message.data, 'base64').toString())
       : null;
     const { logger } = functions;
-    logger.debug('Message body:', messageBody, message.attributes);
+    logger.debug('Message body:', messageBody, message.attributes || {});
 
     if (messageBody?.eventName === SubscriptionEventType.InvoicePaid) {
       logger.info(`Start processing new invoice ${messageBody.eventId} for paid subscription`);

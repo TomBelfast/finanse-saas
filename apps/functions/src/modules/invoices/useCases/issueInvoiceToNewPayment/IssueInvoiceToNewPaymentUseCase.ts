@@ -83,10 +83,11 @@ export class IssueInvoiceToNewPaymentUseCase
           data: JSON.stringify(e.response?.data),
         });
       } else {
+        const errorObj = e as { status?: number; response?: { status?: number; message?: string }; message?: string };
         logger.warn('Handle flow for failed issuing...', {
-          status: e.status,
-          statusResponse: e.response?.status,
-          errorMessage: e.response?.message || e.message,
+          status: errorObj.status,
+          statusResponse: errorObj.response?.status,
+          errorMessage: errorObj.response?.message || errorObj.message,
           error: e,
         });
       }
