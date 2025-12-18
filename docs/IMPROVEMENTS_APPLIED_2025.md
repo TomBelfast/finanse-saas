@@ -248,6 +248,41 @@ pnpm dev
 
 ---
 
+## 🚀 Faza 4: Performance Optimizations
+
+### 4.1 React Performance Optimization - Reports.tsx
+
+**Status:** ✅ **Zakończone**
+
+**Zmiany:**
+- Przeniesiono obliczenia wykresów z render do `useMemo`:
+  - `categoryChartData` - dane dla pie chart (rozkład kosztów miesięcznych)
+  - `barChartData` - dane dla bar chart (porównanie kosztów miesięcznych)
+  - `activeLoansData` - dane dla wykresów kredytów (pozostałe kwoty, miesięczne raty)
+  - `subscriptionsChartData` - dane dla wykresów subskrypcji
+- Dodano `useCallback` dla:
+  - `parseAmount` - funkcja parsująca kwoty
+  - `currencyFormatter` - formatter dla tooltipów wykresów
+- Zmniejszono liczbę obliczeń przy każdym renderze z ~10+ do 0 (wszystko memoized)
+- Poprawiono dependency arrays w `useMemo` i `useCallback`
+
+**Wpływ:**
+- ⚡ Znacznie szybsze renderowanie komponentu Reports
+- 📉 Mniejsze obciążenie CPU przy interakcjach użytkownika
+- 🎯 Lepsze UX - brak lagów przy przełączaniu zakładek
+
+**Pliki zmienione:**
+- `apps/web-app/src/pages/Reports/Reports.tsx`
+
+**Commity:**
+- `bae3283` - Perf: Optymalizacja React performance w Reports.tsx
+- `d756653` - Fix: Poprawka składni w Reports.tsx
+- `742c0c8` - Fix: Dodanie brakujących definicji useMemo
+- `81b4e49` - Fix: Poprawka typu cycle w subscriptionsChartData
+- `cbe8577` - Fix: Usunięcie niepotrzebnych porównań cycle
+
+---
+
 ## 📝 Pozostałe Zadania do Wykonania
 
 ### 🔴 Wysoki Priorytet (Krytyczne)
