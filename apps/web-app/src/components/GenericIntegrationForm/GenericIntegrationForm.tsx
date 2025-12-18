@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react'
+import React, { useEffect, useMemo } from 'react'
 import { useForm, UseFormReturn } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import {
@@ -52,23 +52,25 @@ function GenericIntegrationForm<T extends object>({
 
   const providedFields = Object.entries(fields).filter(([_, field]) => !!field) as [string, FieldProps][]
 
-  const defaultValues = providedFields.reduce((acc, [name, field]) => {
-    if (field.default !== undefined) {
-      acc[name] = field.default
-    }
-    return acc
-  }, {} as Record<string, string | boolean>)
+  const defaultValues = useMemo(() => {
+    return providedFields.reduce((acc, [name, field]) => {
+      if (field.default !== undefined) {
+        acc[name] = field.default
+      }
+      return acc
+    }, {} as Partial<T>)
+  }, [providedFields])
 
   const form = useForm<T>({
-    defaultValues: { ...defaultValues, ...model },
+    defaultValues: { ...defaultValues, ...model } as Partial<T>,
   })
 
   // Update form when model changes
   useEffect(() => {
     if (model) {
-      form.reset({ ...defaultValues, ...model })
+      form.reset({ ...defaultValues, ...model } as Partial<T>)
     }
-  }, [model, form]) // defaultValues is stable enough or computed
+  }, [model, form, defaultValues])
 
   const handleSubmit = (data: T) => {
     onSubmit(data)
@@ -84,7 +86,8 @@ function GenericIntegrationForm<T extends object>({
             <FormField
               key={name}
               control={form.control}
-              name={name as keyof T & string}
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              name={name as any}
               rules={{
                 required: field.required ? t<string>('common:validationErrors.fieldIsRequired') : false,
               }}

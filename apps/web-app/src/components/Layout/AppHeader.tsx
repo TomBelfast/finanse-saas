@@ -14,8 +14,16 @@ import {
 import { userActions } from '@akademiasaas/shared';
 import { useAppDispatch } from '~/initializeStore';
 
+interface User {
+  uid?: string;
+  email?: string;
+  firstName?: string;
+  lastName?: string;
+  avatarUrl?: string | string[] | null;
+}
+
 interface AppHeaderProps {
-    user: any;
+    user: User | null | undefined;
     unreadNotifications: number;
     onOpenNotifications: () => void;
     onOpenProfile: () => void;

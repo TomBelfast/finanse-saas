@@ -118,7 +118,14 @@ const UploadDragger: FunctionComponent<Props> = ({
     });
   };
 
-  const onRemove = (fileToRemove: any) => {
+  interface FileItem {
+    uid: string;
+    name: string;
+    url?: string;
+    type?: string;
+  }
+
+  const onRemove = (fileToRemove: FileItem) => {
     updateFileList((prev) =>
       prev.filter((savedFile) => savedFile.uid !== fileToRemove.uid)
     );

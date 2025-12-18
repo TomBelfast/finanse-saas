@@ -237,7 +237,10 @@ const Users: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="role">{t('dashboard:users.columns.role')}</label>
-              <Select onValueChange={(val) => (register('role').onChange({ target: { value: val } } as any))} defaultValue={dialogMode === 'edit' && editingUser ? editingUser.role : undefined}>
+              <Select onValueChange={(val) => {
+                const field = register('role');
+                field.onChange({ target: { value: val } } as React.ChangeEvent<HTMLInputElement>);
+              }} defaultValue={dialogMode === 'edit' && editingUser ? editingUser.role : undefined}>
                 <SelectTrigger id="role" className="w-full">
                   <SelectValue placeholder={t('common:select')} />
                 </SelectTrigger>
@@ -251,7 +254,10 @@ const Users: React.FC = () => {
             </div>
             <div>
               <label className="block text-sm font-medium mb-1" htmlFor="status">{t('dashboard:users.columns.status')}</label>
-              <Select onValueChange={(val) => (register('status').onChange({ target: { value: val } } as any))} defaultValue={dialogMode === 'edit' && editingUser ? editingUser.status : undefined}>
+              <Select onValueChange={(val) => {
+                const field = register('status');
+                field.onChange({ target: { value: val } } as React.ChangeEvent<HTMLInputElement>);
+              }} defaultValue={dialogMode === 'edit' && editingUser ? editingUser.status : undefined}>
                 <SelectTrigger id="status" className="w-full">
                   <SelectValue placeholder={t('common:select')} />
                 </SelectTrigger>

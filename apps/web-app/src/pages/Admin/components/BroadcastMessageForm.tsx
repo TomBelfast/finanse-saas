@@ -63,7 +63,7 @@ const BroadcastMessageForm: React.FC<BroadcastMessageFormProps> = ({ onSuccess }
   const { sendBroadcastMessage, loading } = useBroadcastMessage()
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any,
+    resolver: zodResolver(formSchema),
     defaultValues: {
       title: '',
       message: '',

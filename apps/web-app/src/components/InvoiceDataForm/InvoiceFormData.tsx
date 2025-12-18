@@ -70,7 +70,17 @@ const InvoiceDataForm: React.FC<Props> = ({
       country: 'PL',
       email: '',
       ...model,
-    } as any,
+    } as {
+      firstName: string;
+      lastName: string;
+      companyName: string;
+      nip: string;
+      street: string;
+      postalCode: string;
+      city: string;
+      country: string;
+      email: string;
+    },
   });
 
   useEffect(() => {

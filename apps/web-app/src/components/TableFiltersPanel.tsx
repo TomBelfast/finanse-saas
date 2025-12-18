@@ -61,7 +61,7 @@ export const TableFiltersPanel: React.FC<TableFiltersPanelProps> = ({ fields, va
                 <Label htmlFor={field.name}>{field.label}</Label>
                 <Input
                   id={field.name}
-                  value={values[field.name] || ''}
+                  value={typeof values[field.name] === 'string' ? values[field.name] as string : ''}
                   onChange={(e) => handleChange(field.name, e.target.value)}
                   className="w-[150px]"
                 />
@@ -72,7 +72,7 @@ export const TableFiltersPanel: React.FC<TableFiltersPanelProps> = ({ fields, va
               <div key={field.name} className="flex flex-col gap-1.5">
                 <Label htmlFor={field.name}>{field.label}</Label>
                 <Select
-                  value={values[field.name] || 'all'}
+                  value={typeof values[field.name] === 'string' ? values[field.name] as string : 'all'}
                   onValueChange={(val) => handleChange(field.name, val === 'all' ? undefined : val)}
                 >
                   <SelectTrigger className="w-[150px]" id={field.name}>
@@ -97,7 +97,13 @@ export const TableFiltersPanel: React.FC<TableFiltersPanelProps> = ({ fields, va
                   <Input
                     type="number"
                     placeholder="od"
-                    value={values[field.name]?.min ?? ''}
+                    value={((): string => {
+                      const val = values[field.name];
+                      if (val && typeof val === 'object' && !(val instanceof Date) && 'min' in val) {
+                        return String((val as { min?: number }).min ?? '');
+                      }
+                      return '';
+                    })()}
                     onChange={(e) => handleNumberRangeChange(field.name, 'min', e.target.value)}
                     className="w-[80px]"
                   />
@@ -105,7 +111,13 @@ export const TableFiltersPanel: React.FC<TableFiltersPanelProps> = ({ fields, va
                   <Input
                     type="number"
                     placeholder="do"
-                    value={values[field.name]?.max ?? ''}
+                    value={((): string => {
+                      const val = values[field.name];
+                      if (val && typeof val === 'object' && !(val instanceof Date) && 'max' in val) {
+                        return String((val as { max?: number }).max ?? '');
+                      }
+                      return '';
+                    })()}
                     onChange={(e) => handleNumberRangeChange(field.name, 'max', e.target.value)}
                     className="w-[80px]"
                   />
@@ -117,7 +129,13 @@ export const TableFiltersPanel: React.FC<TableFiltersPanelProps> = ({ fields, va
               <div key={field.name} className="flex flex-col gap-1.5">
                 <Label>{field.label}</Label>
                 <DatePickerWithRange
-                  date={values[field.name]}
+                  date={((): DateRange | undefined => {
+                    const val = values[field.name];
+                    if (val && typeof val === 'object' && !(val instanceof Date) && ('from' in val || 'to' in val)) {
+                      return val as DateRange;
+                    }
+                    return undefined;
+                  })()}
                   onDateChange={(range) => handleDateRangeChange(field.name, range)}
                 />
               </div>
@@ -127,7 +145,7 @@ export const TableFiltersPanel: React.FC<TableFiltersPanelProps> = ({ fields, va
               <div key={field.name} className="flex items-center space-x-2 pb-2">
                 <Checkbox
                   id={field.name}
-                  checked={values[field.name]}
+                  checked={typeof values[field.name] === 'boolean' ? values[field.name] as boolean : false}
                   onCheckedChange={(checked) => handleChange(field.name, checked)}
                 />
                 <Label htmlFor={field.name}>{field.label}</Label>
