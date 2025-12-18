@@ -134,16 +134,25 @@
 
 ## 🟢 Niski Priorytet
 
-### 7. Code Cleanup
+### 7. Code Cleanup ✅ (częściowo)
 
-**TODO/FIXME:** ~80 komentarzy w 34 plikach
+**Status:** ✅ Częściowo zrobione
+
+**Zrobione:**
+- ✅ Zaktualizowano TODO komentarze o database indexes (już dodane w migracji)
+- ✅ Zaktualizowano TODO komentarze o Redis cache (już zaimplementowane)
+- ✅ Zaktualizowano TODO komentarze o Clerk (już zaimplementowane)
+
+**Pozostało:**
+- TODO w unimplemented methods (BaseController, PubSubEventController, PayUEventController) - celowo pozostawione
+- TODO o implementacji endpointów API (useBroadcastMessage, apiClient) - do zrobienia w przyszłości
+- TODO o zastąpieniu Firebase subscription (Settings, NotificationsDrawer) - do zrobienia w przyszłości
 
 **Akcja:**
-- Przejrzeć wszystkie TODO/FIXME
-- Usunąć deprecated code (np. `authMiddleware` w `apps/functions/src/shared/infra/http/middleware/auth.ts`)
-- Wyodrębnić shared utilities (duplikacja kodu)
+- Pozostałe TODO są celowo pozostawione jako przyszłe zadania
+- Deprecated code może być usunięty w przyszłości (np. `authMiddleware`)
 
-**Szacowany czas:** 3-5 dni
+**Szacowany czas:** 1-2 dni (dla pozostałych zadań)
 
 ---
 
