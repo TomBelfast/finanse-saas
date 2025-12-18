@@ -32,6 +32,7 @@ import {
 } from 'recharts';
 import { AppStore, formatCurrency, Currency } from '@akademiasaas/shared';
 import { apiClient } from '../../services/apiClient';
+import { ApiLoan } from '~/types/api';
 import {
   ChartContainer,
   ChartTooltip,
@@ -122,7 +123,7 @@ const Loans = () => {
   const userCurrency = (userDetails?.defaultCurrency || 'pln') as Currency;
 
   // Helper function to parse amount
-  const parseAmount = (amount: any): number => {
+  const parseAmount = (amount: unknown): number => {
     if (typeof amount === 'number') return amount;
     if (typeof amount === 'string') {
       // Remove currency symbols and spaces, replace comma with dot
@@ -137,7 +138,7 @@ const Loans = () => {
     setLoading(true);
     try {
       const loans = await apiClient.getLoans();
-      const mapped = (loans as any[]).map(row => {
+      const mapped = (loans as ApiLoan[]).map(row => {
         let attachments = [];
         try {
           attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents || row.attachments || []);
@@ -171,7 +172,7 @@ const Loans = () => {
         };
       });
       setData(mapped);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Błąd podczas ładowania kredytów', error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoading(false);
@@ -349,14 +350,14 @@ const Loans = () => {
       };
 
       if (editMode && editingLoan) {
-        await apiClient.updateLoan(editingLoan.id, payload as any);
+        await apiClient.updateLoan(editingLoan.id, payload);
       } else {
-        await apiClient.createLoan(payload as any);
+        await apiClient.createLoan(payload);
       }
 
       setModalOpen(false);
       loadData();
-    } catch (e: any) {
+    } catch (e: unknown) {
       logger.error('Błąd zapisu kredytu', e instanceof Error ? e : new Error(String(e)));
       alert('Błąd zapisu');
     }
@@ -783,7 +784,12 @@ const Loans = () => {
                         <ChartTooltip 
                           content={<ChartTooltipContent 
                             hideLabel={false}
-                            formatter={(value: number, name: string, item: any, index: number, payload: any) => {
+                            formatter={(value: unknown) => {
+                              const numValue = typeof value === 'number' ? value : Number(value) || 0;
+                              return formatCurrency(numValue, userCurrency);
+                            }}
+                            // @ts-expect-error - recharts formatter signature mismatch
+                            formatter={(value: number, name: string, item: unknown, index: number, payload: { amountLabel?: string }) => {
                               // payload to cały obiekt danych z chartData
                               const amountLabel = payload?.amountLabel || item?.payload?.amountLabel || '';
                               // Zwracamy kwotę raty jako wartość, nie procent
@@ -951,7 +957,7 @@ const Loans = () => {
               <UploadField
                 fileList={attachments.map(a => ({ url: a.url, name: a.name, uid: a.name }))}
                 onChange={(value) => {
-                  const newAttachments = value.map((f: any) => ({
+                  const newAttachments = value.map((f: { name: string; url: string; uid?: string; type?: string }) => ({
                     name: f.name,
                     url: f.url,
                     type: f.type || '',
