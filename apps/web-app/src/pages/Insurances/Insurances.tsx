@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { logger } from '~/utils/logger';
 import {
   Plus,
   Edit,
@@ -171,7 +172,9 @@ const Insurances = () => {
         let attachments = [];
         try {
           attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents || row.attachments || []);
-        } catch (e) { console.error('Error parsing attachments', e); }
+        } catch (e) { 
+          logger.error('Error parsing attachments', e instanceof Error ? e : new Error(String(e)));
+        }
 
         // Extract renewalCycle from description if needed
         let renewalCycle = 'monthly';
@@ -221,7 +224,7 @@ const Insurances = () => {
       });
       setData(mapped);
     } catch (error: any) {
-      console.error('Błąd podczas ładowania ubezpieczeń:', error);
+      logger.error('Błąd podczas ładowania ubezpieczeń', error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoading(false);
     }
@@ -337,7 +340,7 @@ const Insurances = () => {
       await apiClient.deleteInsurance(id);
       loadData();
     } catch (error) {
-      console.error('Błąd usuwania:', error);
+      logger.error('Błąd usuwania', error instanceof Error ? error : new Error(String(error)), { insuranceId: id });
     }
   };
 
@@ -387,7 +390,7 @@ const Insurances = () => {
       await apiClient.createInsurance(newInsurance);
       loadData();
     } catch (error) {
-      console.error('Błąd płatności:', error);
+      logger.error('Błąd płatności', error instanceof Error ? error : new Error(String(error)));
     }
   };
 
@@ -439,7 +442,7 @@ const Insurances = () => {
       setModalOpen(false);
       loadData();
     } catch (e: any) {
-      console.error(e);
+      logger.error('Błąd zapisu ubezpieczenia', e instanceof Error ? e : new Error(String(e)));
       alert(e?.message || 'Błąd zapisu');
     }
   };
