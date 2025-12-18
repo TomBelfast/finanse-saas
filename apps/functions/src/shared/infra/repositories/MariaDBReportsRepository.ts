@@ -2,7 +2,8 @@ import { Pool, RowDataPacket } from 'mysql2/promise';
 import {
     CreatorStatsDocument,
     CreatorMonthStatsDocument,
-    ReportCurrency
+    ReportCurrency,
+    SubscriptionPlan
 } from '@akademiasaas/shared';
 
 interface Dependencies {
@@ -59,7 +60,7 @@ export class MariaDBReportsRepository {
             totalNumberOfOneTimeTransactions: row.total_transactions,
             totalAmountOfEarnedMoney: JSON.parse(row.earned_money),
             requiresAction: row.requires_action ? JSON.parse(row.requires_action) : null,
-            currentTier: row.current_tier as any,
+            currentTier: (row.current_tier as SubscriptionPlan) || null,
             createdAt: row.created_at,
             updatedAt: row.updated_at,
             totalNumberOfFreeSubscribers: row.total_free_subscribers,

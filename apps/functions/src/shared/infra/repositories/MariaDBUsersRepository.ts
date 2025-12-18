@@ -69,7 +69,7 @@ export class MariaDBUsersRepository implements UsersRepository {
       termsAndPrivacyPolicy: Boolean(row.terms_and_privacy_policy),
       stripeCustomerId: row.stripe_customer_id || undefined,
       country: row.country || undefined,
-      features: this.parseJSONField<any[]>(row.features) || [],
+      features: this.parseJSONField<string[]>(row.features) || [],
       ip: row.ip,
       subscription: this.parseJSONField(row.subscription),
       lang: row.lang || undefined,

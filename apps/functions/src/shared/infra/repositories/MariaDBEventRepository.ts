@@ -50,7 +50,7 @@ export class MariaDBEventRepository {
 
     // Not checking exact type mapping here as BusinessEvent is a union. 
     // We return a generic structure compatible with BusinessEventMetadata & payload.
-    private mapRowToEvent(row: EventRow): any {
+    private mapRowToEvent(row: EventRow): BusinessEvent {
         return {
             eventId: row.event_id,
             eventName: row.event_name,
