@@ -424,13 +424,18 @@ const AI = () => {
         renewalDate = currentDate.toISOString().split('T')[0];
       }
 
-      const payload = {
-        ...formData,
-        amount: formData.amountDue, // map amountDue to amount for backend
-        documents: safeAttachments,
-        description: formData.note,
+      const payload: Partial<ApiAI> = {
+        name: formData.name,
+        amount: formData.amountDue || 0,
+        currency: formData.currency || userCurrency || 'PLN',
+        insurance_company: formData.aiCompany || '',
+        insurance_type: formData.aiType || '',
+        status: formData.status || 'active',
         renewal_date: renewalDate,
-        status: formData.status || 'active', // Upewnij się, że status jest wysyłany
+        description: formData.note || null,
+        documents: safeAttachments.length > 0 ? JSON.stringify(safeAttachments) : null,
+        period_start: formData.periodStart || new Date().toISOString().split('T')[0],
+        period_end: formData.periodEnd || null,
       };
 
       if (editMode && editingAI) {
@@ -690,9 +695,10 @@ const AI = () => {
                           cursor={false} 
                           content={<ChartTooltipContent 
                             hideLabel 
-                            formatter={(value: unknown) => {
-                              const paymentStatus = props.payload?.paymentStatus || '';
-                              return [formatCurrency(value, userCurrency), paymentStatus];
+                            formatter={(value: unknown, _name: unknown, props?: { payload?: { paymentStatus?: string } }) => {
+                              const numValue = typeof value === 'number' ? value : Number(value) || 0;
+                              const paymentStatus = props?.payload?.paymentStatus || '';
+                              return [formatCurrency(numValue, userCurrency), paymentStatus];
                             }}
                             labelFormatter={(label) => label}
                           />} 
