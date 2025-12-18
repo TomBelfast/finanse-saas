@@ -270,18 +270,139 @@ pnpm dev
 
 ---
 
+---
+
+## ✅ Zastosowane Ulepszenia - Część 2 (Kontynuacja)
+
+### 5. 📝 Type Safety: Usunięcie `any` z uploadRoutes.ts
+
+**Plik:** `apps/functions/src/modules/upload/infra/uploadRoutes.ts`
+
+**Zmiany:**
+- ✅ Utworzono właściwe interfejsy TypeScript dla database rows:
+  - `DatabaseFileRow` - dla zapytań z danymi pliku
+  - `FileMetadataRow` - dla zapytań z metadanymi
+- ✅ Zastąpiono wszystkie `as any[]` przez właściwe typy generyczne
+- ✅ Dodano type-safe array checks (`Array.isArray()`)
+- ✅ Poprawiono type safety dla wszystkich endpointów
+
+**Wpływ:**
+- ✅ **Type Safety:** Lepsze wykrywanie błędów w compile time
+- ✅ **Code Quality:** Czytelniejszy i bezpieczniejszy kod
+- ✅ **Maintainability:** Łatwiejsze refaktorowanie
+
+---
+
+### 6. 🛡️ Error Handling: Utworzenie errorHandler utility
+
+**Plik:** `apps/functions/src/shared/utils/errorHandler.ts` (NOWY)
+
+**Funkcjonalności:**
+- ✅ `getErrorMessage()` - bezpieczna ekstrakcja message z unknown error
+- ✅ `getErrorStack()` - bezpieczna ekstrakcja stack trace
+- ✅ `handleError()` - unified error handling z loggingiem
+- ✅ `createErrorResponse()` - standardized error response dla Express routes
+- ✅ `isDatabaseError()` - wykrywanie błędów bazy danych
+- ✅ `isValidationError()` - wykrywanie błędów walidacji
+
+**Wpływ:**
+- ✅ **Consistency:** Spójne error handling w całej aplikacji
+- ✅ **Safety:** Bezpieczna obsługa unknown error types
+- ✅ **Debugging:** Lepsze logowanie z kontekstem
+
+---
+
+### 7. 🛡️ Error Handling: Poprawa w uploadRoutes.ts
+
+**Plik:** `apps/functions/src/modules/upload/infra/uploadRoutes.ts`
+
+**Zmiany:**
+- ✅ Wszystkie catch blocks używają teraz `handleError()` lub `createErrorResponse()`
+- ✅ Dodano context do error logging (operation, fileId, etc.)
+- ✅ Poprawiono error handling dla wszystkich endpointów
+- ✅ Dodano sprawdzanie czy file.data istnieje przed wysłaniem
+- ✅ Poprawiono DELETE endpoint - zwraca 404 jeśli plik nie istnieje
+
+---
+
+### 8. 🔒 Security: Poprawa Redis Configuration
+
+**Plik:** `apps/functions/src/shared/infra/repositories/BaseRepository.ts`
+
+**Zmiany:**
+- ✅ Usunięto hardcoded fallback values dla Redis
+- ✅ Dodano funkcję `getRedisConfig()` z walidacją
+- ✅ Production wymaga teraz prawidłowych Redis credentials
+- ✅ Development ma warning ale pozwala na fallback
+
+**Akcja wymagana (Production):**
+```bash
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_token
+```
+
+---
+
+### 9. 🛡️ Database: Poprawa Error Handling
+
+**Plik:** `apps/functions/src/shared/infra/database.ts`
+
+**Zmiany:**
+- ✅ Dodano error handling w `executeQuery()` z loggingiem
+- ✅ Dodano error handling w `executeQueryOne()` z loggingiem
+- ✅ Dodano walidację czy wynik jest array
+- ✅ Dodano context do error logs (query, params)
+
+**Wpływ:**
+- ✅ **Reliability:** Lepsze error handling i logging
+- ✅ **Debugging:** Łatwiejsze diagnozowanie problemów z bazą danych
+- ✅ **Safety:** Walidacja typu odpowiedzi z bazy
+
+---
+
+## 📊 Metryki Ulepszeń - Aktualizacja
+
+| Obszar | Przed | Po | Poprawa |
+|--------|-------|-----|---------|
+| **Security Issues** | 2 krytyczne | 0 | ✅ 100% |
+| **Type Safety** | Częściowy | Ulepszony | ✅ +4 strict checks, 0 `any` w uploadRoutes |
+| **Code Quality** | console.log | Structured logging | ✅ Ulepszone |
+| **Error Handling** | Różne wzorce | Unified | ✅ Ujednolicone |
+| **Type Safety (`any` w uploadRoutes)** | 5 wystąpień | 0 | ✅ 100% |
+
+---
+
+## ⚠️ Breaking Changes - Aktualizacja
+
+### 4. Redis Configuration (Production)
+**Breaking:** Production wymaga teraz `UPSTASH_REDIS_REST_URL` i `UPSTASH_REDIS_REST_TOKEN`.
+
+**Migration:**
+```bash
+# W production environment:
+UPSTASH_REDIS_REST_URL=https://your-redis.upstash.io
+UPSTASH_REDIS_REST_TOKEN=your_token
+```
+
+---
+
 ## 🎯 Podsumowanie
 
-Zastosowano **4 krytyczne ulepszenia** w zakresie bezpieczeństwa i jakości kodu:
+Zastosowano **9 ulepszeń** w zakresie bezpieczeństwa, type safety i jakości kodu:
 
-1. ✅ **Security:** Usunięto hardcoded credentials
+1. ✅ **Security:** Usunięto hardcoded database credentials
 2. ✅ **Security:** Poprawiono CORS configuration
-3. ✅ **Type Safety:** Włączono dodatkowe strict checks
-4. ✅ **Code Quality:** Zastąpiono console.log loggerem
+3. ✅ **Security:** Poprawiono Redis configuration
+4. ✅ **Type Safety:** Włączono dodatkowe strict checks
+5. ✅ **Type Safety:** Usunięto wszystkie `any` z uploadRoutes.ts
+6. ✅ **Code Quality:** Zastąpiono console.log loggerem
+7. ✅ **Error Handling:** Utworzono unified errorHandler utility
+8. ✅ **Error Handling:** Poprawiono error handling w uploadRoutes i database helpers
+9. ✅ **Error Handling:** Dodano createErrorResponse helper dla spójnych error responses
 
 **Status:** ✅ Wszystkie ulepszenia zastosowane pomyślnie
 
-**Następna analiza:** Zalecana za 1 miesiąc po wdrożeniu zmian
+**Ostatnia aktualizacja:** 2025-01-18
 
 ---
 
