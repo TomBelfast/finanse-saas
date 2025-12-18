@@ -48,7 +48,8 @@ router.get('/subscriptions', verifyClerkToken, async (req, res) => {
         auth: authReq.auth,
         authType: typeof authReq.auth
       });
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Try to get from cache first
@@ -57,7 +58,8 @@ router.get('/subscriptions', verifyClerkToken, async (req, res) => {
     
     if (cached) {
       logger.debug('Get subscriptions: Cache hit', { userId });
-      return res.json(cached);
+      res.json(cached);
+      return;
     }
 
     // Cache miss - fetch from database
@@ -87,7 +89,8 @@ router.post('/subscriptions', verifyClerkToken, async (req, res) => {
         headers: req.headers,
         auth: (req as AuthenticatedRequest).auth
       });
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Only require name and amount
@@ -142,13 +145,15 @@ router.put('/subscriptions/:id', verifyClerkToken, async (req, res) => {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Verify ownership
     const existing = await subscriptionsRepo.getById(id);
     if (!existing || existing.userId !== userId) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     const updateData = { ...req.body };
@@ -186,13 +191,15 @@ router.delete('/subscriptions/:id', verifyClerkToken, async (req, res) => {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Verify ownership
     const existing = await subscriptionsRepo.getById(id);
     if (!existing || existing.userId !== userId) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     await subscriptionsRepo.delete(id);
@@ -221,7 +228,8 @@ router.get('/insurances', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
     
     // Optional pagination parameters
@@ -275,7 +283,8 @@ router.post('/insurances', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Only require name
@@ -366,14 +375,16 @@ router.put('/insurances/:id', verifyClerkToken, async (req, res) => {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Verify ownership
     const [existing] = await pool.execute('SELECT user_id FROM user_insurances WHERE id = ?', [id]);
     const existingRows = existing as InsuranceRow[];
     if (existingRows.length === 0 || existingRows[0].user_id !== userId) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     const fields: string[] = [];
@@ -437,7 +448,8 @@ router.put('/insurances/:id', verifyClerkToken, async (req, res) => {
 
     const [rows] = await pool.execute<InsuranceRow[]>('SELECT * FROM user_insurances WHERE id = ?', [id]);
     if (!Array.isArray(rows) || rows.length === 0) {
-      return res.status(404).json({ error: 'Insurance not found' });
+      res.status(404).json({ error: 'Insurance not found' });
+      return;
     }
     
     // Invalidate cache for this user's insurances
@@ -461,14 +473,16 @@ router.delete('/insurances/:id', verifyClerkToken, async (req, res) => {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Verify ownership
     const [existing] = await pool.execute('SELECT user_id FROM user_insurances WHERE id = ?', [id]);
     const existingRows = existing as InsuranceRow[];
     if (existingRows.length === 0 || existingRows[0].user_id !== userId) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     await pool.execute('DELETE FROM user_insurances WHERE id = ?', [id]);
@@ -491,7 +505,8 @@ router.get('/loans', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
     
     // Optional pagination parameters
@@ -554,7 +569,8 @@ router.post('/loans', verifyClerkToken, async (req, res) => {
 
     if (!userId) {
       logger.error('Create loan: No userId found');
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
     const data = req.body;
 
@@ -646,14 +662,16 @@ router.put('/loans/:id', verifyClerkToken, async (req, res) => {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Verify ownership
     const [existing] = await pool.execute('SELECT user_id FROM user_loans WHERE id = ?', [id]);
     const existingRows = existing as LoanRow[];
     if (existingRows.length === 0 || existingRows[0].user_id !== userId) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     const fields: string[] = [];
@@ -714,7 +732,8 @@ router.put('/loans/:id', verifyClerkToken, async (req, res) => {
 
     const [rows] = await pool.execute<LoanRow[]>('SELECT * FROM user_loans WHERE id = ?', [id]);
     if (!Array.isArray(rows) || rows.length === 0) {
-      return res.status(404).json({ error: 'Loan not found' });
+      res.status(404).json({ error: 'Loan not found' });
+      return;
     }
     res.json(rows[0]);
   } catch (error: unknown) {
@@ -733,14 +752,16 @@ router.delete('/loans/:id', verifyClerkToken, async (req, res) => {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Verify ownership
     const [existing] = await pool.execute('SELECT user_id FROM user_loans WHERE id = ?', [id]);
     const existingRows = existing as LoanRow[];
     if (existingRows.length === 0 || existingRows[0].user_id !== userId) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     await pool.execute('DELETE FROM user_loans WHERE id = ?', [id]);
@@ -763,7 +784,8 @@ router.get('/ai', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
     
     // Optional pagination parameters
@@ -817,7 +839,8 @@ router.post('/ai', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Only require name
@@ -897,14 +920,16 @@ router.put('/ai/:id', verifyClerkToken, async (req, res) => {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Verify ownership
     const [existing] = await pool.execute('SELECT user_id FROM user_ai WHERE id = ?', [id]);
     const existingRows = existing as InsuranceRow[];
     if (existingRows.length === 0 || existingRows[0].user_id !== userId) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     const fields: string[] = [];
@@ -981,14 +1006,16 @@ router.delete('/ai/:id', verifyClerkToken, async (req, res) => {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     // Verify ownership
     const [existing] = await pool.execute('SELECT user_id FROM user_ai WHERE id = ?', [id]);
     const existingRows = existing as InsuranceRow[];
     if (existingRows.length === 0 || existingRows[0].user_id !== userId) {
-      return res.status(403).json({ error: 'Forbidden' });
+      res.status(403).json({ error: 'Forbidden' });
+      return;
     }
 
     await pool.execute('DELETE FROM user_ai WHERE id = ?', [id]);

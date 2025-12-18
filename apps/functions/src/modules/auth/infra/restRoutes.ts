@@ -1,6 +1,5 @@
 import express, { RequestHandler } from 'express';
 import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
-import { getDatabasePool } from '../../../shared/infra/database';
 import { createUsersRepository } from '../../../shared/infra/repositories/repositoryFactory';
 import { db } from '../../../config/bootstrap';
 import { UserDocument } from '@akademiasaas/shared';
@@ -9,7 +8,6 @@ import { logger } from '../../../shared/utils/logger';
 import { validateBody, updateUserSchema } from '../../../shared/validation/schemas';
 
 const router = express.Router();
-const pool = getDatabasePool();
 const usersRepository = createUsersRepository(db);
 
 // Middleware to verify Clerk token
@@ -43,7 +41,8 @@ router.get('/me', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     let userData = await usersRepository.findUserById(userId);
@@ -75,7 +74,8 @@ router.get('/me', verifyClerkToken, async (req, res) => {
     }
 
     if (!userData) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
+      return;
     }
 
     res.json({
@@ -99,7 +99,8 @@ router.put('/me', verifyClerkToken, validateBody(updateUserSchema), async (req, 
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     const updateData = req.body;
