@@ -6,6 +6,15 @@ import * as path from 'path';
  * 
  * This file creates authenticated user state that can be reused across tests.
  * This is more efficient than logging in before each test.
+ * 
+ * Playwright API użyte tutaj:
+ * - page.goto() - Nawigacja
+ * - page.waitForSelector() - Czekanie na element
+ * - page.locator() - Selekcja elementów
+ * - page.fill() - Wypełnienie formularza
+ * - page.click() - Kliknięcie
+ * - page.waitForURL() - Czekanie na zmianę URL
+ * - context.storageState() - Zapisanie stanu autentykacji
  */
 
 const authFile = path.join(__dirname, '../playwright/.auth/user.json');
