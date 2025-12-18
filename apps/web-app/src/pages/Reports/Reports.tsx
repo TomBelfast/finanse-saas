@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { addDays, format } from 'date-fns';
@@ -174,8 +174,8 @@ const Reports: React.FC = () => {
   const [ai, setAI] = useState<ApiAI[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Helper function to parse amount
-  const parseAmount = (amount: unknown): number => {
+  // Helper function to parse amount - memoized to avoid recreation
+  const parseAmount = useCallback((amount: unknown): number => {
     if (typeof amount === 'number') return amount;
     if (typeof amount === 'string') {
       const cleaned = amount.replace(/[^\d.,-]/g, '').replace(',', '.');
@@ -183,7 +183,7 @@ const Reports: React.FC = () => {
       return isNaN(parsed) ? 0 : parsed;
     }
     return 0;
-  };
+  }, []);
 
   useEffect(() => {
     const loadData = async () => {
@@ -800,35 +800,15 @@ const Reports: React.FC = () => {
                       <CardTitle className="text-base">Rozkład kosztów miesięcznych</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {(() => {
-                        const COLORS = [
-                          "hsl(var(--chart-1))",
-                          "hsl(var(--chart-2))",
-                          "hsl(var(--chart-3))",
-                          "hsl(var(--chart-4))",
-                          "hsl(var(--chart-5))",
-                        ];
-                        const categoryData = [
-                          { name: 'Kredyty', value: totals.loansMonthly, fill: COLORS[0] },
-                          { name: 'Finanse', value: totals.subscriptionsMonthly, fill: COLORS[1] },
-                          { name: 'Ubezpieczenia', value: totals.insurancesMonthly, fill: COLORS[2] },
-                          { name: 'AI', value: totals.aiMonthly, fill: COLORS[3] },
-                        ].filter(item => item.value > 0);
-                        
-                        const config = categoryData.reduce((acc, item) => {
-                          acc[item.name] = { label: item.name, color: item.fill };
-                          return acc;
-                        }, {} as Record<string, { label: string; color: string }>);
-                        
-                        return categoryData.length > 0 ? (
-                          <div className="w-full overflow-visible p-4">
-                            <ChartContainer config={config} className="mx-auto aspect-square max-h-[400px] w-full [&_.recharts-pie-label-text]:fill-foreground [&_.recharts-pie-label-line]:stroke-foreground">
-                              <PieChart margin={{ top: 60, right: 120, bottom: 60, left: 120 }}>
-                                <ChartTooltip content={<ChartTooltipContent hideLabel formatter={(v) => formatCurrency(typeof v === 'number' ? v : Number(v) || 0, userCurrency)} />} />
-                                <Pie 
-                                  data={categoryData} 
-                                  dataKey="value" 
-                                  label={(entry: any) => {
+                      {categoryChartData.data.length > 0 ? (
+                        <div className="w-full overflow-visible p-4">
+                          <ChartContainer config={categoryChartData.config} className="mx-auto aspect-square max-h-[400px] w-full [&_.recharts-pie-label-text]:fill-foreground [&_.recharts-pie-label-line]:stroke-foreground">
+                            <PieChart margin={{ top: 60, right: 120, bottom: 60, left: 120 }}>
+                              <ChartTooltip content={<ChartTooltipContent hideLabel formatter={currencyFormatter} />} />
+                              <Pie 
+                                data={categoryChartData.data} 
+                                dataKey="value" 
+                                label={(entry: { cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; name: string }) => {
                                     const { cx, cy, midAngle, innerRadius, outerRadius } = entry;
                                     const RADIAN = Math.PI / 180;
                                     const radius = outerRadius + 20;
@@ -856,7 +836,7 @@ const Reports: React.FC = () => {
                                   outerRadius={90}
                                   innerRadius={0}
                                 >
-                                  {categoryData.map((entry, index) => (
+                                  {categoryChartData.data.map((entry, index) => (
                                     <Cell key={`cell-${index}`} fill={entry.fill} />
                                   ))}
                                 </Pie>
@@ -865,8 +845,7 @@ const Reports: React.FC = () => {
                           </div>
                         ) : (
                           <p className="text-sm text-muted-foreground">Brak danych</p>
-                        );
-                      })()}
+                        )}
                     </CardContent>
                   </Card>
                   <Card>
@@ -874,43 +853,23 @@ const Reports: React.FC = () => {
                       <CardTitle className="text-base">Porównanie kosztów miesięcznych</CardTitle>
                     </CardHeader>
                     <CardContent>
-                      {(() => {
-                        const COLORS = [
-                          "hsl(var(--chart-1))",
-                          "hsl(var(--chart-2))",
-                          "hsl(var(--chart-3))",
-                          "hsl(var(--chart-4))",
-                        ];
-                        const barData = [
-                          { name: 'Kredyty', value: totals.loansMonthly, fill: COLORS[0] },
-                          { name: 'Finanse', value: totals.subscriptionsMonthly, fill: COLORS[1] },
-                          { name: 'Ubezpieczenia', value: totals.insurancesMonthly, fill: COLORS[2] },
-                          { name: 'AI', value: totals.aiMonthly, fill: COLORS[3] },
-                        ].filter(item => item.value > 0);
-                        
-                        const config = barData.reduce((acc, item) => {
-                          acc[item.name] = { label: item.name, color: item.fill };
-                          return acc;
-                        }, {} as Record<string, { label: string; color: string }>);
-                        
-                        return barData.length > 0 ? (
-                          <ChartContainer config={config} className="max-h-[300px] w-full">
-                            <BarChart data={barData}>
-                              <CartesianGrid vertical={false} />
-                              <XAxis dataKey="name" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                              <YAxis tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                              <ChartTooltip content={<ChartTooltipContent hideLabel formatter={(v) => formatCurrency(typeof v === 'number' ? v : Number(v) || 0, userCurrency)} />} />
-                              <Bar dataKey="value" radius={[4, 4, 0, 0]}>
-                                {barData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                                ))}
-                              </Bar>
-                            </BarChart>
-                          </ChartContainer>
-                        ) : (
-                          <p className="text-sm text-muted-foreground">Brak danych</p>
-                        );
-                      })()}
+                      {barChartData.data.length > 0 ? (
+                        <ChartContainer config={barChartData.config} className="max-h-[300px] w-full">
+                          <BarChart data={barChartData.data}>
+                            <CartesianGrid vertical={false} />
+                            <XAxis dataKey="name" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
+                            <YAxis tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
+                            <ChartTooltip content={<ChartTooltipContent hideLabel formatter={currencyFormatter} />} />
+                            <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                              {barChartData.data.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ChartContainer>
+                      ) : (
+                        <p className="text-sm text-muted-foreground">Brak danych</p>
+                      )}
                     </CardContent>
                   </Card>
                 </div>
@@ -1014,14 +973,14 @@ const Reports: React.FC = () => {
                           <CardTitle className="text-base">Pozostałe kwoty do spłaty</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <ChartContainer config={config} className="max-h-[300px] w-full">
-                            <BarChart data={chartData} layout="vertical">
+                          <ChartContainer config={activeLoansData.config} className="max-h-[300px] w-full">
+                            <BarChart data={activeLoansData.chartData} layout="vertical">
                               <CartesianGrid horizontal={false} />
                               <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} style={{ fontSize: '12px' }} />
                               <XAxis type="number" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                              <ChartTooltip content={<ChartTooltipContent hideLabel formatter={(v) => formatCurrency(typeof v === 'number' ? v : Number(v) || 0, userCurrency)} />} />
+                              <ChartTooltip content={<ChartTooltipContent hideLabel formatter={currencyFormatter} />} />
                               <Bar dataKey="remaining" radius={5}>
-                                {chartData.map((entry, index) => (
+                                {activeLoansData.chartData.map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                               </Bar>
@@ -1034,14 +993,14 @@ const Reports: React.FC = () => {
                           <CardTitle className="text-base">Miesięczne raty</CardTitle>
                         </CardHeader>
                         <CardContent>
-                          <ChartContainer config={config} className="max-h-[300px] w-full">
-                            <BarChart data={chartData} layout="vertical">
+                          <ChartContainer config={activeLoansData.config} className="max-h-[300px] w-full">
+                            <BarChart data={activeLoansData.chartData} layout="vertical">
                               <CartesianGrid horizontal={false} />
                               <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} style={{ fontSize: '12px' }} />
                               <XAxis type="number" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                              <ChartTooltip content={<ChartTooltipContent hideLabel formatter={(v) => formatCurrency(typeof v === 'number' ? v : Number(v) || 0, userCurrency)} />} />
+                              <ChartTooltip content={<ChartTooltipContent hideLabel formatter={currencyFormatter} />} />
                               <Bar dataKey="monthly" radius={5}>
-                                {chartData.map((entry, index) => (
+                                {activeLoansData.chartData.map((entry, index) => (
                                   <Cell key={`cell-${index}`} fill={entry.fill} />
                                 ))}
                               </Bar>
@@ -1050,8 +1009,7 @@ const Reports: React.FC = () => {
                         </CardContent>
                       </Card>
                     </div>
-                  );
-                })()}
+                  )}
               </div>
             </TabsContent>
 
