@@ -295,7 +295,7 @@ const Loans = () => {
       nextPaymentsSoon,
       totalProgress: Math.round(totalProgress * 100) / 100
     };
-  }, [data]);
+  }, [data, parseAmount]);
 
   const handleOpenAddModal = () => {
     setEditMode(false);
