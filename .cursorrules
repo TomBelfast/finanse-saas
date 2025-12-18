@@ -1,0 +1,34 @@
+# Cursor Rules for Finanse SaaS Project
+
+## Documentation Management
+
+### Report Files
+- **NEVER create new report files** when updating existing documentation
+- **ALWAYS update the original report file** instead of creating PART2, PART3, etc.
+- When adding new improvements or analysis results, append to the existing file (e.g., `IMPROVEMENTS_APPLIED_2025.md`)
+- This prevents file clutter and keeps all related information in one place
+
+**Example:**
+- ❌ DON'T: Create `IMPROVEMENTS_APPLIED_2025_PART2.md`
+- ✅ DO: Update `IMPROVEMENTS_APPLIED_2025.md` with new sections
+
+## Code Quality
+
+- Use TypeScript strict mode
+- Prefer explicit types over `any`
+- Use structured logging instead of console.log
+- Implement unified error handling with errorHandler utility
+
+## Security
+
+- Never commit hardcoded credentials
+- Always use environment variables for sensitive data
+- Validate environment variables in production mode
+- Use proper CORS configuration with whitelist in production
+
+## Error Handling
+
+- Use `handleError()` or `createErrorResponse()` from `shared/utils/errorHandler`
+- Always include context in error logs (operation, userId, etc.)
+- Use appropriate HTTP status codes based on error type
+
