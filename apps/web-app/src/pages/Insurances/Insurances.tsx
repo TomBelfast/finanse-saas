@@ -442,7 +442,7 @@ const Insurances = () => {
       loadData();
     } catch (e: unknown) {
       logger.error('Błąd zapisu ubezpieczenia', e instanceof Error ? e : new Error(String(e)));
-      alert(e?.message || 'Błąd zapisu');
+      alert((e instanceof Error ? e.message : null) || (typeof e === 'object' && e !== null && 'message' in e ? String(e.message) : null) || 'Błąd zapisu');
     }
   };
 
