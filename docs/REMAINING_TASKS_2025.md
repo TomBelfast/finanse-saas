@@ -156,16 +156,26 @@
 
 ---
 
-### 8. Test Coverage
+### 8. Test Coverage ✅ (częściowo)
 
-**Status:** ⚠️ Unknown - brak testów
+**Status:** ✅ Częściowo zrobione
 
-**Akcja:**
-- Dodać unit tests dla utilities
-- Dodać integration tests dla API endpoints
-- Dodać E2E tests dla kluczowych flow
+**Zrobione:**
+- ✅ Playwright E2E testing framework zaimplementowany
+- ✅ Testy autentykacji (login, register, logout)
+- ✅ Testy Dashboard
+- ✅ Testy Subscriptions CRUD (create, read, update, delete)
+- ✅ Testy Reports page
+- ✅ Authentication setup fixture (reuse authenticated state)
+- ✅ GitHub Actions workflow dla CI/CD
+- ✅ Dokumentacja Playwright Testing Guide
 
-**Szacowany czas:** 1-2 tygodnie
+**Pozostało:**
+- Unit tests dla utilities (vitest)
+- Integration tests dla API endpoints
+- Dodatkowe E2E testy (Insurances, Loans, AI CRUD)
+
+**Szacowany czas:** 1 tydzień (dla pozostałych testów)
 
 ---
 
