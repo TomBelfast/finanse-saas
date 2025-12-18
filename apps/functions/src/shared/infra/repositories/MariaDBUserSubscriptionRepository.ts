@@ -180,7 +180,7 @@ export class MariaDBUserSubscriptionRepository {
     return this.mapRowToDocument(rows[0]);
   }
 
-  // TODO: Add database index on user_subscriptions(user_id, created_at) for better query performance
+  // Database index on user_subscriptions(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
   // OPTIMIZATION: Consider adding pagination support (limit/offset) for users with many subscriptions
   async getByUserId(userId: string): Promise<UserSubscriptionDocument[]> {
     const [rows] = await this.dependencies.pool.execute<SubscriptionRow[]>(

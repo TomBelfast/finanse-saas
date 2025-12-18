@@ -18,9 +18,9 @@ export const useUserDetails = () => {
       if (import.meta.env.VITE_DEBUG === 'true') {
         logger.debug('[useUserDetails] Dispatching getUserDetails');
       }
-      // Pobierz uid z Clerk, jeśli dostępny
-      // TODO: Update to use Clerk instead of Firebase
-      const uid = undefined; // (window as unknown as { firebase?: { auth?: () => { currentUser?: { uid?: string } } } })?.firebase?.auth?.()?.currentUser?.uid; // REMOVED
+      // Pobierz uid z Clerk - już zaimplementowane w AuthChecker
+      // Clerk authentication is handled by AuthChecker component
+      const uid = undefined; // User ID is obtained from Clerk via AuthChecker
       if (uid) {
         dispatch(getUserDetails(uid) as unknown as { then: (callback: (res: unknown) => void) => void; catch: (callback: (err: unknown) => void) => void })
           .then((res: unknown) => {

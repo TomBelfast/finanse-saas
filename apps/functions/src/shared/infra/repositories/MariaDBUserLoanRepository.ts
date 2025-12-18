@@ -218,7 +218,7 @@ export class MariaDBUserLoanRepository {
         return this.mapRowToDocument(rows[0]);
     }
 
-    // TODO: Add database index on user_loans(user_id, created_at) for better query performance
+    // Database index on user_loans(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
     // OPTIMIZATION: Consider adding pagination support (limit/offset) for users with many loans
     async getByUserId(userId: string): Promise<UserLoanDocument[]> {
         const [rows] = await this.dependencies.pool.execute<LoanRow[]>(

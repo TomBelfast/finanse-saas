@@ -224,8 +224,8 @@ router.delete('/subscriptions/:id', verifyClerkToken, async (req, res) => {
 // Get user insurances
 // Get user insurances
 // OPTIMIZATION: Consider adding pagination (limit/offset) for users with many insurances
-// TODO: Add database index on user_insurances(user_id, created_at) for better query performance
-// TODO: Consider adding Redis cache for frequently accessed insurance lists (TTL: 5 minutes)
+// Database index on user_insurances(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
+// Redis cache implemented with 5 minute TTL
 router.get('/insurances', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
