@@ -190,6 +190,8 @@ export class MariaDBUserInsuranceRepository {
         return this.mapRowToDocument(rows[0]);
     }
 
+    // TODO: Add database index on user_insurances(user_id, created_at) for better query performance
+    // OPTIMIZATION: Consider adding pagination support (limit/offset) for users with many insurances
     async getByUserId(userId: string): Promise<UserInsuranceDocument[]> {
         const [rows] = await this.dependencies.pool.execute<InsuranceRow[]>(
             'SELECT * FROM user_insurances WHERE user_id = ? ORDER BY created_at DESC',

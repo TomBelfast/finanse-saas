@@ -37,6 +37,7 @@ testRouter.post('/debug/insurance/:userId', async (req, res) => {
 });
 
 // DEBUG: List all users and their data counts
+// OPTIMIZED: Fixed N+1 query problem by using LEFT JOIN instead of separate queries per user
 testRouter.get('/debug/users', async (req, res) => {
   try {
     interface UserRow extends RowDataPacket {
@@ -44,27 +45,39 @@ testRouter.get('/debug/users', async (req, res) => {
       email: string | null;
       first_name: string | null;
       last_name: string | null;
+      subscriptions_count: number;
+      insurances_count: number;
+      loans_count: number;
     }
     
-    interface CountRow extends RowDataPacket {
-      count: number;
-    }
+    // Single query with LEFT JOINs to avoid N+1 problem
+    // This reduces from 1 + (N * 3) queries to just 1 query
+    const [users] = await pool.execute<UserRow[]>(`
+      SELECT 
+        u.uid,
+        u.email,
+        u.first_name,
+        u.last_name,
+        COALESCE(COUNT(DISTINCT s.id), 0) as subscriptions_count,
+        COALESCE(COUNT(DISTINCT i.id), 0) as insurances_count,
+        COALESCE(COUNT(DISTINCT l.id), 0) as loans_count
+      FROM users u
+      LEFT JOIN user_subscriptions s ON u.uid = s.user_id
+      LEFT JOIN user_insurances i ON u.uid = i.user_id
+      LEFT JOIN user_loans l ON u.uid = l.user_id
+      GROUP BY u.uid, u.email, u.first_name, u.last_name
+      LIMIT 20
+    `);
     
-    const [users] = await pool.execute<UserRow[]>('SELECT uid, email, first_name, last_name FROM users LIMIT 20');
-    const userList = [];
-    for (const user of users) {
-      const [subs] = await pool.execute<CountRow[]>('SELECT COUNT(*) as count FROM user_subscriptions WHERE user_id = ?', [user.uid]);
-      const [ins] = await pool.execute<CountRow[]>('SELECT COUNT(*) as count FROM user_insurances WHERE user_id = ?', [user.uid]);
-      const [loans] = await pool.execute<CountRow[]>('SELECT COUNT(*) as count FROM user_loans WHERE user_id = ?', [user.uid]);
-      userList.push({
-        uid: user.uid,
-        email: user.email,
-        name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
-        subscriptions: Array.isArray(subs) && subs.length > 0 ? subs[0].count : 0,
-        insurances: Array.isArray(ins) && ins.length > 0 ? ins[0].count : 0,
-        loans: Array.isArray(loans) && loans.length > 0 ? loans[0].count : 0
-      });
-    }
+    const userList = users.map(user => ({
+      uid: user.uid,
+      email: user.email,
+      name: `${user.first_name || ''} ${user.last_name || ''}`.trim(),
+      subscriptions: Number(user.subscriptions_count) || 0,
+      insurances: Number(user.insurances_count) || 0,
+      loans: Number(user.loans_count) || 0
+    }));
+    
     res.json({ success: true, users: userList });
   } catch (error: unknown) {
     res.status(500).json({ error: (error as Error).message });

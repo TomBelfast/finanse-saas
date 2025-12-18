@@ -218,6 +218,8 @@ export class MariaDBUserLoanRepository {
         return this.mapRowToDocument(rows[0]);
     }
 
+    // TODO: Add database index on user_loans(user_id, created_at) for better query performance
+    // OPTIMIZATION: Consider adding pagination support (limit/offset) for users with many loans
     async getByUserId(userId: string): Promise<UserLoanDocument[]> {
         const [rows] = await this.dependencies.pool.execute<LoanRow[]>(
             'SELECT * FROM user_loans WHERE user_id = ? ORDER BY created_at DESC',

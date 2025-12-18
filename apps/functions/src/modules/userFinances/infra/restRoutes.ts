@@ -34,6 +34,9 @@ const toMySQLDate = (dateValue: string | undefined | null, fallback: string): st
 };
 
 // Get user subscriptions
+// OPTIMIZATION: Repository method getByUserId doesn't support pagination yet
+// TODO: Add database index on user_subscriptions(user_id, created_at) for better query performance
+// TODO: Consider adding Redis cache for frequently accessed subscription lists (TTL: 5 minutes)
 router.get('/subscriptions', verifyClerkToken, async (req, res) => {
   try {
     // Debug: Log request auth data
@@ -192,16 +195,34 @@ router.delete('/subscriptions/:id', verifyClerkToken, async (req, res) => {
 });
 
 // Get user insurances
+// Get user insurances
+// OPTIMIZATION: Consider adding pagination (limit/offset) for users with many insurances
+// TODO: Add database index on user_insurances(user_id, created_at) for better query performance
+// TODO: Consider adding Redis cache for frequently accessed insurance lists (TTL: 5 minutes)
 router.get('/insurances', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const [rows] = await pool.execute(
-      'SELECT * FROM user_insurances WHERE user_id = ? ORDER BY created_at DESC',
-      [userId]
-    );
+    
+    // Optional pagination parameters
+    const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string, 10), 1000) : undefined;
+    const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
+    
+    let query = 'SELECT * FROM user_insurances WHERE user_id = ? ORDER BY created_at DESC';
+    const params: unknown[] = [userId];
+    
+    if (limit !== undefined) {
+      query += ' LIMIT ?';
+      params.push(limit);
+      if (offset !== undefined) {
+        query += ' OFFSET ?';
+        params.push(offset);
+      }
+    }
+    
+    const [rows] = await pool.execute(query, params);
     res.json(rows);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -416,16 +437,32 @@ router.delete('/insurances/:id', verifyClerkToken, async (req, res) => {
 });
 
 // Get user loans
+// OPTIMIZATION: Consider adding pagination (limit/offset) for users with many loans
+// TODO: Add database index on user_loans(user_id, created_at) for better query performance
 router.get('/loans', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const [rows] = await pool.execute(
-      'SELECT * FROM user_loans WHERE user_id = ? ORDER BY created_at DESC',
-      [userId]
-    );
+    
+    // Optional pagination parameters
+    const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string, 10), 1000) : undefined;
+    const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
+    
+    let query = 'SELECT * FROM user_loans WHERE user_id = ? ORDER BY created_at DESC';
+    const params: unknown[] = [userId];
+    
+    if (limit !== undefined) {
+      query += ' LIMIT ?';
+      params.push(limit);
+      if (offset !== undefined) {
+        query += ' OFFSET ?';
+        params.push(offset);
+      }
+    }
+    
+    const [rows] = await pool.execute(query, params);
     res.json(rows);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -652,16 +689,32 @@ router.delete('/loans/:id', verifyClerkToken, async (req, res) => {
 });
 
 // Get user AI items
+// OPTIMIZATION: Consider adding pagination (limit/offset) for users with many AI items
+// TODO: Add database index on user_ai(user_id, created_at) for better query performance
 router.get('/ai', verifyClerkToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
       return res.status(401).json({ error: 'Unauthorized' });
     }
-    const [rows] = await pool.execute(
-      'SELECT * FROM user_ai WHERE user_id = ? ORDER BY created_at DESC',
-      [userId]
-    );
+    
+    // Optional pagination parameters
+    const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string, 10), 1000) : undefined;
+    const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
+    
+    let query = 'SELECT * FROM user_ai WHERE user_id = ? ORDER BY created_at DESC';
+    const params: unknown[] = [userId];
+    
+    if (limit !== undefined) {
+      query += ' LIMIT ?';
+      params.push(limit);
+      if (offset !== undefined) {
+        query += ' OFFSET ?';
+        params.push(offset);
+      }
+    }
+    
+    const [rows] = await pool.execute(query, params);
     res.json(rows);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
