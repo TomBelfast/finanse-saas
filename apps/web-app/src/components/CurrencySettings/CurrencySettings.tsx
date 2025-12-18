@@ -2,6 +2,7 @@ import React, { FunctionComponent, useState, useEffect } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
+import { logger } from '~/utils/logger';
 import {
   Card,
   CardContent,
@@ -79,7 +80,7 @@ const CurrencySettings: FunctionComponent<Props> = () => {
       
       toast.success(t('currency.saveSuccess'));
     } catch (error) {
-      console.error('Error updating currency:', error);
+      logger.error('Error updating currency', error instanceof Error ? error : new Error(String(error)), { currency: form.getValues('defaultCurrency') });
       toast.error(t('currency.saveError'));
     } finally {
       setLoading(false);
