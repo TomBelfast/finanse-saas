@@ -176,6 +176,7 @@ router.put('/subscriptions/:id', verifyClerkToken, async (req, res) => {
     await redisCache.delete(cacheKey);
     
     res.json(subscription);
+    return;
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
       operation: 'update_subscription',
@@ -439,7 +440,8 @@ router.put('/insurances/:id', verifyClerkToken, async (req, res) => {
     }
 
     if (fields.length === 0) {
-      return res.status(400).json({ error: 'No fields to update' });
+      res.status(400).json({ error: 'No fields to update' });
+      return;
     }
 
     fields.push('updated_at = NOW()');
@@ -461,6 +463,7 @@ router.put('/insurances/:id', verifyClerkToken, async (req, res) => {
     await redisCache.delete(cacheKey);
     
     res.json(rows[0]);
+    return;
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
       operation: 'update_insurance',
@@ -726,7 +729,8 @@ router.put('/loans/:id', verifyClerkToken, async (req, res) => {
     }
 
     if (fields.length === 0) {
-      return res.status(400).json({ error: 'No fields to update' });
+      res.status(400).json({ error: 'No fields to update' });
+      return;
     }
 
     fields.push('updated_at = NOW()');
@@ -743,6 +747,7 @@ router.put('/loans/:id', verifyClerkToken, async (req, res) => {
       return;
     }
     res.json(rows[0]);
+    return;
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
       operation: 'update_loan',
@@ -988,7 +993,8 @@ router.put('/ai/:id', verifyClerkToken, async (req, res) => {
     }
 
     if (fields.length === 0) {
-      return res.status(400).json({ error: 'No fields to update' });
+      res.status(400).json({ error: 'No fields to update' });
+      return;
     }
 
     values.push(id);
@@ -1000,6 +1006,7 @@ router.put('/ai/:id', verifyClerkToken, async (req, res) => {
       return;
     }
     res.json(rows[0]);
+    return;
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
       operation: 'update_ai',

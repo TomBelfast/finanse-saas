@@ -17,7 +17,8 @@ router.get('/me', verifyClerkToken, async (req, res) => {
     const authReq = req as AuthenticatedRequest;
     const userId = getUserIdFromRequest(authReq);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
 
     let userData = await usersRepository.findUserById(userId);
@@ -55,7 +56,8 @@ router.put('/me', verifyClerkToken, validateBody(updateUserSchema), async (req, 
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
-      return res.status(401).json({ error: 'Unauthorized' });
+      res.status(401).json({ error: 'Unauthorized' });
+      return;
     }
     const updateData = req.body;
 
@@ -63,6 +65,7 @@ router.put('/me', verifyClerkToken, validateBody(updateUserSchema), async (req, 
     const updatedUser = await usersRepository.findUserById(userId);
 
     res.json(updatedUser);
+    return;
   } catch (error: unknown) {
     const err = error as Error;
     logger.error('Update user error', err);
@@ -77,7 +80,8 @@ router.get('/:userId', verifyClerkToken, requireSelfOrAdmin, async (req, res) =>
     const userData = await usersRepository.findUserById(userId);
 
     if (!userData) {
-      return res.status(404).json({ error: 'User not found' });
+      res.status(404).json({ error: 'User not found' });
+      return;
     }
 
     res.json(userData);
