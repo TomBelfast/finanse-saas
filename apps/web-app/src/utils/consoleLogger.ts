@@ -1,7 +1,11 @@
 /**
  * Console Logger - Automatically captures console logs and sends them to debug logging system
  * This allows real-time monitoring of browser console logs without manual copying
+ * 
+ * Refactored to use the structured logger utility for consistency
  */
+
+import { logger } from './logger';
 
 const LOG_SERVER_ENDPOINT = 'http://127.0.0.1:7247/ingest/c64f34cb-8772-47e6-b6e2-3cac4f3a7de2';
 const SESSION_ID = 'debug-session';
@@ -47,51 +51,67 @@ class ConsoleLogger {
     // Intercept console.log
     console.log = (...args: any[]) => {
       this.originalConsole.log(...args);
-      this.sendLog('log', this.formatMessage(args), args);
+      const message = this.formatMessage(args);
+      logger.info(message, { args });
+      this.sendLog('log', message, args);
     };
 
     // Intercept console.warn
     console.warn = (...args: any[]) => {
       this.originalConsole.warn(...args);
-      this.sendLog('warn', this.formatMessage(args), args);
+      const message = this.formatMessage(args);
+      logger.warn(message, { args });
+      this.sendLog('warn', message, args);
     };
 
     // Intercept console.error
     console.error = (...args: any[]) => {
       this.originalConsole.error(...args);
-      this.sendLog('error', this.formatMessage(args), args);
+      const message = this.formatMessage(args);
+      const error = args.find(arg => arg instanceof Error);
+      logger.error(message, error, { args });
+      this.sendLog('error', message, args);
     };
 
     // Intercept console.info
     console.info = (...args: any[]) => {
       this.originalConsole.info(...args);
-      this.sendLog('info', this.formatMessage(args), args);
+      const message = this.formatMessage(args);
+      logger.info(message, { args });
+      this.sendLog('info', message, args);
     };
 
     // Intercept console.debug
     console.debug = (...args: any[]) => {
       this.originalConsole.debug(...args);
-      this.sendLog('debug', this.formatMessage(args), args);
+      const message = this.formatMessage(args);
+      logger.debug(message, { args });
+      this.sendLog('debug', message, args);
     };
 
     // Intercept unhandled errors
     window.addEventListener('error', (event) => {
-      this.sendLog('error', `Unhandled Error: ${event.message}`, {
+      const errorData = {
         message: event.message,
         filename: event.filename,
         lineno: event.lineno,
         colno: event.colno,
         error: event.error?.toString(),
         stack: event.error?.stack,
-      });
+      };
+      logger.error(`Unhandled Error: ${event.message}`, event.error, errorData);
+      this.sendLog('error', `Unhandled Error: ${event.message}`, errorData);
     });
 
     // Intercept unhandled promise rejections
     window.addEventListener('unhandledrejection', (event) => {
-      this.sendLog('error', `Unhandled Promise Rejection: ${event.reason}`, {
+      const errorData = {
         reason: event.reason?.toString(),
         stack: event.reason?.stack,
-      });
+      };
+      const error = event.reason instanceof Error ? event.reason : undefined;
+      logger.error(`Unhandled Promise Rejection: ${event.reason}`, error, errorData);
+      this.sendLog('error', `Unhandled Promise Rejection: ${event.reason}`, errorData);
     });
   }
 

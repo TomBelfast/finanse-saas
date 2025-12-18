@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 import React, { FunctionComponent, PropsWithChildren, useEffect, useState } from 'react';
 import { useUser, useAuth } from '@clerk/clerk-react';
 import { useSelector } from 'react-redux';
@@ -9,6 +8,7 @@ import { PayloadAction } from '@reduxjs/toolkit';
 import { useQuery } from '~/hooks/useQuery';
 import { useAppDispatch } from '~/initializeStore';
 import { apiClient } from '~/services/apiClient';
+import { logger } from '~/utils/logger';
 
 interface OwnProps { }
 
@@ -25,19 +25,21 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
   // Track if token has been set for authenticated users
   const [isTokenReady, setIsTokenReady] = useState(false);
 
-  console.log('[AuthChecker] DEBUG ENV:', import.meta.env.VITE_DEBUG);
+  if (import.meta.env.VITE_DEBUG === 'true') {
+    logger.debug('[AuthChecker] DEBUG ENV', { debug: import.meta.env.VITE_DEBUG });
+  }
 
   useEffect(() => {
     if (!isUserLoaded) {
       if (import.meta.env.VITE_DEBUG === 'true') {
-        console.debug('[AuthChecker] Clerk user not loaded yet');
+        logger.debug('[AuthChecker] Clerk user not loaded yet');
       }
       return;
     }
 
     const syncUserData = async () => {
       if (import.meta.env.VITE_DEBUG === 'true') {
-        console.debug('[AuthChecker] syncUserData', { isSignedIn, user, userUid });
+        logger.debug('[AuthChecker] syncUserData', { isSignedIn, user: user?.id, userUid });
       }
 
       if (isSignedIn && user) {
@@ -48,11 +50,11 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
             apiClient.setToken(token);
             setIsTokenReady(true);
             if (import.meta.env.VITE_DEBUG === 'true') {
-              console.debug('[AuthChecker] Clerk token set in API client');
+              logger.debug('[AuthChecker] Clerk token set in API client');
             }
           }
         } catch (error) {
-          console.error('[AuthChecker] Error getting Clerk token:', error);
+          logger.error('[AuthChecker] Error getting Clerk token', error);
           // Even on error, allow rendering to continue (will show auth errors)
           setIsTokenReady(true);
         }
@@ -60,7 +62,7 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
         // Sync Clerk user with Redux store
         if (user.id !== userUid) {
           if (import.meta.env.VITE_DEBUG === 'true') {
-            console.debug('[AuthChecker] Dispatch logInSuccess', { uid: user.id, email: user.primaryEmailAddress?.emailAddress });
+            logger.debug('[AuthChecker] Dispatch logInSuccess', { uid: user.id, email: user.primaryEmailAddress?.emailAddress });
           }
 
           dispatch(userActions.logInSuccess({
@@ -72,7 +74,7 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
           try {
             const fullUser = await apiClient.getCurrentUser();
             if (import.meta.env.VITE_DEBUG === 'true') {
-              console.debug('[AuthChecker] Fetched user details', fullUser);
+              logger.debug('[AuthChecker] Fetched user details', { userId: fullUser?.uid, email: fullUser?.email });
             }
             // Update Redux store directly with API data (don't use getUserDetails which uses Firebase)
             if (fullUser) {
@@ -99,7 +101,7 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
               } as PayloadAction<UserDocument & { systemRole: null | 'admin'; isImpersonated: boolean }>);
             }
           } catch (error) {
-            console.error('[AuthChecker] Error fetching user details:', error);
+            logger.error('[AuthChecker] Error fetching user details', error);
             // User might not exist in our database yet - create it via API
             try {
               const createdUser = await apiClient.updateUser({
@@ -108,10 +110,10 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
                 email: user.primaryEmailAddress?.emailAddress || '',
               });
               if (createdUser && import.meta.env.VITE_DEBUG === 'true') {
-                console.debug('[AuthChecker] User created via API', createdUser);
+                logger.debug('[AuthChecker] User created via API', { userId: createdUser?.uid });
               }
             } catch (createError) {
-              console.error('[AuthChecker] Error creating user:', createError);
+              logger.error('[AuthChecker] Error creating user', createError);
             }
           }
         }
@@ -121,7 +123,7 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
         if (currentPath.startsWith('/auth') && !currentPath.includes('sso-callback')) {
           const continuePath = query.get('continue') || '/';
           if (import.meta.env.VITE_DEBUG === 'true') {
-            console.debug('[AuthChecker] Przekierowanie po zalogowaniu', { continuePath, currentPath });
+            logger.debug('[AuthChecker] Przekierowanie po zalogowaniu', { continuePath, currentPath });
           }
           // Use setTimeout to ensure redirect happens after Clerk finishes processing
           setTimeout(() => {
@@ -146,7 +148,7 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
   // Wait for Clerk to load
   if (!isUserLoaded) {
     if (import.meta.env.VITE_DEBUG === 'true') {
-      console.debug('[AuthChecker] Wyświetlam spinner ładowania (Clerk loading)');
+      logger.debug('[AuthChecker] Wyświetlam spinner ładowania (Clerk loading)');
     }
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -158,7 +160,7 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
   // Wait for token to be set before rendering children (prevents race condition)
   if (isSignedIn && !isTokenReady) {
     if (import.meta.env.VITE_DEBUG === 'true') {
-      console.debug('[AuthChecker] Waiting for token to be set...');
+      logger.debug('[AuthChecker] Waiting for token to be set...');
     }
     return (
       <div className="flex h-screen w-full items-center justify-center">
@@ -168,7 +170,7 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
   }
 
   if (import.meta.env.VITE_DEBUG === 'true') {
-    console.debug('[AuthChecker] Renderuję children', { isSignedIn, user, isTokenReady });
+    logger.debug('[AuthChecker] Renderuję children', { isSignedIn, userId: user?.id, isTokenReady });
   }
 
   return <>{children}</>;
