@@ -26,8 +26,11 @@ testRouter.post('/debug/insurance/:userId', async (req, res) => {
       'INSERT INTO user_insurances (id, user_id, name, insurance_company, amount, currency, status, period_start, period_end, renewal_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())',
       [id, userId, name, 'Test Insurance Co', 100, 'PLN', 'active', now, nextYear, nextYear]
     );
-    const [rows] = await pool.execute('SELECT * FROM user_insurances WHERE id = ?', [id]);
-    res.status(201).json({ success: true, data: (rows as any[])[0] });
+    const [rows] = await pool.execute<InsuranceRow[]>('SELECT * FROM user_insurances WHERE id = ?', [id]);
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(500).json({ error: 'Failed to retrieve created insurance' });
+    }
+    res.status(201).json({ success: true, data: rows[0] });
   } catch (error: unknown) {
     res.status(500).json({ error: (error as Error).message });
   }
@@ -181,8 +184,11 @@ testRouter.post('/insurances', async (req, res) => {
       'INSERT INTO user_insurances (id, user_id, name, insurance_company, amount, currency, status, period_start, period_end, renewal_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())',
       [id, TEST_USER_ID, name, 'Test Insurance Co', req.body.amount || 0, 'PLN', 'active', now, nextYear, nextYear]
     );
-    const [rows] = await pool.execute('SELECT * FROM user_insurances WHERE id = ?', [id]);
-    res.status(201).json({ success: true, data: (rows as any[])[0] });
+    const [rows] = await pool.execute<InsuranceRow[]>('SELECT * FROM user_insurances WHERE id = ?', [id]);
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(500).json({ error: 'Failed to retrieve created insurance' });
+    }
+    res.status(201).json({ success: true, data: rows[0] });
   } catch (error: unknown) {
     res.status(500).json({ error: (error as Error).message });
   }
