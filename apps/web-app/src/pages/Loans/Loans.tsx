@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { logger } from '~/utils/logger';
 import {
@@ -122,8 +122,8 @@ const Loans = () => {
   const userDetails = useSelector((store: AppStore) => store.user.details);
   const userCurrency = (userDetails?.defaultCurrency || 'pln') as Currency;
 
-  // Helper function to parse amount
-  const parseAmount = (amount: unknown): number => {
+  // Helper function to parse amount - memoized to avoid recreation
+  const parseAmount = useCallback((amount: unknown): number => {
     if (typeof amount === 'number') return amount;
     if (typeof amount === 'string') {
       // Remove currency symbols and spaces, replace comma with dot
@@ -132,7 +132,7 @@ const Loans = () => {
       return isNaN(parsed) ? 0 : parsed;
     }
     return 0;
-  }
+  }, [])
 
   const loadData = async () => {
     setLoading(true);
@@ -185,12 +185,15 @@ const Loans = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredData = data.filter(loan => {
-    return (
-      (!filterName || loan.name?.toLowerCase().includes(filterName.toLowerCase())) &&
-      (filterStatus === 'all' || !filterStatus || loan.status === filterStatus)
-    );
-  });
+  // Memoized filtered data
+  const filteredData = useMemo(() => {
+    return data.filter(loan => {
+      return (
+        (!filterName || loan.name?.toLowerCase().includes(filterName.toLowerCase())) &&
+        (filterStatus === 'all' || !filterStatus || loan.status === filterStatus)
+      );
+    });
+  }, [data, filterName, filterStatus]);
 
   const getInstallmentsInfo = (loan: Loan) => {
     const today = new Date();

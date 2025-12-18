@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { useSelector } from 'react-redux';
 import { logger } from '~/utils/logger';
 import {
@@ -152,8 +152,8 @@ const Insurances = () => {
   const userDetails = useSelector((store: AppStore) => store.user.details);
   const userCurrency = (userDetails?.defaultCurrency || 'pln') as Currency;
 
-  // Helper function to parse amount
-  const parseAmount = (amount: unknown): number => {
+  // Helper function to parse amount - memoized to avoid recreation
+  const parseAmount = useCallback((amount: unknown): number => {
     if (typeof amount === 'number') return amount;
     if (typeof amount === 'string') {
       // Remove currency symbols and spaces, replace comma with dot
@@ -162,7 +162,7 @@ const Insurances = () => {
       return isNaN(parsed) ? 0 : parsed;
     }
     return 0;
-  }
+  }, [])
 
   const loadData = async () => {
     setLoading(true);
@@ -236,20 +236,25 @@ const Insurances = () => {
     return () => clearInterval(interval);
   }, []);
 
-  const filteredData = data.filter(insurance => {
-    return (
-      (!filterName || insurance.name?.toLowerCase().includes(filterName.toLowerCase())) &&
-      (filterStatus === 'all' || !filterStatus || insurance.status === filterStatus)
-    );
-  });
+  // Memoized filtered data
+  const filteredData = useMemo(() => {
+    return data.filter(insurance => {
+      return (
+        (!filterName || insurance.name?.toLowerCase().includes(filterName.toLowerCase())) &&
+        (filterStatus === 'all' || !filterStatus || insurance.status === filterStatus)
+      );
+    });
+  }, [data, filterName, filterStatus]);
 
-  // Sortowanie: najpierw do zapłaty, potem zapłacone
-  const sortedData = [...filteredData].sort((a, b) => {
-    if (a.paymentStatus === b.paymentStatus) return 0;
-    if (a.paymentStatus === 'do_zaplaty') return -1;
-    if (b.paymentStatus === 'do_zaplaty') return 1;
-    return 0;
-  });
+  // Memoized sorted data - najpierw do zapłaty, potem zapłacone
+  const sortedData = useMemo(() => {
+    return [...filteredData].sort((a, b) => {
+      if (a.paymentStatus === b.paymentStatus) return 0;
+      if (a.paymentStatus === 'do_zaplaty') return -1;
+      if (b.paymentStatus === 'do_zaplaty') return 1;
+      return 0;
+    });
+  }, [filteredData]);
 
   // Funkcja obliczania podsumowania ubezpieczeń
   const summary = useMemo(() => {
