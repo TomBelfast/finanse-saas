@@ -4,18 +4,15 @@ import { Provider } from 'react-redux';
 import { BrowserRouter as Router, Switch, Route } from 'react-router-dom';
 import { store } from '~/initializeStore';
 import AuthChecker from './components/AuthChecker/AuthChecker';
-import Auth from './pages/Auth/Auth';
 import ProtectedRoute from '~/components/ProtectedRoute/ProtectedRoute';
 import { useTranslation } from 'react-i18next';
 import FullPageLoader from '~/components/FullPageLoader/FullPageLoader';
 import { Toaster } from '~/components/ui/sonner';
 
+// Lazy load Dashboard (contains all sub-routes with their own lazy loading)
 const Dashboard = lazy(() => import('~/pages/Dashboard/Dashboard'));
-const Loans = lazy(() => import('~/pages/Loans/Loans'));
-const Subscriptions = lazy(() => import('~/pages/Subscriptions/Subscriptions'));
-const Insurances = lazy(() => import('~/pages/Insurances/Insurances'));
-const Reports = lazy(() => import('~/pages/Reports/Reports'));
-const Settings = lazy(() => import('~/pages/Settings/Settings'));
+// Lazy load Auth page (not frequently accessed, can be code split)
+const Auth = lazy(() => import('~/pages/Auth/Auth'));
 
 const AppRoutes = () => (
   <AuthChecker>
