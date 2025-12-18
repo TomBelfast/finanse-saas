@@ -396,6 +396,84 @@ pnpm dev
 - Wszystkie główne strony są lazy loaded
 - Code splitting działa poprawnie z Suspense boundaries
 
+### 4.5 Backend: Usunięcie pozostałych any types i console.log
+
+**Status:** ✅ **Zakończone**
+
+**Zmiany:**
+- **BaseRepository.ts:**
+  - Zastąpiono `console.warn` loggerem
+- **Controllers:**
+  - `StripeEventController`: `Promise<any>` -> `Promise<unknown>`
+  - `BaseController`: `Promise<any>` -> `Promise<void>`
+  - `PubSubEventController`: `Promise<any>` -> `Promise<unknown>`
+  - `PayUEventController`: `Promise<any>` -> `Promise<unknown>`
+  - `ApiController`: `Promise<any>` -> `Promise<void>`
+  - `BroadcastMessageController`: `Promise<any>` -> `Promise<TResult>` (generics)
+- **Core:**
+  - `Result.ts`: `combine(results: Result<any>[])` -> `combine<T>(results: Result<T>[])`
+  - `WithChanges.ts`: `Result<any>` -> `Result<unknown>`
+
+**Wpływ:**
+- ✅ Lepsza type safety w backend
+- ✅ Zgodność z TypeScript strict mode
+- ✅ Spójne użycie loggera zamiast console
+
+**Pliki zmienione:**
+- `apps/functions/src/shared/infra/repositories/BaseRepository.ts`
+- `apps/functions/src/shared/infra/http/StripeEventController.ts`
+- `apps/functions/src/shared/infra/http/BaseController.ts`
+- `apps/functions/src/shared/infra/http/PubSubEventController.ts`
+- `apps/functions/src/shared/infra/http/PayUEventController.ts`
+- `apps/functions/src/shared/infra/http/ApiController.ts`
+- `apps/functions/src/shared/infra/http/CloudFunctionController.ts` (już używał generyków)
+- `apps/functions/src/shared/core/Result.ts`
+- `apps/functions/src/shared/core/WithChanges.ts`
+- `apps/functions/src/modules/admin/useCases/broadcastMessage/BroadcastMessageController.ts`
+
+**Commity:**
+- `[commit]` - Refactor: Usunięcie any types z backend controllers i core
+
+### 4.6 Frontend: Usunięcie pozostałych any types
+
+**Status:** ✅ **Zakończone**
+
+**Zmiany:**
+- **Reports.tsx:**
+  - Zastąpiono `any` w filtrach konkretnymi typami: `ApiLoan`, `ApiInsurance`, `ApiAI`, `ApiSubscription`
+  - Poprawiono `tooltipFormatter` aby używał `unknown` zamiast `any`
+- **AI.tsx:**
+  - Zastąpiono `any` w `label` formatterze konkretnym typem
+  - Naprawiono `formatter` props w `ChartTooltipContent`
+  - Poprawiono payload dla `createAI/updateAI` aby pasował do `Partial<ApiAI>`
+- **Loans.tsx:**
+  - Zastąpiono `any` w `label` formatterze konkretnym typem
+  - Usunięto `as any` z `remainingAmount`
+- **Insurances.tsx:**
+  - Usunięto `as any` z `createInsurance`
+- **apiClient.ts:**
+  - Zastąpiono `any` w `user` typem `ApiUser`
+
+**Wpływ:**
+- ✅ Lepsza type safety w frontend
+- ✅ Zgodność z TypeScript strict mode
+- ✅ Mniej błędów runtime dzięki lepszej type checking
+
+**Pliki zmienione:**
+- `apps/web-app/src/pages/Reports/Reports.tsx`
+- `apps/web-app/src/pages/AI/AI.tsx`
+- `apps/web-app/src/pages/Loans/Loans.tsx`
+- `apps/web-app/src/pages/Insurances/Insurances.tsx`
+- `apps/web-app/src/services/apiClient.ts`
+
+**Commity:**
+- `[commit]` - Refactor: Usunięcie pozostałych any types z frontend
+- `[commit]` - Fix: Naprawa błędów TypeScript w AI.tsx
+
+**Pozostało:**
+- ~33 wystąpienia `any` w frontend (głównie w utility files, formatterach wykresów, edge cases)
+- ~2 wystąpienia `any` w backend (test files)
+
 ---
 
 ## 📝 Pozostałe Zadania do Wykonania
