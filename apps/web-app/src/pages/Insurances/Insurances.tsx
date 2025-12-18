@@ -312,7 +312,7 @@ const Insurances = () => {
       monthlyInsurances: { count: monthlyCount, total: actualMonthlyCost },
       yearlyInsurances: { count: yearlyCount, total: actualYearlyCost }
     };
-  }, [data]);
+  }, [data, parseAmount]);
 
   const handleOpenAddModal = () => {
     setEditMode(false);
