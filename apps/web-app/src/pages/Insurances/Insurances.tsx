@@ -172,18 +172,16 @@ const Insurances = () => {
         // Parse documents
         let attachments = [];
         try {
-          attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents || row.attachments || []);
+          attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents ? (Array.isArray(row.documents) ? row.documents : []) : []);
         } catch (e) { 
           logger.error('Error parsing attachments', e instanceof Error ? e : new Error(String(e)));
         }
 
         // Extract renewalCycle from description if needed
         let renewalCycle = 'monthly';
-        if (row.description && row.description.includes('Renewal Cycle:')) {
+        if (row.description && typeof row.description === 'string' && row.description.includes('Renewal Cycle:')) {
           const match = row.description.match(/Renewal Cycle:\s*(\w+)/);
           if (match) renewalCycle = match[1];
-        } else if (row.renewalCycle) {
-          renewalCycle = row.renewalCycle;
         }
 
         // Mapowanie statusów - API zwraca angielskie, ale możemy je zostawić jako są
