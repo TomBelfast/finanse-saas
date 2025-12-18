@@ -792,7 +792,7 @@ const AI = () => {
                         <Pie
                           data={chartDataWithPercentages}
                           dataKey="total"
-                          label={(entry: any) => {
+                          label={(entry: { name: string; total: number }) => {
                             return `${entry.name}: ${formatCurrency(entry.total, userCurrency)}`;
                           }}
                           nameKey="name"

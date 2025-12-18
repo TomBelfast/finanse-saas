@@ -202,7 +202,7 @@ const Loans = () => {
     const installmentAmount = Number(loan.installmentAmount);
 
     if (isNaN(start.getTime()) || !total || isNaN(installmentAmount)) {
-      const leftAmount = typeof (loan as any).remainingAmount === 'number' ? (loan as any).remainingAmount : undefined;
+      const leftAmount = typeof loan.remainingAmount === 'number' ? loan.remainingAmount : undefined;
       return {
         paid: undefined,
         left: undefined,
@@ -809,7 +809,7 @@ const Loans = () => {
                         <Pie
                           data={chartData}
                           dataKey="value"
-                          label={(entry: any) => {
+                          label={(entry: { amountLabel?: string; percentage?: number }) => {
                             const amountLabel = String(entry.amountLabel || '').trim();
                             const percentage = entry.percentage || 0;
                             if (!amountLabel || amountLabel.length === 0) {

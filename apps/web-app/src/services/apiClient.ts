@@ -77,7 +77,7 @@ class ApiClient {
     ip?: string;
     phoneNumber?: string;
   }) {
-    const result = await this.request<{ success: boolean; user: any; token: string }>(
+    const result = await this.request<{ success: boolean; user: ApiUser; token: string }>(
       '/auth/register',
       {
         method: 'POST',
@@ -91,7 +91,7 @@ class ApiClient {
   }
 
   async login(email: string, password: string) {
-    const result = await this.request<{ success: boolean; user: any; token: string }>(
+    const result = await this.request<{ success: boolean; user: ApiUser; token: string }>(
       '/auth/login',
       {
         method: 'POST',

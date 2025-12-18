@@ -1016,7 +1016,7 @@ const Reports: React.FC = () => {
                         <TableCell className="font-medium">Kredyty</TableCell>
                         <TableCell>{formatCurrency(totals.loansMonthly, userCurrency)}</TableCell>
                         <TableCell>{formatCurrency(totals.loansMonthly * 12, userCurrency)}</TableCell>
-                        <TableCell>{loans.filter((l: any) => {
+                        <TableCell>{loans.filter((l: ApiLoan) => {
                           const statusMap: Record<string, string> = {
                             'active': 'aktywna',
                             'paid': 'spłacona',
@@ -1037,13 +1037,13 @@ const Reports: React.FC = () => {
                         <TableCell className="font-medium">Ubezpieczenia</TableCell>
                         <TableCell>{formatCurrency(totals.insurancesMonthly, userCurrency)}</TableCell>
                         <TableCell>{formatCurrency(totals.insurancesYearly + totals.insurancesMonthly * 12, userCurrency)}</TableCell>
-                        <TableCell>{insurances.filter((i: any) => i.status === 'active' || i.status === 'pending').length}</TableCell>
+                        <TableCell>{insurances.filter((i: ApiInsurance) => i.status === 'active' || i.status === 'pending').length}</TableCell>
                       </TableRow>
                       <TableRow>
                         <TableCell className="font-medium">AI</TableCell>
                         <TableCell>{formatCurrency(totals.aiMonthly, userCurrency)}</TableCell>
                         <TableCell>{formatCurrency(totals.aiYearly + totals.aiMonthly * 12, userCurrency)}</TableCell>
-                        <TableCell>{ai.filter((a: any) => a.status === 'active' || a.status === 'pending').length}</TableCell>
+                        <TableCell>{ai.filter((a: ApiAI) => a.status === 'active' || a.status === 'pending').length}</TableCell>
                       </TableRow>
                       <TableRow className="font-bold">
                         <TableCell>RAZEM</TableCell>
@@ -1126,8 +1126,8 @@ const Reports: React.FC = () => {
                   ];
                   
                   const chartData = subscriptions
-                    .filter((sub: any) => parseAmount(sub.amount || 0) > 0)
-                    .map((sub: any, index: number) => {
+                    .filter((sub: ApiSubscription) => parseAmount(sub.amount || 0) > 0)
+                    .map((sub: ApiSubscription, index: number) => {
                       const amount = parseAmount(sub.amount || 0);
                       const cycle = sub.cycle || 'monthly';
                       const monthlyAmount = (cycle === 'yearly' || cycle === 'roczny') ? amount / 12 : amount;
@@ -1146,7 +1146,7 @@ const Reports: React.FC = () => {
                     return acc;
                   }, {} as Record<string, { label: string; color: string }>);
                   
-                  const tooltipFormatter = (v: any, name: any, props: any) => {
+                  const tooltipFormatter = (v: unknown, name: unknown, props: { payload?: { cycle?: string } }) => {
                     const value = typeof v === 'number' ? v : Number(v) || 0;
                     return [formatCurrency(value, userCurrency), props.payload?.cycle || ''];
                   };
@@ -1181,7 +1181,7 @@ const Reports: React.FC = () => {
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Analiza ubezpieczeń</h3>
                 {(() => {
-                  const activeInsurances = insurances.filter((ins: any) => ins.status === 'active' || ins.status === 'pending');
+                  const activeInsurances = insurances.filter((ins: ApiInsurance) => ins.status === 'active' || ins.status === 'pending');
                   
                   if (activeInsurances.length === 0) {
                     return <p className="text-sm text-muted-foreground">Brak aktywnych ubezpieczeń</p>;
@@ -1196,8 +1196,8 @@ const Reports: React.FC = () => {
                   ];
                   
                   const chartData = activeInsurances
-                    .filter((ins: any) => parseAmount(ins.amount || ins.amountDue || 0) > 0)
-                    .map((ins: any, index: number) => {
+                    .filter((ins: ApiInsurance) => parseAmount(ins.amount || ins.amountDue || 0) > 0)
+                    .map((ins: ApiInsurance, index: number) => {
                       const amount = parseAmount(ins.amount || ins.amountDue || 0);
                       let renewalCycle = ins.renewalCycle;
                       if (!renewalCycle && ins.description) {
@@ -1269,8 +1269,8 @@ const Reports: React.FC = () => {
                   ];
                   
                   const chartData = activeAI
-                    .filter((aiItem: any) => parseAmount(aiItem.amount || aiItem.amountDue || 0) > 0)
-                    .map((aiItem: any, index: number) => {
+                    .filter((aiItem: ApiAI) => parseAmount(aiItem.amount || aiItem.amountDue || 0) > 0)
+                    .map((aiItem: ApiAI, index: number) => {
                       const amount = parseAmount(aiItem.amount || aiItem.amountDue || 0);
                       let renewalCycle = aiItem.renewalCycle;
                       if (!renewalCycle && aiItem.description) {

@@ -3,7 +3,7 @@ import { BroadcastMessageUseCase } from './BroadcastMessageUseCase';
 import { AuthenticatedUser } from 'shared/core/AuthenticatedUser';
 import { AppError } from 'shared/core/AppError';
 import { BroadcastMessageErrors } from './BroadcastMessageErrors';
-import { logger } from 'firebase-functions';
+import { logger } from 'shared/utils/logger';
 import { validator } from './BroadcastMessageDTOValidator';
 
 export class BroadcastMessageController extends CloudFunctionController {
@@ -11,27 +11,32 @@ export class BroadcastMessageController extends CloudFunctionController {
     super();
   }
 
-  protected async executeImpl(payload: unknown, user: AuthenticatedUser): Promise<{ status: string; body: unknown }> {
+  protected async executeImpl<TResult = unknown>(payload: unknown, user: AuthenticatedUser): Promise<TResult> {
     try {
-      logger.debug(`Handling broadcast message payload ${JSON.stringify(payload)}`);
+      logger.debug('Handling broadcast message payload', { payload });
       const dto = validator(payload);
       const result = await this.useCase.execute(dto, user.uid);
 
       if (result.isLeft()) {
         throw result.value;
       } else {
-        return this.ok(result.value.getValue());
+        return this.ok(result.value.getValue()) as TResult;
       }
     } catch (err) {
-      switch (err.constructor) {
+      const error = err as Error & { errorValue?: () => { message: string } };
+      switch (error.constructor) {
         case BroadcastMessageErrors.NotAuthorized:
-          return this.unauthorized(err.errorValue().message);
+          this.unauthorized(error.errorValue?.()?.message || 'Not authorized');
+          throw new Error('Unauthorized');
         case BroadcastMessageErrors.BroadcastFailed:
-          return this.fail(err.errorValue().message);
+          this.fail(error.errorValue?.()?.message || 'Broadcast failed');
+          throw new Error('Broadcast failed');
         case AppError.UnexpectedError:
-          return this.fail(err.errorValue().message);
+          this.fail(error.errorValue?.()?.message || 'Unexpected error');
+          throw new Error('Unexpected error');
         default:
-          return this.fail(err.errorValue().message ?? err.message);
+          this.fail(error.errorValue?.()?.message || error.message || 'Unknown error');
+          throw error;
       }
     }
   }

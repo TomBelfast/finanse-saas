@@ -440,7 +440,7 @@ const Insurances = () => {
       if (editMode && editingInsurance) {
         await apiClient.updateInsurance(editingInsurance.id, payload);
       } else {
-        await apiClient.createInsurance(payload as any);
+        await apiClient.createInsurance(payload);
       }
 
       setModalOpen(false);
