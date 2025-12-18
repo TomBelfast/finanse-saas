@@ -39,6 +39,8 @@ import {
 import { useSelector } from 'react-redux'
 import { AppStore, formatCurrency, Currency } from '@akademiasaas/shared'
 import { apiClient } from '../../services/apiClient'
+import { ApiSubscription } from '~/types/api'
+import { logger } from '~/utils/logger'
 import UploadField from '../../components/UploadField/UploadField'
 import TableFiltersPanel, { FilterField } from '../../components/TableFiltersPanel'
 import { Button } from '~/components/ui/button'
@@ -167,13 +169,14 @@ const Subscriptions = () => {
   const [editMode, setEditMode] = useState(false)
   const [editingSub, setEditingSub] = useState<Subscription | null>(null)
   const [attachments, setAttachments] = useState<Attachment[]>([])
-  const [filters, setFilters] = useState<Record<string, any>>({})
+  const [filters, setFilters] = useState<Record<string, string>>({})
   const [initialDataLoaded, setInitialDataLoaded] = useState(false)
   const userDetails = useSelector((store: AppStore) => store.user.details)
   const userCurrency = (userDetails?.defaultCurrency || 'pln') as Currency
 
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema) as any,
+    // @ts-expect-error - zodResolver type mismatch with z.coerce.number()
+    resolver: zodResolver(formSchema),
     defaultValues: {
       status: 'aktywna',
       cycle: 'miesięczny',
@@ -189,20 +192,33 @@ const Subscriptions = () => {
       try {
         const subscriptions = await apiClient.getSubscriptions()
         // Mapowanie danych z API do formatu komponentu
-        const mappedData = subscriptions.map((sub: any) => ({
-          id: sub.id,
-          name: sub.name,
-          amount: sub.amount,
-          cycle: sub.cycle || 'miesięczny',
-          renewalDate: sub.renewalDate || sub.renewal_date,
-          status: sub.status || 'aktywna',
-          note: sub.note || sub.description || '',
-          attachments: sub.attachments || [],
-          tag: sub.tag || sub.category || 'inne',
-        })) as Subscription[]
+        const mappedData = subscriptions.map((sub: ApiSubscription) => {
+          // Parse documents from JSON string if needed
+          let attachments: Attachment[] = [];
+          if (sub.documents) {
+            try {
+              const parsed = typeof sub.documents === 'string' ? JSON.parse(sub.documents) : sub.documents;
+              attachments = Array.isArray(parsed) ? parsed : [];
+            } catch {
+              attachments = [];
+            }
+          }
+          
+          return {
+            id: sub.id,
+            name: sub.name,
+            amount: sub.amount,
+            cycle: 'miesięczny', // Default - cycle not in API response
+            renewalDate: typeof sub.renewal_date === 'string' ? sub.renewal_date : (sub.renewal_date instanceof Date ? sub.renewal_date.toISOString() : ''),
+            status: sub.status || 'aktywna',
+            note: sub.description || '',
+            attachments,
+            tag: sub.category || 'inne',
+          } as Subscription;
+        })
         setData(mappedData)
         setInitialDataLoaded(true)
-      } catch (error: any) {
+      } catch (error: unknown) {
         logger.error('Błąd podczas ładowania subskrypcji', error instanceof Error ? error : new Error(String(error)));
         const errorMessage = error?.message || error?.error || 'Nie udało się załadować subskrypcji'
         toast.error(errorMessage)
@@ -283,19 +299,31 @@ const Subscriptions = () => {
       await apiClient.deleteSubscription(id)
       toast.success('Usunięto subskrypcję')
       const subscriptions = await apiClient.getSubscriptions()
-      const mappedData = subscriptions.map((sub: any) => ({
-        id: sub.id,
-        name: sub.name,
-        amount: sub.amount,
-        cycle: sub.cycle || 'miesięczny',
-        renewalDate: sub.renewalDate || sub.renewal_date,
-        status: sub.status || 'aktywna',
-        note: sub.note || sub.description || '',
-        attachments: sub.attachments || [],
-        tag: sub.tag || sub.category || 'inne',
-      })) as Subscription[]
+      const mappedData = subscriptions.map((sub: ApiSubscription) => {
+        let attachments: Attachment[] = [];
+        if (sub.documents) {
+          try {
+            const parsed = typeof sub.documents === 'string' ? JSON.parse(sub.documents) : sub.documents;
+            attachments = Array.isArray(parsed) ? parsed : [];
+          } catch {
+            attachments = [];
+          }
+        }
+        
+        return {
+          id: sub.id,
+          name: sub.name,
+          amount: sub.amount,
+          cycle: 'miesięczny',
+          renewalDate: typeof sub.renewal_date === 'string' ? sub.renewal_date : (sub.renewal_date instanceof Date ? sub.renewal_date.toISOString() : ''),
+          status: sub.status || 'aktywna',
+          note: sub.description || '',
+          attachments,
+          tag: sub.category || 'inne',
+        } as Subscription;
+      })
       setData(mappedData)
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Błąd podczas usuwania', error instanceof Error ? error : new Error(String(error)), { subscriptionId: id });
       toast.error(error?.message || 'Nie udało się usunąć subskrypcji')
     }
@@ -345,7 +373,7 @@ const Subscriptions = () => {
       }
 
       const subscriptions = await apiClient.getSubscriptions()
-      const mappedData = subscriptions.map((sub: any) => ({
+      const mappedData = subscriptions.map((sub: ApiSubscription) => ({
         id: sub.id,
         name: sub.name,
         amount: sub.amount,
@@ -362,14 +390,14 @@ const Subscriptions = () => {
       setEditingSub(null)
       setAttachments([])
       form.reset()
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Błąd zapisu subskrypcji', error instanceof Error ? error : new Error(String(error)));
       toast.error(error.message || 'Wystąpił błąd podczas zapisywania')
     }
   }
 
   // Helper function to parse amount
-  const parseAmount = (amount: any): number => {
+  const parseAmount = (amount: unknown): number => {
     if (typeof amount === 'number') return amount;
     if (typeof amount === 'string') {
       // Remove currency symbols and spaces, replace comma with dot
@@ -640,10 +668,10 @@ const Subscriptions = () => {
                     const categorySubscriptions = filteredData.filter((sub) => sub.tag === tag.value);
                     const monthlyTotal = categorySubscriptions
                       .filter((sub) => sub.cycle === 'miesięczny')
-                      .reduce((sum, sub) => sum + (typeof sub.amount === 'number' ? sub.amount : parseFloat(sub.amount as any) || 0), 0);
+                      .reduce((sum, sub) => sum + (typeof sub.amount === 'number' ? sub.amount : parseFloat(String(sub.amount)) || 0), 0);
                     const yearlyTotal = categorySubscriptions
                       .filter((sub) => sub.cycle === 'roczny')
-                      .reduce((sum, sub) => sum + (typeof sub.amount === 'number' ? sub.amount : parseFloat(sub.amount as any) || 0), 0);
+                      .reduce((sum, sub) => sum + (typeof sub.amount === 'number' ? sub.amount : parseFloat(String(sub.amount)) || 0), 0);
                     return {
                       category: tag.value,
                       categoryLabel: tag.label,
@@ -761,7 +789,7 @@ const Subscriptions = () => {
                         <Pie
                           data={categoryData}
                           dataKey="total"
-                          label={(entry: any) => `${entry.categoryLabel}: ${formatCurrency(entry.total, userCurrency)}`}
+                          label={(entry: { categoryLabel: string; total: number }) => `${entry.categoryLabel}: ${formatCurrency(entry.total, userCurrency)}`}
                           nameKey="categoryLabel"
                         >
                           {categoryData.map((entry, index) => (
@@ -993,7 +1021,7 @@ const Subscriptions = () => {
                 <FormLabel>Załączniki</FormLabel>
                 <UploadField
                   fileList={attachments.map(a => ({ url: a.url, name: a.name, uid: a.uid || a.name }))}
-                  onChange={(value) => setAttachments(value.map((f: any) => ({
+                  onChange={(value) => setAttachments(value.map((f: { name: string; url: string; uid?: string; type?: string }) => ({
                     name: f.name,
                     url: f.url,
                     type: f.type || '',
