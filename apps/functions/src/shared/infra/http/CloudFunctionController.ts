@@ -2,13 +2,13 @@ import { logger } from '../../utils/logger';
 import { AuthenticatedUser } from '../../core/AuthenticatedUser';
 
 export abstract class CloudFunctionController {
-  protected abstract executeImpl(dto: any, user: AuthenticatedUser): Promise<any>;
+  protected abstract executeImpl<TDto = unknown, TResult = unknown>(dto: TDto, user: AuthenticatedUser): Promise<TResult>;
 
-  public async execute(dto: any, context: any): Promise<any> {
+  public async execute<TDto = unknown, TResult = unknown>(dto: TDto, context: { auth?: AuthenticatedUser }): Promise<TResult> {
     if (!context.auth) {
       this.unauthorized('The function must be called while authenticated.');
-
-      return;
+      // This will throw, but TypeScript doesn't know that
+      throw new Error('Unauthorized');
     }
     try {
       return this.executeImpl(dto, context.auth);
@@ -74,7 +74,7 @@ export abstract class CloudFunctionController {
     );
   }
 
-  public fail(error: Error | string, code?: string) {
+  public fail(error: Error | string, _code?: string) {
     logger.error(typeof error === 'string' ? error : error.message, typeof error === 'object' ? error : { error });
     throw new Error(
       typeof error === 'string' ? error : (error?.message ?? 'Internal Error')

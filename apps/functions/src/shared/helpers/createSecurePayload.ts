@@ -1,6 +1,6 @@
 import cloneDeep from 'lodash.clonedeep';
 
-export const createSecurePayload = (payload: any) => {
+export const createSecurePayload = (payload: unknown) => {
   const copy = cloneDeep(payload);
   if (typeof copy === 'object') {
     const propertiesToHide = [

@@ -1,14 +1,16 @@
 import { logger } from '../../utils/logger';
 
 export abstract class CloudFunctionWithoutAuthController {
-  protected abstract executeImpl(dto: any, context?: any): Promise<any>;
+  protected abstract executeImpl<TDto = unknown, TContext = unknown, TResult = unknown>(dto: TDto, context?: TContext): Promise<TResult>;
 
-  public async execute(dto: any, context?: any): Promise<any> {
+  public async execute<TDto = unknown, TContext = unknown, TResult = unknown>(dto: TDto, context?: TContext): Promise<TResult> {
     try {
-      return this.executeImpl(dto, context);
+      return await this.executeImpl(dto, context);
     } catch (err) {
       logger.error('[CloudFunctionWithoutAuthController]: Uncaught controller error', { context, error: err });
       this.fail('An unexpected error occurred');
+      // This will throw, but TypeScript doesn't know that
+      throw err;
     }
   }
 
@@ -80,7 +82,7 @@ export abstract class CloudFunctionWithoutAuthController {
     );
   }
 
-  public fail(error: Error | string, code?: string) {
+  public fail(error: Error | string, _code?: string) {
     logger.error(typeof error === 'string' ? error : error.message, typeof error === 'object' ? error : { error });
     throw new Error(
       typeof error === 'string' ? error : (error?.message ?? 'Internal Error')

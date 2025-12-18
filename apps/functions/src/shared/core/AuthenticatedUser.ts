@@ -1,5 +1,5 @@
 export interface DecodedToken {
-  [key: string]: any;
+  [key: string]: unknown;
   uid: string;
   sub: string;
   iss: string;
