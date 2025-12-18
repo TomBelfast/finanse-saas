@@ -4,6 +4,7 @@ import last from 'lodash.last';
 import { Upload, X, Loader2 } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import { Button } from '~/components/ui/button';
+import { logger } from '~/utils/logger';
 
 interface OwnProps {
   storageRef: string;
@@ -160,7 +161,7 @@ const UploadField: FunctionComponent<Props> = ({
             })
           );
         } catch (err) {
-          console.error('Upload error:', err);
+          logger.error('Upload error', err instanceof Error ? err : new Error(String(err)), { fileName: file.name });
           toast.error('Błąd przesyłania pliku');
           updateFileList((prev) =>
             prev.map((savedFile) => {
@@ -179,7 +180,7 @@ const UploadField: FunctionComponent<Props> = ({
 
       reader.readAsDataURL(file);
     } catch (err) {
-      console.error('Upload setup error:', err);
+      logger.error('Upload setup error', err instanceof Error ? err : new Error(String(err)));
     }
   };
 
@@ -202,7 +203,7 @@ const UploadField: FunctionComponent<Props> = ({
       try {
         await fetch(`${getApiBaseUrl()}/upload/${fileId}`, { method: 'DELETE' });
       } catch (err) {
-        console.warn('Failed to delete file from server:', err);
+        logger.warn('Failed to delete file from server', { error: err instanceof Error ? err.message : String(err), fileId });
       }
     }
 
