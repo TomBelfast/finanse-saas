@@ -31,26 +31,26 @@
 
 ## 🔴 Wysoki Priorytet (Krytyczne)
 
-### 1. Frontend: Pozostałe `any` types (~57 wystąpień)
+### 1. Frontend: Pozostałe `any` types (~50 wystąpień)
 
-**Status:** ⚠️ Częściowo zrobione
+**Status:** ✅ Znacznie poprawione
 
-**Pozostałe lokalizacje:**
-- `Reports.tsx`: ~12 wystąpień (głównie formattery wykresów)
-- `TableFiltersPanel.tsx`: 3 wystąpienia
-- `GenericIntegrationForm.tsx`: 3 wystąpienia
-- `DraggableTable.tsx`: 7 wystąpień
-- `BroadcastMessageForm.tsx`: 1 wystąpienie
-- `useBroadcastMessage.ts`: 1 wystąpienie
-- `AppHeader.tsx`: 1 wystąpienie
-- `Users.tsx`: 2 wystąpienia
-- `InvoiceDataForm.tsx`: 2 wystąpienia
-- `ProfileDrawer.tsx`: 1 wystąpienie
-- `RichCodeBox.tsx`: 4 wystąpienia
-- `consoleLogger.ts`: 9 wystąpień (utility file)
-- Inne: ~17 wystąpień w pozostałych plikach
+**Zrobione:**
+- ✅ `GenericIntegrationForm.tsx`: Zastąpiono `name as any` przez `name as FieldPath<T>`
+- ✅ `ProtectedRoute.tsx`: Usunięto niepotrzebny eslint-disable (brak any w kodzie)
+- ✅ `useBroadcastMessage.ts`: Poprawiono type guard dla error handling
+- ✅ `TableFiltersPanel.tsx`: Już poprawione wcześniej
+- ✅ `AppHeader.tsx`: Już poprawione wcześniej
+- ✅ `Users.tsx`: Już poprawione wcześniej
 
-**Akcja:** Stopniowo refaktorować, tworząc właściwe typy TypeScript
+**Pozostałe lokalizacje (celowo lub edge cases):**
+- `Reports.tsx`: ~12 wystąpień (głównie formattery wykresów - Recharts API)
+- `DraggableTable.tsx`: 7 wystąpień (kompleksowe typy dla drag & drop)
+- `RichCodeBox.tsx`: 4 wystąpienia (celowo z `@ts-nocheck` - external library)
+- `consoleLogger.ts`: 9 wystąpień (utility file - celowo)
+- Inne: ~18 wystąpień w pozostałych plikach (edge cases, external libraries)
+
+**Akcja:** Pozostałe `any` types są celowo (external libraries, utility files) lub wymagają refaktoryzacji dużych komponentów
 
 ---
 
@@ -122,11 +122,14 @@
 - ✅ N+1 query fix w testRoutes.ts
 - ✅ Komentarze o potrzebie database indexes
 
+**Zrobione:**
+- ✅ Database indexes dodane w migracji `2025_01_18_add_composite_indexes.sql`
+- ✅ Redis cache zaimplementowane dla GET endpoints (subscriptions, insurances, loans, AI)
+- ✅ Query logging dodane do `MariaDBUserSubscriptionRepository` (development mode)
+
 **Pozostało:**
-- Dodanie rzeczywistych database indexes (wymaga migracji)
-- Implementacja Redis cache dla często używanych danych
-- Query logging w development mode
-- EXPLAIN na częste queries
+- Query logging dla pozostałych repositories (insurances, loans, AI)
+- EXPLAIN na częste queries (do analizy performance)
 
 **Szacowany czas:** 2-3 dni
 
