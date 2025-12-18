@@ -8,6 +8,7 @@ import { DateRange } from "react-day-picker";
 import { AppStore, formatCurrency, Currency } from '@akademiasaas/shared';
 import { apiClient } from '../../services/apiClient';
 import { logger } from '~/utils/logger';
+import { ApiLoan, ApiSubscription, ApiInsurance, ApiAI } from '~/types/api';
 import {
   BarChart,
   LineChart,
@@ -167,14 +168,14 @@ const Reports: React.FC = () => {
   const userCurrency = (userDetails?.defaultCurrency || 'pln') as Currency;
 
   // Data fetching
-  const [loans, setLoans] = useState<any[]>([]);
-  const [subscriptions, setSubscriptions] = useState<any[]>([]);
-  const [insurances, setInsurances] = useState<any[]>([]);
-  const [ai, setAI] = useState<any[]>([]);
+  const [loans, setLoans] = useState<ApiLoan[]>([]);
+  const [subscriptions, setSubscriptions] = useState<ApiSubscription[]>([]);
+  const [insurances, setInsurances] = useState<ApiInsurance[]>([]);
+  const [ai, setAI] = useState<ApiAI[]>([]);
   const [loading, setLoading] = useState(true);
 
   // Helper function to parse amount
-  const parseAmount = (amount: any): number => {
+  const parseAmount = (amount: unknown): number => {
     if (typeof amount === 'number') return amount;
     if (typeof amount === 'string') {
       const cleaned = amount.replace(/[^\d.,-]/g, '').replace(',', '.');
@@ -194,10 +195,10 @@ const Reports: React.FC = () => {
           apiClient.getInsurances(),
           apiClient.getAI(),
         ]);
-        setLoans(loansData as any[]);
-        setSubscriptions(subscriptionsData as any[]);
-        setInsurances(insurancesData as any[]);
-        setAI(aiData as any[]);
+        setLoans(loansData as ApiLoan[]);
+        setSubscriptions(subscriptionsData as ApiSubscription[]);
+        setInsurances(insurancesData as ApiInsurance[]);
+        setAI(aiData as ApiAI[]);
       } catch (error) {
         logger.error('Error loading data', error instanceof Error ? error : new Error(String(error)));
       } finally {
@@ -228,18 +229,18 @@ const Reports: React.FC = () => {
     let loansRemaining = 0;
     
     // Filter only active loans (same as Loans.tsx - only active loans count for remaining amount)
-    const activeLoans = loans.filter((loan: any) => {
+    const activeLoans = loans.filter((loan) => {
       const mappedStatus = statusMap[loan.status] || loan.status;
       return mappedStatus === 'aktywna';
     });
     
-    activeLoans.forEach((loan: any) => {
-      const installmentAmount = parseAmount(loan.next_payment_amount || loan.installment_amount || 0);
+    activeLoans.forEach((loan) => {
+      const installmentAmount = parseAmount(loan.next_payment_amount || 0);
       loansMonthly += installmentAmount;
       totalMonthly += installmentAmount;
       
       // Calculate remaining amount - same logic as Loans.tsx summary
-      const originalAmount = parseAmount(loan.total_amount || loan.amount || 0);
+      const originalAmount = parseAmount(loan.total_amount || 0);
       const remainingAmount = loan.remaining_amount ? parseAmount(loan.remaining_amount) : undefined;
       
       // Use remaining_amount from API if available and valid (same check as Loans.tsx)
@@ -249,8 +250,8 @@ const Reports: React.FC = () => {
       } else {
         // Fallback: calculate based on installments if we have the data
         // Simplified version - in Loans.tsx there's getInstallmentsInfo with more complex logic
-        const totalInstallments = loan.duration_in_months || loan.installments || 0;
-        const startDate = loan.start_date || loan.startDate;
+        const totalInstallments = loan.duration_in_months || 0;
+        const startDate = loan.start_date;
         
         if (totalInstallments > 0 && startDate && installmentAmount > 0) {
           // Calculate months passed
@@ -279,10 +280,11 @@ const Reports: React.FC = () => {
     // Subscriptions calculations
     let subscriptionsMonthly = 0;
     let subscriptionsYearly = 0;
-    subscriptions.forEach((sub: any) => {
+    subscriptions.forEach((sub) => {
       const amount = parseAmount(sub.amount || 0);
       // Handle both English and Polish cycle values
-      const cycle = sub.cycle || 'monthly';
+      // Note: cycle is not in API response, default to monthly
+      const cycle = 'monthly';
       
       if (cycle === 'monthly' || cycle === 'miesięczny') {
         subscriptionsMonthly += amount;
@@ -303,11 +305,11 @@ const Reports: React.FC = () => {
     // Insurances calculations
     let insurancesMonthly = 0;
     let insurancesYearly = 0;
-    insurances.forEach((ins: any) => {
-      const amount = parseAmount(ins.amount || ins.amountDue || 0);
+    insurances.forEach((ins) => {
+      const amount = parseAmount(ins.amount || 0);
       // Extract renewalCycle from description if needed (same logic as in Insurances.tsx)
-      let renewalCycle = ins.renewalCycle;
-      if (!renewalCycle && ins.description) {
+      let renewalCycle: string | undefined;
+      if (ins.description) {
         if (ins.description.includes('Renewal Cycle:')) {
           const match = ins.description.match(/Renewal Cycle:\s*(\w+)/);
           if (match) renewalCycle = match[1];
@@ -331,11 +333,11 @@ const Reports: React.FC = () => {
     // AI calculations
     let aiMonthly = 0;
     let aiYearly = 0;
-    ai.forEach((aiItem: any) => {
-      const amount = parseAmount(aiItem.amount || aiItem.amountDue || 0);
+    ai.forEach((aiItem) => {
+      const amount = parseAmount(aiItem.amount || 0);
       // Extract renewalCycle from description if needed (same logic as in AI.tsx)
-      let renewalCycle = aiItem.renewalCycle;
-      if (!renewalCycle && aiItem.description) {
+      let renewalCycle: string | undefined;
+      if (aiItem.description) {
         if (aiItem.description.includes('Renewal Cycle:')) {
           const match = aiItem.description.match(/Renewal Cycle:\s*(\w+)/);
           if (match) renewalCycle = match[1];
