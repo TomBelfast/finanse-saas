@@ -317,7 +317,7 @@ router.put('/insurances/:id', verifyClerkToken, async (req, res) => {
     const values: unknown[] = [];
     const data = req.body;
 
-    const addField = (col: string, val: any) => {
+    const addField = (col: string, val: unknown) => {
       if (val !== undefined) {
         fields.push(`${col} = ?`);
         values.push(val);
@@ -556,7 +556,7 @@ router.put('/loans/:id', verifyClerkToken, async (req, res) => {
     const values: unknown[] = [];
     const data = req.body;
 
-    const addField = (col: string, val: any) => {
+    const addField = (col: string, val: unknown) => {
       if (val !== undefined) {
         fields.push(`${col} = ?`);
         values.push(val);
@@ -771,7 +771,7 @@ router.put('/ai/:id', verifyClerkToken, async (req, res) => {
     const values: unknown[] = [];
     const data = req.body;
 
-    const addField = (col: string, val: any) => {
+    const addField = (col: string, val: unknown) => {
       if (val !== undefined) {
         fields.push(`${col} = ?`);
         values.push(val);
