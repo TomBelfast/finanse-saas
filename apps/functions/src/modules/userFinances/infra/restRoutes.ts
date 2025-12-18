@@ -98,10 +98,11 @@ router.post('/subscriptions', verifyClerkToken, async (req, res) => {
 
     if (!name || amount === undefined) {
       logger.error('Create subscription: Missing required fields', { body: req.body });
-      return res.status(400).json({
+      res.status(400).json({
         error: 'Missing required fields',
         required: ['name', 'amount']
       });
+      return;
     }
 
     // Provide defaults for optional fields
@@ -255,7 +256,8 @@ router.get('/insurances', verifyClerkToken, async (req, res) => {
       
       if (cached) {
         logger.debug('Get insurances: Cache hit', { userId });
-        return res.json(cached);
+        res.json(cached);
+        return;
       }
     }
     
@@ -290,7 +292,8 @@ router.post('/insurances', verifyClerkToken, async (req, res) => {
     // Only require name
     const name = req.body.name;
     if (!name) {
-      return res.status(400).json({ error: 'Name is required' });
+      res.status(400).json({ error: 'Name is required' });
+      return;
     }
 
     // Handle both camelCase and snake_case field names, provide defaults
@@ -351,7 +354,8 @@ router.post('/insurances', verifyClerkToken, async (req, res) => {
 
     const [rows] = await pool.execute<InsuranceRow[]>('SELECT * FROM user_insurances WHERE id = ?', [id]);
     if (!Array.isArray(rows) || rows.length === 0) {
-      return res.status(500).json({ error: 'Failed to retrieve created insurance' });
+      res.status(500).json({ error: 'Failed to retrieve created insurance' });
+      return;
     }
     
     // Invalidate cache for this user's insurances
@@ -576,7 +580,8 @@ router.post('/loans', verifyClerkToken, async (req, res) => {
 
     // Only require name
     if (!data.name) {
-      return res.status(400).json({ error: 'Name is required' });
+      res.status(400).json({ error: 'Name is required' });
+      return;
     }
 
     // Handle both camelCase and snake_case field names, provide defaults
@@ -643,7 +648,8 @@ router.post('/loans', verifyClerkToken, async (req, res) => {
 
     const [rows] = await pool.execute<LoanRow[]>('SELECT * FROM user_loans WHERE id = ?', [id]);
     if (!Array.isArray(rows) || rows.length === 0) {
-      return res.status(500).json({ error: 'Failed to retrieve created loan' });
+      res.status(500).json({ error: 'Failed to retrieve created loan' });
+      return;
     }
     res.status(201).json(rows[0]);
   } catch (error: unknown) {
@@ -846,7 +852,8 @@ router.post('/ai', verifyClerkToken, async (req, res) => {
     // Only require name
     const name = req.body.name;
     if (!name) {
-      return res.status(400).json({ error: 'Name is required' });
+      res.status(400).json({ error: 'Name is required' });
+      return;
     }
 
     // Handle both camelCase and snake_case field names, provide defaults
@@ -987,7 +994,8 @@ router.put('/ai/:id', verifyClerkToken, async (req, res) => {
 
     const [rows] = await pool.execute<InsuranceRow[]>('SELECT * FROM user_ai WHERE id = ?', [id]);
     if (!Array.isArray(rows) || rows.length === 0) {
-      return res.status(404).json({ error: 'AI entry not found' });
+      res.status(404).json({ error: 'AI entry not found' });
+      return;
     }
     res.json(rows[0]);
   } catch (error: unknown) {
