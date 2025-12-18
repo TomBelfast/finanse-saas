@@ -405,7 +405,7 @@ const Subscriptions = () => {
       form.reset()
     } catch (error: unknown) {
       logger.error('Błąd zapisu subskrypcji', error instanceof Error ? error : new Error(String(error)));
-      toast.error(error.message || 'Wystąpił błąd podczas zapisywania')
+      toast.error((error instanceof Error ? error.message : null) || (typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : null) || 'Wystąpił błąd podczas zapisywania')
     }
   }
 
