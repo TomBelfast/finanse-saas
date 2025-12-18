@@ -825,11 +825,20 @@ const Subscriptions = () => {
                 const monthlySubs = filteredData.filter(s => s.cycle === 'miesięczny');
                 const yearlySubs = filteredData.filter(s => s.cycle === 'roczny');
 
+                const parseAmount = (amount: unknown): number => {
+                  if (typeof amount === 'number') return amount;
+                  if (typeof amount === 'string') {
+                    const parsed = parseFloat(amount);
+                    return isNaN(parsed) ? 0 : parsed;
+                  }
+                  return 0;
+                };
+
                 const monthlyTotal = monthlySubs.reduce((sum, sub) => 
-                  sum + (typeof sub.amount === 'number' ? sub.amount : parseFloat(sub.amount as any) || 0), 0
+                  sum + parseAmount(sub.amount), 0
                 );
                 const yearlyTotal = yearlySubs.reduce((sum, sub) => 
-                  sum + (typeof sub.amount === 'number' ? sub.amount : parseFloat(sub.amount as any) || 0), 0
+                  sum + parseAmount(sub.amount), 0
                 );
 
                 const chartData = [

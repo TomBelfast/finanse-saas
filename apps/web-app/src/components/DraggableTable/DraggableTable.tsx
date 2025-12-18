@@ -13,12 +13,11 @@ import {
   TableRow,
 } from '~/components/ui/table'
 import { cn } from '~/lib/utils'
-
-export type CustomizeComponent = React.ComponentType<any>
+import { TableColumn, CustomizeComponent } from './types'
 
 interface DraggableTableProps<T extends { id: string }> {
   dataSource: T[]
-  columns: any[] // Uproszczone, w praktyce można lepiej otypować
+  columns: TableColumn<T>[]
   onUpdateListOrder: (itemId: string, destination: number, source: number) => void
   children?: React.ReactElement[]
   wrapper?: CustomizeComponent
@@ -59,7 +58,7 @@ const Row = ({ children, className, ...props }: RowProps) => {
 
   // Find the sort handle cell and inject listeners
   const childrenWithHandle = React.Children.map(children, (child) => {
-    if (React.isValidElement(child) && (child as any).key === 'sort') {
+    if (React.isValidElement(child) && child.key === 'sort') {
       return React.cloneElement(child, {
         children: (
           <div
@@ -70,7 +69,7 @@ const Row = ({ children, className, ...props }: RowProps) => {
             <GripVertical className="h-4 w-4" />
           </div>
         ),
-      } as any)
+      } as React.HTMLAttributes<HTMLElement>)
     }
     return child
   })
@@ -121,7 +120,7 @@ function DraggableTable<T extends { id: string }>({
           <Table>
             <TableHeader>
               <TableRow>
-                {columns.map((col: any) => (
+                {columns.map((col) => (
                   <TableHead key={col.key || col.dataIndex} className={col.className}>
                     {col.title}
                   </TableHead>
@@ -131,11 +130,14 @@ function DraggableTable<T extends { id: string }>({
             <TableBody>
               {dataSource.map((record) => (
                 <Row key={record.id} data-row-key={record.id}>
-                  {columns.map((col: any) => (
-                    <TableCell key={col.key || col.dataIndex} className={col.className}>
-                      {col.render ? col.render((record as any)[col.dataIndex], record) : (record as any)[col.dataIndex]}
-                    </TableCell>
-                  ))}
+                  {columns.map((col) => {
+                    const value = col.dataIndex ? (record as Record<string, unknown>)[col.dataIndex] : undefined;
+                    return (
+                      <TableCell key={col.key || col.dataIndex} className={col.className}>
+                        {col.render ? col.render(value, record) : (value !== undefined ? String(value) : '')}
+                      </TableCell>
+                    );
+                  })}
                 </Row>
               ))}
             </TableBody>

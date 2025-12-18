@@ -372,19 +372,18 @@ const AI = () => {
       }
 
       // 3. Utwórz nowy rekord z nową datą i statusem "do_zaplaty"
-      const newAI = {
+      const newAI: Partial<ApiAI> = {
         name: ai.name,
         amount: ai.amount,
         currency: ai.currency || userCurrency || 'PLN',
         period_start: ai.periodStart || new Date().toISOString().split('T')[0],
         period_end: ai.periodEnd || '',
         renewal_date: nextDate,
-        ai_company: ai.aiCompany || '',
-        ai_type: ai.aiType || '',
+        insurance_company: ai.aiCompany || '', // ApiAI uses insurance_company field
+        insurance_type: ai.aiType || '', // ApiAI uses insurance_type field
         status: 'active',
-        nextPaymentDate: nextDate,
-        renewalCycle: ai.renewalCycle || 'monthly',
-        attachments: Array.isArray(ai.attachments) ? ai.attachments : [],
+        documents: JSON.stringify(Array.isArray(ai.attachments) ? ai.attachments : []),
+        description: ai.note || null,
       };
 
       await apiClient.createAI(newAI);

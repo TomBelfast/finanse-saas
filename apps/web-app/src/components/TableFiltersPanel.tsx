@@ -21,15 +21,17 @@ export type FilterField =
   | { type: 'dateRange'; name: string; label: string }
   | { type: 'checkbox'; name: string; label: string };
 
+type FilterValue = string | number | boolean | DateRange | { min?: number; max?: number } | undefined;
+
 interface TableFiltersPanelProps {
   fields: FilterField[];
-  values: Record<string, any>;
-  onChange: (values: Record<string, any>) => void;
+  values: Record<string, FilterValue>;
+  onChange: (values: Record<string, FilterValue>) => void;
   onReset?: () => void;
 }
 
 export const TableFiltersPanel: React.FC<TableFiltersPanelProps> = ({ fields, values, onChange, onReset }) => {
-  const handleChange = (name: string, value: any) => {
+  const handleChange = (name: string, value: FilterValue) => {
     onChange({ ...values, [name]: value });
   };
 

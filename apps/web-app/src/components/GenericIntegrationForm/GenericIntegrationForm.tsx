@@ -20,7 +20,7 @@ type FieldProps = {
   tooltip?: string
   placeholder?: string
   required?: boolean
-  rules?: any[]
+  rules?: Array<{ message?: string; pattern?: RegExp; validator?: (value: unknown) => boolean }>
   default?: string | boolean
   sensitive?: boolean
   autofocus?: boolean
@@ -57,7 +57,7 @@ function GenericIntegrationForm<T extends object>({
       acc[name] = field.default
     }
     return acc
-  }, {} as any)
+  }, {} as Record<string, string | boolean>)
 
   const form = useForm<T>({
     defaultValues: { ...defaultValues, ...model },
@@ -84,7 +84,7 @@ function GenericIntegrationForm<T extends object>({
             <FormField
               key={name}
               control={form.control}
-              name={name as any} // Path<T> casting
+              name={name as keyof T & string}
               rules={{
                 required: field.required ? t<string>('common:validationErrors.fieldIsRequired') : false,
               }}
