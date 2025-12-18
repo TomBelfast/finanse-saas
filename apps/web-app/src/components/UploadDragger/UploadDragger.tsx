@@ -3,6 +3,7 @@ import { toast } from 'sonner';
 import last from 'lodash.last';
 import { useTranslation } from 'react-i18next';
 import { FileUpload } from '~/components/ui/file-upload';
+import { logger } from '~/utils/logger';
 
 interface OwnProps {
   storageRef: string;
@@ -99,7 +100,7 @@ const UploadDragger: FunctionComponent<Props> = ({
         status: 'uploading'
       }]);
 
-      console.error('File upload is currently disabled due to Firebase removal.');
+      logger.error('File upload is currently disabled due to Firebase removal', new Error('Firebase removed'));
       setTimeout(() => {
         toast.error('File upload disabled');
         updateFileList((prev) =>
