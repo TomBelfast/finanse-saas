@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useMemo } from 'react';
 import { useSelector } from 'react-redux';
+import { logger } from '~/utils/logger';
 import {
   Plus,
   Edit,
@@ -171,7 +172,9 @@ const AI = () => {
         let attachments = [];
         try {
           attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents || row.attachments || []);
-        } catch (e) { console.error('Error parsing attachments', e); }
+        } catch (e) { 
+          logger.error('Error parsing attachments', e instanceof Error ? e : new Error(String(e)));
+        }
 
         // Extract renewalCycle from description if needed
         let renewalCycle = 'monthly';
@@ -222,7 +225,7 @@ const AI = () => {
       });
       setData(mapped);
     } catch (error: any) {
-      console.error('Błąd podczas ładowania AI:', error);
+      logger.error('Błąd podczas ładowania AI', error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoading(false);
     }
@@ -333,7 +336,7 @@ const AI = () => {
       await apiClient.deleteAI(id);
       loadData();
     } catch (error) {
-      console.error('Błąd usuwania:', error);
+      logger.error('Błąd usuwania', error instanceof Error ? error : new Error(String(error)), { aiId: id });
     }
   };
 
@@ -383,7 +386,7 @@ const AI = () => {
       await apiClient.createAI(newAI);
       loadData();
     } catch (error) {
-      console.error('Błąd płatności:', error);
+      logger.error('Błąd płatności', error instanceof Error ? error : new Error(String(error)));
     }
   };
 
@@ -435,7 +438,7 @@ const AI = () => {
       setModalOpen(false);
       loadData();
     } catch (e: any) {
-      console.error(e);
+      logger.error('Błąd zapisu AI', e instanceof Error ? e : new Error(String(e)));
       alert(e?.message || 'Błąd zapisu');
     }
   };
