@@ -932,84 +932,52 @@ const Reports: React.FC = () => {
             <TabsContent value="loans" className="space-y-4">
               <div className="space-y-4">
                 <h3 className="text-lg font-medium">Analiza kredytów</h3>
-                {(() => {
-                  const statusMap: Record<string, string> = {
-                    'active': 'aktywna',
-                    'paid': 'spłacona',
-                    'delayed': 'opóźniona',
-                    'defaulted': 'niespłacona',
-                    'refinanced': 'refinansowana',
-                  };
-                  const activeLoans = loans.filter((loan: any) => (statusMap[loan.status] || loan.status) === 'aktywna');
-                  
-                  if (activeLoans.length === 0) {
-                    return <p className="text-sm text-muted-foreground">Brak aktywnych kredytów</p>;
-                  }
-                  
-                  const COLORS = [
-                    "hsl(var(--chart-1))",
-                    "hsl(var(--chart-2))",
-                    "hsl(var(--chart-3))",
-                    "hsl(var(--chart-4))",
-                    "hsl(var(--chart-5))",
-                  ];
-                  
-                  const chartData = activeLoans.map((loan: any, index: number) => ({
-                    name: loan.name || `Kredyt ${index + 1}`,
-                    remaining: parseAmount(loan.remaining_amount || 0),
-                    monthly: parseAmount(loan.next_payment_amount || loan.installment_amount || 0),
-                    fill: COLORS[index % COLORS.length],
-                  })).filter(item => item.remaining > 0 || item.monthly > 0);
-                  
-                  const config = chartData.reduce((acc, item) => {
-                    acc[item.name] = { label: item.name, color: item.fill };
-                    return acc;
-                  }, {} as Record<string, { label: string; color: string }>);
-                  
-                  return (
-                    <div className="grid gap-4 md:grid-cols-2">
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Pozostałe kwoty do spłaty</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ChartContainer config={activeLoansData.config} className="max-h-[300px] w-full">
-                            <BarChart data={activeLoansData.chartData} layout="vertical">
-                              <CartesianGrid horizontal={false} />
-                              <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} style={{ fontSize: '12px' }} />
-                              <XAxis type="number" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                              <ChartTooltip content={<ChartTooltipContent hideLabel formatter={currencyFormatter} />} />
-                              <Bar dataKey="remaining" radius={5}>
-                                {activeLoansData.chartData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                                ))}
-                              </Bar>
-                            </BarChart>
-                          </ChartContainer>
-                        </CardContent>
-                      </Card>
-                      <Card>
-                        <CardHeader>
-                          <CardTitle className="text-base">Miesięczne raty</CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                          <ChartContainer config={activeLoansData.config} className="max-h-[300px] w-full">
-                            <BarChart data={activeLoansData.chartData} layout="vertical">
-                              <CartesianGrid horizontal={false} />
-                              <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} style={{ fontSize: '12px' }} />
-                              <XAxis type="number" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                              <ChartTooltip content={<ChartTooltipContent hideLabel formatter={currencyFormatter} />} />
-                              <Bar dataKey="monthly" radius={5}>
-                                {activeLoansData.chartData.map((entry, index) => (
-                                  <Cell key={`cell-${index}`} fill={entry.fill} />
-                                ))}
-                              </Bar>
-                            </BarChart>
-                          </ChartContainer>
-                        </CardContent>
-                      </Card>
-                    </div>
-                  )}
+                {activeLoansData.activeLoans.length === 0 ? (
+                  <p className="text-sm text-muted-foreground">Brak aktywnych kredytów</p>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Pozostałe kwoty do spłaty</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ChartContainer config={activeLoansData.config} className="max-h-[300px] w-full">
+                          <BarChart data={activeLoansData.chartData} layout="vertical">
+                            <CartesianGrid horizontal={false} />
+                            <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} style={{ fontSize: '12px' }} />
+                            <XAxis type="number" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
+                            <ChartTooltip content={<ChartTooltipContent hideLabel formatter={currencyFormatter} />} />
+                            <Bar dataKey="remaining" radius={5}>
+                              {activeLoansData.chartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ChartContainer>
+                      </CardContent>
+                    </Card>
+                    <Card>
+                      <CardHeader>
+                        <CardTitle className="text-base">Miesięczne raty</CardTitle>
+                      </CardHeader>
+                      <CardContent>
+                        <ChartContainer config={activeLoansData.config} className="max-h-[300px] w-full">
+                          <BarChart data={activeLoansData.chartData} layout="vertical">
+                            <CartesianGrid horizontal={false} />
+                            <YAxis dataKey="name" type="category" tickLine={false} axisLine={false} width={150} style={{ fontSize: '12px' }} />
+                            <XAxis type="number" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
+                            <ChartTooltip content={<ChartTooltipContent hideLabel formatter={currencyFormatter} />} />
+                            <Bar dataKey="monthly" radius={5}>
+                              {activeLoansData.chartData.map((entry, index) => (
+                                <Cell key={`cell-${index}`} fill={entry.fill} />
+                              ))}
+                            </Bar>
+                          </BarChart>
+                        </ChartContainer>
+                      </CardContent>
+                    </Card>
+                  </div>
+                )}
               </div>
             </TabsContent>
 
