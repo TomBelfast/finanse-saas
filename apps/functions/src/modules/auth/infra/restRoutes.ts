@@ -36,7 +36,7 @@ if (!process.env.CLERK_PUBLISHABLE_KEY) {
 export const verifyClerkToken = ClerkExpressRequireAuth({
   secretKey: process.env.CLERK_SECRET_KEY,
   publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-} as any) as unknown as RequestHandler;
+} as Parameters<typeof ClerkExpressRequireAuth>[0]) as unknown as RequestHandler;
 
 // Get current user (protected route)
 router.get('/me', verifyClerkToken, async (req, res) => {

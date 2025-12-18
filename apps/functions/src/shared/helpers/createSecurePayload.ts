@@ -1,8 +1,8 @@
 import cloneDeep from 'lodash.clonedeep';
 
-export const createSecurePayload = (payload: unknown) => {
+export const createSecurePayload = (payload: unknown): unknown => {
   const copy = cloneDeep(payload);
-  if (typeof copy === 'object') {
+  if (copy !== null && typeof copy === 'object') {
     const propertiesToHide = [
       'apiSecret',
       'apiKey',
@@ -15,8 +15,8 @@ export const createSecurePayload = (payload: unknown) => {
     ];
 
     propertiesToHide.forEach((key) => {
-      if (key in copy) {
-        copy[key] = '*******';
+      if (key in copy && typeof copy === 'object' && copy !== null) {
+        (copy as Record<string, unknown>)[key] = '*******';
       }
     });
   }
