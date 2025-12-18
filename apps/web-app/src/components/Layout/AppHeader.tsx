@@ -66,8 +66,8 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     <DropdownMenuTrigger asChild>
                         <Button variant="ghost" className="relative h-9 w-9 rounded-full ml-1">
                             <Avatar className="h-9 w-9 cursor-pointer">
-                                <AvatarImage src={user?.avatar_url} alt={user?.first_name} />
-                                <AvatarFallback>{user?.first_name?.[0]}{user?.last_name?.[0]}</AvatarFallback>
+                                <AvatarImage src={Array.isArray(user?.avatarUrl) ? user.avatarUrl[0] : user?.avatarUrl || undefined} alt={user?.firstName} />
+                                <AvatarFallback>{user?.firstName?.[0]}{user?.lastName?.[0]}</AvatarFallback>
                             </Avatar>
                         </Button>
                     </DropdownMenuTrigger>
