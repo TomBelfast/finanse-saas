@@ -1,4 +1,3 @@
-/* eslint-disable no-console */
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React from 'react'
 import { Redirect, Route, RouteProps, useHistory } from 'react-router-dom'
@@ -6,9 +5,11 @@ import { useSelector } from 'react-redux'
 import { AppStore, RequestStatus, UserStatus } from '@akademiasaas/shared'
 import { Loader2 } from 'lucide-react'
 import { useAuth } from '@clerk/clerk-react'
+import { logger } from '~/utils/logger'
 
-// eslint-disable-next-line no-console
-console.log('[ProtectedRoute] DEBUG ENV:', import.meta.env.VITE_DEBUG)
+if (import.meta.env.VITE_DEBUG === 'true') {
+  logger.debug('[ProtectedRoute] DEBUG ENV', { debug: import.meta.env.VITE_DEBUG });
+}
 
 const LoadingSpinner = () => (
   <div className="flex h-screen items-center justify-center">
@@ -36,29 +37,26 @@ const ProtectedRoute = ({ component: Component, render, ...rest }: RouteProps) =
   const isLoadingDetails = detailsStatus === RequestStatus.FETCHING
 
   if (import.meta.env.VITE_DEBUG === 'true') {
-    // eslint-disable-next-line no-console
-    console.debug('[ProtectedRoute] Status', {
+    logger.debug('[ProtectedRoute] Status', {
       isLoggingIn,
       isLoadingDetails,
       status,
       detailsStatus,
-      user,
-      details,
-    })
+      userId: user?.uid,
+      hasDetails: !!details,
+    });
   }
 
   if (!isLoaded) {
     if (import.meta.env.VITE_DEBUG === 'true') {
-      // eslint-disable-next-line no-console
-      console.debug('[ProtectedRoute] Clerk loading')
+      logger.debug('[ProtectedRoute] Clerk loading');
     }
     return <LoadingSpinner />
   }
 
   if (isLoggingIn || isLoadingDetails) {
     if (import.meta.env.VITE_DEBUG === 'true') {
-      // eslint-disable-next-line no-console
-      console.debug('[ProtectedRoute] Loading')
+      logger.debug('[ProtectedRoute] Loading');
     }
     return <LoadingSpinner />
   }
@@ -67,15 +65,13 @@ const ProtectedRoute = ({ component: Component, render, ...rest }: RouteProps) =
   // Redux user might not be synced yet, but Clerk auth is sufficient
   if (!isSignedIn) {
     if (import.meta.env.VITE_DEBUG === 'true') {
-      // eslint-disable-next-line no-console
-      console.debug('[ProtectedRoute] Redirect to auth - not signed in', { isSignedIn, user })
+      logger.debug('[ProtectedRoute] Redirect to auth - not signed in', { isSignedIn, userId: user?.uid });
     }
     return <Redirect to={authPath} />
   }
 
   const handleError = (error: Error): React.ReactElement => {
-    // eslint-disable-next-line no-console
-    console.error('[ProtectedRoute] Error', error)
+    logger.error('[ProtectedRoute] Error', error);
     return <div>Error: {error.message}</div>
   }
 
@@ -93,8 +89,7 @@ const ProtectedRoute = ({ component: Component, render, ...rest }: RouteProps) =
           throw new Error('Component or render prop is required')
         } catch (error) {
           if (import.meta.env.VITE_DEBUG === 'true') {
-            // eslint-disable-next-line no-console
-            console.debug('[ProtectedRoute] Error in render', error)
+            logger.debug('[ProtectedRoute] Error in render', { error: error instanceof Error ? error.message : String(error) });
           }
           return handleError(error instanceof Error ? error : new Error(String(error)))
         }
