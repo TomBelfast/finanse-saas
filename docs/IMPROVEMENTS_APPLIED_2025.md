@@ -248,25 +248,139 @@ pnpm dev
 
 ---
 
-## 📝 Następne Kroki
+## 📝 Pozostałe Zadania do Wykonania
 
-### Krótkoterminowe (1-2 tygodnie):
-- [ ] Popraw wszystkie błędy TypeScript z nowych strict checks
-- [ ] Zastąp pozostałe `console.log` w backend loggerem
-- [ ] Dodaj testy dla nowej walidacji database config
-- [ ] Zaktualizuj dokumentację deployment z wymaganymi env vars
+### 🔴 Wysoki Priorytet (Krytyczne)
 
-### Średnioterminowe (1 miesiąc):
-- [ ] Refaktor dużych komponentów (Reports.tsx)
-- [ ] Optymalizacja bundle size
-- [ ] Database query optimization
-- [ ] Frontend performance tuning
+#### 1. Frontend: Zastąpienie console.log
+- **Status:** ⚠️ 69 wystąpień w 12 plikach frontend
+- **Lokalizacje:**
+  - `Reports.tsx`: 2 wystąpienia
+  - `AI.tsx`: 5 wystąpień
+  - `Insurances.tsx`: 5 wystąpień
+  - `Loans.tsx`: 4 wystąpienia
+  - `Subscriptions.tsx`: 3 wystąpienia
+  - `AuthChecker.tsx`: 14 wystąpień
+  - `consoleLogger.ts`: 16 wystąpień (utility file)
+- **Akcja:** Utworzyć frontend logger utility i zastąpić wszystkie console.log
 
-### Długoterminowe (2-3 miesiące):
-- [ ] Stopniowe usuwanie `any` types
-- [ ] Test coverage improvement
-- [ ] Architecture documentation
-- [ ] Security audit
+#### 2. Frontend: Usunięcie `any` types
+- **Status:** ⚠️ 130 wystąpień w 22 plikach frontend
+- **Największe lokalizacje:**
+  - `Reports.tsx`: 29 wystąpień
+  - `AI.tsx`: 12 wystąpień
+  - `Insurances.tsx`: 12 wystąpień
+  - `Subscriptions.tsx`: 14 wystąpień
+  - `apiClient.ts`: 11 wystąpień
+- **Akcja:** Stopniowo refaktorować, tworząc właściwe typy TypeScript
+
+#### 3. Backend: Pozostałe `any` types
+- **Status:** ⚠️ 27 wystąpień w 12 plikach backend
+- **Lokalizacje:**
+  - `restRoutes.ts`: 5 wystąpień
+  - `testRoutes.ts`: 10 wystąpień
+  - Różne repository: 12 wystąpień
+- **Akcja:** Poprawić type safety w pozostałych plikach
+
+#### 4. Backend: Pozostałe console.log
+- **Status:** ⚠️ 14 wystąpień w 4 plikach backend
+- **Lokalizacje:**
+  - `loadEnv.ts`: 6 wystąpień (celowo - inicjalizacja)
+  - `logger.ts`: 3 wystąpienia (celowo - implementacja loggera)
+  - `logger.test.ts`: 4 wystąpienia (testy)
+  - `BaseRepository.ts`: 1 wystąpienie
+- **Akcja:** Zastąpić w BaseRepository.ts
+
+### 🟡 Średni Priorytet
+
+#### 5. Refaktor dużych komponentów
+- **Reports.tsx:** 1275 linii - wymaga podziału na mniejsze komponenty
+- **Rekomendacja:**
+  - Wyodrębnić komponenty: `ReportsStats`, `ReportsCharts`, `ReportsFilters`
+  - Utworzyć custom hooks: `useReportsData`, `useReportsFilters`
+  - Przenieść logikę obliczeń do `useMemo` i `useCallback`
+
+#### 6. Optymalizacja Bundle Size
+- **Status:** ⚠️ Brak analizy bundle size
+- **Akcja:**
+  - Dodać `vite-bundle-visualizer` lub `webpack-bundle-analyzer`
+  - Zidentyfikować duże dependencies
+  - Zaimplementować tree-shaking dla Ant Design
+  - Code splitting dla routes (już częściowo zrobione)
+
+#### 7. Database Query Optimization
+- **Status:** ⚠️ 134 query operations w 35 plikach
+- **Akcja:**
+  - Dodać query logging w development
+  - Wykonać EXPLAIN na częste queries
+  - Rozważyć database indexes
+  - Dodać query caching (Redis)
+
+#### 8. React Performance Optimization
+- **Status:** ⚠️ 202 useEffect w 48 plikach
+- **Akcja:**
+  - Dodać `useMemo` i `useCallback` gdzie potrzebne
+  - Użyć React DevTools Profiler
+  - Optymalizować re-renders
+
+### 🟢 Niski Priorytet
+
+#### 9. Code Cleanup
+- **TODO/FIXME:** 80 komentarzy w 34 plikach
+- **Deprecated Code:** Usunąć lub oznaczyć jako `@deprecated`
+- **Duplikacja:** Wyodrębnić shared utilities
+
+#### 10. Test Coverage
+- **Status:** ⚠️ Unknown - brak testów
+- **Akcja:**
+  - Dodać unit tests dla utilities
+  - Dodać integration tests dla API endpoints
+  - Dodać E2E tests dla kluczowych flow
+
+#### 11. Documentation
+- **API Documentation:** OpenAPI/Swagger
+- **Architecture Diagrams:** Mermaid diagrams
+- **Deployment Guides:** Aktualizacja z nowymi env vars
+
+---
+
+## 📊 Statystyki Postępu
+
+| Obszar | Przed | Po | Postęp |
+|--------|-------|-----|--------|
+| **Security Issues** | 2 krytyczne | 0 | ✅ 100% |
+| **Backend Error Handling** | Różne wzorce | Unified | ✅ 100% |
+| **Backend Type Safety (`any`)** | ~50+ | 27 | ✅ ~46% |
+| **Frontend Type Safety (`any`)** | 130 | 130 | ⚠️ 0% |
+| **Backend console.log** | ~14 | ~14 | ⚠️ 0% (celowo w logger) |
+| **Frontend console.log** | 69 | 69 | ⚠️ 0% |
+| **Large Components** | Reports.tsx (1275) | Reports.tsx (1275) | ⚠️ 0% |
+
+**Ogólny Postęp:** ~40% ulepszeń zastosowanych
+
+---
+
+## 🎯 Rekomendowany Plan Działania
+
+### Faza 1: Frontend Code Quality (2-3 tygodnie)
+1. Utworzyć frontend logger utility
+2. Zastąpić console.log w frontend
+3. Rozpocząć refaktor `any` types w kluczowych plikach (apiClient.ts, Reports.tsx)
+
+### Faza 2: Performance (2-3 tygodnie)
+1. Refaktor Reports.tsx na mniejsze komponenty
+2. Bundle size analysis i optymalizacja
+3. React performance tuning
+
+### Faza 3: Backend Finalization (1-2 tygodnie)
+1. Poprawić pozostałe `any` types w backend
+2. Database query optimization
+3. Query caching implementation
+
+### Faza 4: Testing & Documentation (1-2 tygodnie)
+1. Dodać testy dla kluczowych funkcji
+2. API documentation
+3. Architecture documentation
 
 ---
 
