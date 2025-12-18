@@ -313,7 +313,54 @@ pnpm dev
 
 **Commity:**
 - `2f547e5` - Perf: Optymalizacja React performance w Insurances, AI i Loans
-- `[commit]` - Fix: Poprawka dependency arrays w useMemo
+- `908cd3a` - Fix: Poprawka dependency arrays w useMemo
+- `47c3a9a` - Fix: Poprawka dependency array w Loans.tsx
+
+### 4.3 Database Query Optimization
+
+**Status:** ✅ **Zakończone**
+
+**Zmiany:**
+- **N+1 Query Problem - testRoutes.ts:**
+  - Zoptymalizowano endpoint `/debug/users` - zamiast 1 + (N * 3) zapytań, teraz 1 zapytanie z LEFT JOIN
+  - Użyto `COALESCE(COUNT(DISTINCT ...))` dla zliczania subskrypcji, ubezpieczeń i kredytów
+  - Redukcja z ~61 zapytań (dla 20 użytkowników) do 1 zapytania
+- **Pagination Support:**
+  - Dodano opcjonalną pagination (`limit`, `offset`) do endpointów:
+    - `GET /loans` - maksymalnie 1000 rekordów na stronę
+    - `GET /ai` - maksymalnie 1000 rekordów na stronę
+    - `GET /insurances` - maksymalnie 1000 rekordów na stronę
+  - Pagination jest opcjonalna - jeśli nie podano parametrów, zwracane są wszystkie rekordy (backward compatible)
+- **Database Indexes - TODO Comments:**
+  - Dodano komentarze TODO o potrzebie indeksów na:
+    - `user_subscriptions(user_id, created_at)`
+    - `user_insurances(user_id, created_at)`
+    - `user_loans(user_id, created_at)`
+    - `user_ai(user_id, created_at)`
+- **Caching Recommendations:**
+  - Dodano komentarze o możliwości cache'owania list w Redis (TTL: 5 minut)
+  - Dotyczy często używanych danych: subscriptions, insurances, loans, AI
+
+**Wpływ:**
+- ⚡ Znacznie szybsze zapytania - redukcja z N+1 do 1 zapytania w testRoutes
+- 📉 Mniejsze obciążenie bazy danych - pagination zapobiega ładowaniu tysięcy rekordów
+- 🎯 Lepsze skalowanie - przygotowanie na duże ilości danych
+- 📝 Dokumentacja - komentarze wskazują kolejne kroki optymalizacji
+
+**Pliki zmienione:**
+- `apps/functions/src/modules/userFinances/infra/testRoutes.ts`
+- `apps/functions/src/modules/userFinances/infra/restRoutes.ts`
+- `apps/functions/src/shared/infra/repositories/MariaDBUserSubscriptionRepository.ts`
+- `apps/functions/src/shared/infra/repositories/MariaDBUserLoanRepository.ts`
+- `apps/functions/src/shared/infra/repositories/MariaDBUserInsuranceRepository.ts`
+
+**Commity:**
+- `11016a4` - Perf: Optymalizacja zapytań do bazy danych
+
+**Następne kroki (opcjonalne):**
+- Dodanie rzeczywistych database indexes (wymaga migracji)
+- Implementacja Redis cache dla często używanych danych
+- Dodanie pagination do repository methods (nie tylko endpointów)
 
 ---
 
