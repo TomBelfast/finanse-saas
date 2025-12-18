@@ -5,11 +5,6 @@
 import { logger } from './logger';
 
 /**
- * Re-export for convenience
- */
-export { handleError, getErrorMessage, getErrorStack, isDatabaseError, isValidationError };
-
-/**
  * Safely extract error message from unknown error type
  */
 export function getErrorMessage(error: unknown): string {

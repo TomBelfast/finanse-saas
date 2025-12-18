@@ -4,7 +4,7 @@ import { verifyClerkToken } from '../../auth/infra/restRoutes';
 import { MariaDBUserSubscriptionRepository } from '../../../shared/infra/repositories/MariaDBUserSubscriptionRepository';
 import { AuthenticatedRequest, getUserIdFromRequest, InsuranceRow, LoanRow } from '../../../shared/types/express';
 import { logger } from '../../../shared/utils/logger';
-import { handleError } from '../../../shared/utils/errorHandler';
+import { handleError, createErrorResponse } from '../../../shared/utils/errorHandler';
 
 const router = express.Router();
 const pool = getDatabasePool();
@@ -116,13 +116,12 @@ router.post('/subscriptions', verifyClerkToken, async (req, res) => {
     logger.info('Create subscription: Success', { userId, subscriptionId: subscription.id });
     res.status(201).json(subscription);
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Create subscription error:', err, {
-      stack: err.stack,
-      message: err.message,
-      body: req.body
-    });
-    res.status(500).json({ error: err.message || 'Failed to create subscription' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'create_subscription',
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+      body: req.body,
+    }, 'Failed to create subscription');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -141,12 +140,27 @@ router.put('/subscriptions/:id', verifyClerkToken, async (req, res) => {
       return res.status(403).json({ error: 'Forbidden' });
     }
 
-    const updateData = { ...req.body }; if (updateData.status) { const subStatusMapUpdate: Record<string, string> = { 'aktywna': 'active', 'nieaktywna': 'inactive', 'oczekująca na odnowienie': 'pending_renewal', 'oczekująca': 'pending_renewal', 'anulowana': 'cancelled', 'wygasła': 'expired' }; updateData.status = subStatusMapUpdate[updateData.status] || updateData.status; } const subscription = await subscriptionsRepo.update(id, updateData);
+    const updateData = { ...req.body };
+    if (updateData.status) {
+      const subStatusMapUpdate: Record<string, string> = {
+        'aktywna': 'active',
+        'nieaktywna': 'inactive',
+        'oczekująca na odnowienie': 'pending_renewal',
+        'oczekująca': 'pending_renewal',
+        'anulowana': 'cancelled',
+        'wygasła': 'expired'
+      };
+      updateData.status = subStatusMapUpdate[updateData.status] || updateData.status;
+    }
+    const subscription = await subscriptionsRepo.update(id, updateData);
     res.json(subscription);
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Update subscription error:', err);
-    res.status(500).json({ error: err.message || 'Failed to update subscription' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'update_subscription',
+      subscriptionId: req.params.id,
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+    }, 'Failed to update subscription');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -190,9 +204,11 @@ router.get('/insurances', verifyClerkToken, async (req, res) => {
     );
     res.json(rows);
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Get insurances error:', err);
-    res.status(500).json({ error: err.message || 'Failed to get insurances' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'get_insurances',
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+    }, 'Failed to get insurances');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -266,12 +282,18 @@ router.post('/insurances', verifyClerkToken, async (req, res) => {
       ]
     );
 
-    const [rows] = await pool.execute('SELECT * FROM user_insurances WHERE id = ?', [id]);
-    res.status(201).json((rows as InsuranceRow[])[0]);
+    const [rows] = await pool.execute<InsuranceRow[]>('SELECT * FROM user_insurances WHERE id = ?', [id]);
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(500).json({ error: 'Failed to retrieve created insurance' });
+    }
+    res.status(201).json(rows[0]);
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Create insurance error:', err);
-    res.status(500).json({ error: err.message || 'Failed to create insurance' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'create_insurance',
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+      body: req.body,
+    }, 'Failed to create insurance');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -350,12 +372,18 @@ router.put('/insurances/:id', verifyClerkToken, async (req, res) => {
       values
     );
 
-    const [rows] = await pool.execute('SELECT * FROM user_insurances WHERE id = ?', [id]);
-    res.json((rows as InsuranceRow[])[0]);
+    const [rows] = await pool.execute<InsuranceRow[]>('SELECT * FROM user_insurances WHERE id = ?', [id]);
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(404).json({ error: 'Insurance not found' });
+    }
+    res.json(rows[0]);
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Update insurance error:', err);
-    res.status(500).json({ error: err.message || 'Failed to update insurance' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'update_insurance',
+      insuranceId: req.params.id,
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+    }, 'Failed to update insurance');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -378,9 +406,12 @@ router.delete('/insurances/:id', verifyClerkToken, async (req, res) => {
     await pool.execute('DELETE FROM user_insurances WHERE id = ?', [id]);
     res.json({ success: true });
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Delete insurance error:', err);
-    res.status(500).json({ error: err.message || 'Failed to delete insurance' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'delete_insurance',
+      insuranceId: req.params.id,
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+    }, 'Failed to delete insurance');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -397,9 +428,11 @@ router.get('/loans', verifyClerkToken, async (req, res) => {
     );
     res.json(rows);
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Get loans error:', err);
-    res.status(500).json({ error: err.message || 'Failed to get loans' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'get_loans',
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+    }, 'Failed to get loans');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -488,12 +521,18 @@ router.post('/loans', verifyClerkToken, async (req, res) => {
       ]
     );
 
-    const [rows] = await pool.execute('SELECT * FROM user_loans WHERE id = ?', [id]);
-    res.status(201).json((rows as LoanRow[])[0]);
+    const [rows] = await pool.execute<LoanRow[]>('SELECT * FROM user_loans WHERE id = ?', [id]);
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(500).json({ error: 'Failed to retrieve created loan' });
+    }
+    res.status(201).json(rows[0]);
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Create loan error:', err);
-    res.status(500).json({ error: err.message || 'Failed to create loan' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'create_loan',
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+      body: req.body,
+    }, 'Failed to create loan');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -569,12 +608,18 @@ router.put('/loans/:id', verifyClerkToken, async (req, res) => {
       values
     );
 
-    const [rows] = await pool.execute('SELECT * FROM user_loans WHERE id = ?', [id]);
-    res.json((rows as LoanRow[])[0]);
+    const [rows] = await pool.execute<LoanRow[]>('SELECT * FROM user_loans WHERE id = ?', [id]);
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(404).json({ error: 'Loan not found' });
+    }
+    res.json(rows[0]);
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Update loan error:', err);
-    res.status(500).json({ error: err.message || 'Failed to update loan' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'update_loan',
+      loanId: req.params.id,
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+    }, 'Failed to update loan');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -597,9 +642,12 @@ router.delete('/loans/:id', verifyClerkToken, async (req, res) => {
     await pool.execute('DELETE FROM user_loans WHERE id = ?', [id]);
     res.json({ success: true });
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Delete loan error:', err);
-    res.status(500).json({ error: err.message || 'Failed to delete loan' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'delete_loan',
+      loanId: req.params.id,
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+    }, 'Failed to delete loan');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -616,9 +664,11 @@ router.get('/ai', verifyClerkToken, async (req, res) => {
     );
     res.json(rows);
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Get AI error:', err);
-    res.status(500).json({ error: err.message || 'Failed to get AI' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'get_ai',
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+    }, 'Failed to get AI');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -770,12 +820,18 @@ router.put('/ai/:id', verifyClerkToken, async (req, res) => {
     values.push(id);
     await pool.execute(`UPDATE user_ai SET ${fields.join(', ')}, updated_at = NOW() WHERE id = ?`, values);
 
-    const [rows] = await pool.execute('SELECT * FROM user_ai WHERE id = ?', [id]);
-    res.json((rows as InsuranceRow[])[0]);
+    const [rows] = await pool.execute<InsuranceRow[]>('SELECT * FROM user_ai WHERE id = ?', [id]);
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return res.status(404).json({ error: 'AI entry not found' });
+    }
+    res.json(rows[0]);
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Update AI error:', err);
-    res.status(500).json({ error: err.message || 'Failed to update AI' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'update_ai',
+      aiId: req.params.id,
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+    }, 'Failed to update AI');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
@@ -798,9 +854,12 @@ router.delete('/ai/:id', verifyClerkToken, async (req, res) => {
     await pool.execute('DELETE FROM user_ai WHERE id = ?', [id]);
     res.json({ success: true });
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Delete AI error:', err);
-    res.status(500).json({ error: err.message || 'Failed to delete AI' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'delete_ai',
+      aiId: req.params.id,
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+    }, 'Failed to delete AI');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 
