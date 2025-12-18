@@ -480,8 +480,9 @@ const Reports: React.FC = () => {
       .filter((sub) => parseAmount(sub.amount || 0) > 0)
       .map((sub, index: number) => {
         const amount = parseAmount(sub.amount || 0);
-        const cycle = sub.cycle || 'monthly';
-        const monthlyAmount = (cycle === 'yearly' || cycle === 'roczny') ? amount / 12 : amount;
+        // Default to monthly if cycle is not available in API response
+        const cycle = 'monthly';
+        const monthlyAmount = amount;
         
         return {
           name: sub.name || `Subskrypcja ${index + 1}`,
