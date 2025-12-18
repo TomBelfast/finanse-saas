@@ -141,7 +141,7 @@ const Loans = () => {
       const mapped = (loans as ApiLoan[]).map(row => {
         let attachments = [];
         try {
-          attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents || row.attachments || []);
+          attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents ? (Array.isArray(row.documents) ? row.documents : []) : []);
         } catch (e) { 
           logger.error('Error parsing attachments', e instanceof Error ? e : new Error(String(e)));
         }
@@ -164,7 +164,7 @@ const Loans = () => {
           nextPayment: row.next_payment_date,
           status: mappedStatus,
           installments: row.duration_in_months,
-          installmentAmount: row.next_payment_amount ? parseAmount(row.next_payment_amount) : (row.installment_amount ? parseAmount(row.installment_amount) : 0),
+          installmentAmount: row.next_payment_amount ? parseAmount(row.next_payment_amount) : 0,
           startDate: row.start_date,
           endDate: row.end_date,
           note: row.description,
