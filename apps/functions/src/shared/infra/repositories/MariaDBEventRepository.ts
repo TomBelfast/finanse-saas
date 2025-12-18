@@ -53,12 +53,12 @@ export class MariaDBEventRepository {
     private mapRowToEvent(row: EventRow): BusinessEvent {
         return {
             eventId: row.event_id,
-            eventName: row.event_name,
+            eventName: row.event_name as BusinessEvent['eventName'],
             eventDomain: row.event_domain,
             revision: row.revision,
             timestamp: row.timestamp,
             metadata: row.metadata ? JSON.parse(row.metadata) : undefined,
             payload: JSON.parse(row.payload),
-        };
+        } as BusinessEvent;
     }
 }

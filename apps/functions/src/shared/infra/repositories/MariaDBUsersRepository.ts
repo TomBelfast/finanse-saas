@@ -1,9 +1,8 @@
 import { Pool, RowDataPacket } from 'mysql2/promise';
 import { UsersRepository } from '../../domain/repositories/UsersRepository';
-import { UserDocument, BaseOrder } from '@akademiasaas/shared';
+import { UserDocument, BaseOrder, UserFeatures } from '@akademiasaas/shared';
 import Stripe from 'stripe';
 import { StripeInvoiceWithId } from 'shared/models/stripe';
-import { getDatabasePool } from '../database';
 
 interface Dependencies {
   pool: Pool;
@@ -59,7 +58,7 @@ export class MariaDBUsersRepository implements UsersRepository {
     return {
       uid: row.uid,
       email: row.email || '',
-      contactEmail: row.contact_email || '',
+      contactEmail: row.contact_email || null,
       firstName: row.first_name,
       lastName: row.last_name,
       avatarUrl: this.parseJSONField<string[]>(row.avatar_url),
@@ -69,7 +68,7 @@ export class MariaDBUsersRepository implements UsersRepository {
       termsAndPrivacyPolicy: Boolean(row.terms_and_privacy_policy),
       stripeCustomerId: row.stripe_customer_id || undefined,
       country: row.country || undefined,
-      features: this.parseJSONField<string[]>(row.features) || [],
+      features: (this.parseJSONField<string[]>(row.features) || []) as UserFeatures[],
       ip: row.ip,
       subscription: this.parseJSONField(row.subscription),
       lang: row.lang || undefined,

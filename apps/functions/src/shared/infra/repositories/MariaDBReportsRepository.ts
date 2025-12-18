@@ -2,7 +2,6 @@ import { Pool, RowDataPacket } from 'mysql2/promise';
 import {
     CreatorStatsDocument,
     CreatorMonthStatsDocument,
-    ReportCurrency,
     SubscriptionPlan
 } from '@akademiasaas/shared';
 
