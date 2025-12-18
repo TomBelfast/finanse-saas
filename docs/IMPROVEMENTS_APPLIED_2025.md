@@ -281,6 +281,40 @@ pnpm dev
 - `81b4e49` - Fix: Poprawka typu cycle w subscriptionsChartData
 - `cbe8577` - Fix: Usunięcie niepotrzebnych porównań cycle
 
+### 4.2 React Performance Optimization - Insurances, AI, Loans
+
+**Status:** ✅ **Zakończone**
+
+**Zmiany:**
+- **Insurances.tsx:**
+  - Przeniesiono `filteredData` do `useMemo` (zależności: `data`, `filterName`, `filterStatus`)
+  - Przeniesiono `sortedData` do `useMemo` (zależność: `filteredData`)
+  - Dodano `useCallback` dla `parseAmount`
+  - Zaktualizowano dependency array w `summary` useMemo
+- **AI.tsx:**
+  - Przeniesiono `filteredData` do `useMemo` (zależności: `data`, `filterName`, `filterStatus`)
+  - Przeniesiono `sortedData` do `useMemo` (zależność: `filteredData`)
+  - Dodano `useCallback` dla `parseAmount`
+  - Zaktualizowano dependency array w `summary` useMemo
+- **Loans.tsx:**
+  - Przeniesiono `filteredData` do `useMemo` (zależności: `data`, `filterName`, `filterStatus`)
+  - Dodano `useCallback` dla `parseAmount`
+  - Zaktualizowano dependency array w `summary` useMemo
+
+**Wpływ:**
+- ⚡ Szybsze renderowanie komponentów Insurances, AI i Loans
+- 📉 Mniejsze obciążenie CPU - filtrowanie i sortowanie tylko przy zmianie danych
+- 🎯 Lepsze UX - brak lagów przy wpisywaniu w filtry
+
+**Pliki zmienione:**
+- `apps/web-app/src/pages/Insurances/Insurances.tsx`
+- `apps/web-app/src/pages/AI/AI.tsx`
+- `apps/web-app/src/pages/Loans/Loans.tsx`
+
+**Commity:**
+- `2f547e5` - Perf: Optymalizacja React performance w Insurances, AI i Loans
+- `[commit]` - Fix: Poprawka dependency arrays w useMemo
+
 ---
 
 ## 📝 Pozostałe Zadania do Wykonania
