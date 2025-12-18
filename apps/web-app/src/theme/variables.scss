@@ -1,0 +1,47 @@
+$p-normal: 24px;
+$primary-color: #2f90d6;
+$light-color: #ffffff;
+$success-color: #1bc5bd;
+$info-color: #8950fc;
+$warning-color: #ffa800;
+$error-color: #f64e60;
+$success-green: #87d068;
+$success-color-light: #c9f7f5;
+$primary-text-color: rgba(0, 0, 0, 0.85);
+$secondary-text-color: rgba(0, 0, 0, 0.45);
+
+// Enhanced 3D Shadows
+$boxShadow: 0 4px 8px rgba(0, 0, 0, 0.08),
+  0 12px 24px rgba(0, 0, 0, 0.14),
+  0 24px 48px rgba(0, 0, 0, 0.16);
+
+$boxShadow3D: 0 8px 16px rgba(0, 0, 0, 0.10),
+  0 16px 32px rgba(0, 0, 0, 0.16),
+  0 32px 64px rgba(0, 0, 0, 0.20),
+  0 64px 128px rgba(0, 0, 0, 0.14);
+
+$boxShadowLight: 0 4px 12px rgba(0, 0, 0, 0.10),
+  0 8px 20px rgba(0, 0, 0, 0.08);
+
+$boxShadowHover: 0 12px 24px rgba(0, 0, 0, 0.16),
+  0 24px 48px rgba(0, 0, 0, 0.20);
+
+// Modern Gradients
+$gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+$gradient-success: linear-gradient(135deg, #1bc5bd 0%, #0e9f96 100%);
+$gradient-surface: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+$gradient-card: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%);
+
+// Border & Spacing
+$border-radius: 16px;
+$border-radius-sm: 12px;
+$border-radius-lg: 20px;
+$border-color: #d9d9d9;
+$background-color: #fafafa;
+$defaultBorder: 1px solid $border-color;
+
+$sm-break-point: 576px;
+$md-break-point: 768px;
+$lg-break-point: 992px;
+$xl-break-point: 1200px;
+$xxl-break-point: 1600px;

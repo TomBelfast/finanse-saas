@@ -1,0 +1,356 @@
+/* ===================================
+   3D Design Utilities
+   Modern 3D effects for depth and visual hierarchy
+   =================================== */
+
+/* ----- 3D Shadow System ----- */
+
+/* Elevation levels - Multi-layer shadows for depth */
+.shadow-3d-xs {
+	box-shadow:
+		0 2px 4px rgba(0, 0, 0, 0.06),
+		0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.shadow-3d-sm {
+	box-shadow:
+		0 4px 8px rgba(0, 0, 0, 0.08),
+		0 8px 16px rgba(0, 0, 0, 0.12),
+		0 12px 24px rgba(0, 0, 0, 0.10);
+}
+
+.shadow-3d-md {
+	box-shadow:
+		0 4px 8px rgba(0, 0, 0, 0.08),
+		0 12px 24px rgba(0, 0, 0, 0.14),
+		0 24px 48px rgba(0, 0, 0, 0.16),
+		0 48px 96px rgba(0, 0, 0, 0.10);
+}
+
+.shadow-3d-lg {
+	box-shadow:
+		0 8px 16px rgba(0, 0, 0, 0.10),
+		0 16px 32px rgba(0, 0, 0, 0.16),
+		0 32px 64px rgba(0, 0, 0, 0.20),
+		0 64px 128px rgba(0, 0, 0, 0.14);
+}
+
+.shadow-3d-xl {
+	box-shadow:
+		0 12px 24px rgba(0, 0, 0, 0.12),
+		0 24px 48px rgba(0, 0, 0, 0.16),
+		0 48px 96px rgba(0, 0, 0, 0.20),
+		0 96px 192px rgba(0, 0, 0, 0.16);
+}
+
+/* Colored shadows for brand elements */
+.shadow-3d-primary {
+	box-shadow:
+		0 6px 16px rgba(47, 144, 214, 0.20),
+		0 12px 32px rgba(47, 144, 214, 0.16),
+		0 24px 48px rgba(47, 144, 214, 0.12);
+}
+
+.shadow-3d-success {
+	box-shadow:
+		0 6px 16px rgba(27, 197, 189, 0.20),
+		0 12px 32px rgba(27, 197, 189, 0.16),
+		0 24px 48px rgba(27, 197, 189, 0.12);
+}
+
+/* ----- Floating & Hover Effects ----- */
+
+.float-3d {
+	transform: translateZ(0);
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.float-3d:hover {
+	transform: translateY(-12px) translateZ(30px);
+	box-shadow:
+		0 8px 16px rgba(0, 0, 0, 0.10),
+		0 16px 32px rgba(0, 0, 0, 0.16),
+		0 32px 64px rgba(0, 0, 0, 0.20),
+		0 64px 128px rgba(0, 0, 0, 0.12);
+}
+
+.float-3d-sm:hover {
+	transform: translateY(-6px) translateZ(15px);
+}
+
+.float-3d-lg:hover {
+	transform: translateY(-16px) translateZ(40px);
+}
+
+/* ----- Card 3D Effects ----- */
+
+.card-3d {
+	background: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
+	border-radius: 16px;
+	padding: 24px;
+	transform: translateZ(0);
+	transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+	box-shadow:
+		0 4px 8px rgba(0, 0, 0, 0.08),
+		0 12px 24px rgba(0, 0, 0, 0.14),
+		0 24px 48px rgba(0, 0, 0, 0.16),
+		0 48px 96px rgba(0, 0, 0, 0.10);
+}
+
+.card-3d:hover {
+	transform: translateY(-10px) scale(1.02);
+	box-shadow:
+		0 8px 16px rgba(0, 0, 0, 0.10),
+		0 16px 32px rgba(0, 0, 0, 0.16),
+		0 32px 64px rgba(0, 0, 0, 0.20),
+		0 64px 128px rgba(0, 0, 0, 0.14);
+}
+
+/* ----- Neumorphism Soft UI ----- */
+
+.neomorph-soft {
+	background: #f0f0f3;
+	border-radius: 20px;
+	box-shadow:
+		10px 10px 20px rgba(163, 177, 198, 0.7),
+		-10px -10px 20px rgba(255, 255, 255, 0.6);
+}
+
+.neomorph-soft-inset {
+	background: #f0f0f3;
+	border-radius: 20px;
+	box-shadow:
+		inset 8px 8px 16px rgba(163, 177, 198, 0.6),
+		inset -8px -8px 16px rgba(255, 255, 255, 0.6);
+}
+
+.neomorph-pressed {
+	background: #f0f0f3;
+	border-radius: 20px;
+	box-shadow:
+		inset 4px 4px 8px rgba(163, 177, 198, 0.6),
+		inset -4px -4px 8px rgba(255, 255, 255, 0.6);
+	transform: scale(0.96);
+}
+
+/* ----- Glassmorphism Effects ----- */
+
+.glass-3d {
+	background: rgba(255, 255, 255, 0.8);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	border: 1px solid rgba(255, 255, 255, 0.3);
+	border-radius: 16px;
+	box-shadow:
+		0 8px 32px 0 rgba(31, 38, 135, 0.15),
+		inset 0 0 0 1px rgba(255, 255, 255, 0.1);
+}
+
+.glass-3d-dark {
+	background: rgba(0, 0, 0, 0.3);
+	backdrop-filter: blur(20px);
+	-webkit-backdrop-filter: blur(20px);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	border-radius: 16px;
+	box-shadow:
+		0 8px 32px 0 rgba(0, 0, 0, 0.25),
+		inset 0 0 0 1px rgba(255, 255, 255, 0.05);
+}
+
+/* ----- Button 3D Effects ----- */
+
+.btn-3d {
+	position: relative;
+	background: linear-gradient(145deg, #2f90d6 0%, #2670b0 100%);
+	border: none;
+	border-radius: 8px;
+	padding: 12px 24px;
+	color: white;
+	font-weight: 600;
+	cursor: pointer;
+	transform: translateZ(0);
+	transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+	box-shadow:
+		0 2px 4px rgba(47, 144, 214, 0.2),
+		0 4px 8px rgba(47, 144, 214, 0.15),
+		0 8px 16px rgba(47, 144, 214, 0.1);
+}
+
+.btn-3d::before {
+	content: '';
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	background: linear-gradient(145deg, rgba(255, 255, 255, 0.2) 0%, transparent 100%);
+	border-radius: 8px;
+	opacity: 0.5;
+}
+
+.btn-3d:hover {
+	transform: translateY(-4px) translateZ(8px);
+	box-shadow:
+		0 6px 12px rgba(47, 144, 214, 0.30),
+		0 12px 24px rgba(47, 144, 214, 0.25),
+		0 24px 48px rgba(47, 144, 214, 0.20);
+}
+
+.btn-3d:active {
+	transform: translateY(1px) translateZ(0);
+	box-shadow:
+		0 2px 4px rgba(47, 144, 214, 0.20),
+		0 4px 8px rgba(47, 144, 214, 0.15);
+}
+
+/* ----- Typography 3D Effects ----- */
+
+.text-3d {
+	background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+	-webkit-background-clip: text;
+	-webkit-text-fill-color: transparent;
+	background-clip: text;
+	text-shadow:
+		0 2px 4px rgba(0, 0, 0, 0.1),
+		0 4px 8px rgba(0, 0, 0, 0.08);
+}
+
+.text-3d-shadow {
+	text-shadow:
+		0 1px 2px rgba(0, 0, 0, 0.1),
+		0 2px 4px rgba(0, 0, 0, 0.1),
+		0 4px 8px rgba(0, 0, 0, 0.1),
+		0 8px 16px rgba(0, 0, 0, 0.05);
+}
+
+.text-3d-emboss {
+	text-shadow:
+		-1px -1px 1px rgba(255, 255, 255, 0.8),
+		1px 1px 1px rgba(0, 0, 0, 0.2);
+}
+
+.text-3d-raised {
+	text-shadow:
+		0 1px 0 #fff,
+		0 2px 0 rgba(0, 0, 0, 0.15),
+		0 3px 0 rgba(0, 0, 0, 0.1),
+		0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+/* ----- Perspective & Transform Utilities ----- */
+
+.perspective-3d {
+	perspective: 1000px;
+	transform-style: preserve-3d;
+}
+
+.rotate-3d-x {
+	transform: rotateX(10deg);
+}
+
+.rotate-3d-y {
+	transform: rotateY(10deg);
+}
+
+.tilt-3d:hover {
+	transform: perspective(1000px) rotateX(5deg) rotateY(5deg);
+}
+
+/* ----- Animation Keyframes ----- */
+
+@keyframes float-animation {
+
+	0%,
+	100% {
+		transform: translateY(0) translateZ(0);
+	}
+
+	50% {
+		transform: translateY(-10px) translateZ(10px);
+	}
+}
+
+@keyframes pulse-3d {
+
+	0%,
+	100% {
+		transform: scale(1);
+		box-shadow:
+			0 2px 4px rgba(0, 0, 0, 0.05),
+			0 8px 16px rgba(0, 0, 0, 0.1);
+	}
+
+	50% {
+		transform: scale(1.05);
+		box-shadow:
+			0 4px 8px rgba(0, 0, 0, 0.06),
+			0 12px 24px rgba(0, 0, 0, 0.12),
+			0 24px 48px rgba(0, 0, 0, 0.15);
+	}
+}
+
+@keyframes shimmer {
+	0% {
+		background-position: -1000px 0;
+	}
+
+	100% {
+		background-position: 1000px 0;
+	}
+}
+
+.animate-float {
+	animation: float-animation 3s ease-in-out infinite;
+}
+
+.animate-pulse-3d {
+	animation: pulse-3d 2s ease-in-out infinite;
+}
+
+.shimmer-effect {
+	background: linear-gradient(90deg,
+			rgba(255, 255, 255, 0) 0%,
+			rgba(255, 255, 255, 0.2) 20%,
+			rgba(255, 255, 255, 0.5) 60%,
+			rgba(255, 255, 255, 0) 100%);
+	background-size: 1000px 100%;
+	animation: shimmer 2s infinite;
+}
+
+/* ----- Performance Optimizations ----- */
+
+.gpu-accelerate {
+	transform: translateZ(0);
+	will-change: transform;
+	backface-visibility: hidden;
+}
+
+/* ----- Responsive & Accessibility ----- */
+
+@media (prefers-reduced-motion: reduce) {
+
+	.float-3d,
+	.card-3d,
+	.btn-3d,
+	.animate-float,
+	.animate-pulse-3d {
+		animation: none !important;
+		transition: none !important;
+		transform: none !important;
+	}
+}
+
+@media (max-width: 768px) {
+
+	.shadow-3d-lg,
+	.shadow-3d-xl {
+		box-shadow:
+			0 4px 8px rgba(0, 0, 0, 0.06),
+			0 8px 16px rgba(0, 0, 0, 0.1);
+	}
+
+	.card-3d {
+		border-radius: 8px;
+		padding: 16px;
+	}
+}

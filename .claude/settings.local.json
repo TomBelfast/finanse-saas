@@ -1,0 +1,39 @@
+{
+  "permissions": {
+    "allow": [
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebSearch",
+      "WebFetch(domain:docs.claude.com)",
+      "WebFetch(domain:www.npmjs.com)",
+      "Bash(mkdir:*)",
+      "Bash(pnpm install)",
+      "Bash(npx tsc:*)",
+      "Bash(./node_modules/.bin/tsc:*)",
+      "Bash(timeout 5 node:*)",
+      "Bash(timeout 10 node:*)",
+      "Bash(npm install:*)",
+      "Bash(claude mcp add logger --global -- node \"C:/tools/logger-mcp/dist/mcp/cli.js\")",
+      "Bash(claude mcp add:*)",
+      "Bash(claude mcp list:*)",
+      "Bash(cat:*)",
+      "Bash(curl:*)",
+      "Skill(example-skills:webapp-testing)",
+      "Bash(python test_recon.py:*)",
+      "Bash(python test_recon2.py:*)",
+      "Bash(python test_login.py:*)",
+      "Bash(pnpm add:*)",
+      "Bash(python test_frontend.py:*)",
+      "Bash(python -m json.tool:*)",
+      "mcp__logger__tail_logs",
+      "mcp__logger__search_logs",
+      "Bash(tasklist:*)",
+      "Bash(taskkill:*)",
+      "Bash(pnpm dev)",
+      "Bash(find:*)",
+      "Bash(python:*)",
+      "Bash(netstat:*)",
+      "Bash(findstr:*)",
+      "Bash(grep:*)"
+    ]
+  }
+}

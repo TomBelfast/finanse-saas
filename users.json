@@ -1,0 +1,19 @@
+{"users": [
+{
+  "localId": "m495STgXDggYo8i968R5Oq3eWUI3",
+  "email": "aiwbiznesiepl@gmail.com",
+  "emailVerified": true,
+  "displayName": "Tomasz Pasieka",
+  "photoUrl": "https://lh3.googleusercontent.com/a/ACg8ocKBIeSVdgJGUam9GLzDL9wcnoQf9gss5VWgRZsAfHJfhVFG0cw=s96-c",
+  "lastSignedInAt": "1750949242623",
+  "createdAt": "1748127308833",
+  "providerUserInfo": [
+    {
+      "providerId": "google.com",
+      "rawId": "106901018227826903893",
+      "email": "aiwbiznesiepl@gmail.com",
+      "displayName": "Tomasz Pasieka",
+      "photoUrl": "https://lh3.googleusercontent.com/a/ACg8ocKBIeSVdgJGUam9GLzDL9wcnoQf9gss5VWgRZsAfHJfhVFG0cw=s96-c"
+    }
+  ]
+}]}

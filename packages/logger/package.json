@@ -1,0 +1,42 @@
+{
+  "name": "@akademiasaas/logger",
+  "version": "1.0.0",
+  "description": "Universal logging system (Loguru-style) with MCP Server for AI-powered log analysis",
+  "license": "UNLICENSED",
+  "type": "module",
+  "main": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    },
+    "./mcp": {
+      "import": "./dist/mcp/server.js",
+      "types": "./dist/mcp/server.d.ts"
+    }
+  },
+  "bin": {
+    "logger-mcp": "./dist/mcp/cli.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc -w",
+    "check-types": "tsc --noEmit",
+    "mcp": "node ./dist/mcp/cli.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "chalk": "^5.3.0",
+    "chokidar": "^3.6.0",
+    "dayjs": "^1.11.11",
+    "zod": "^3.24.1"
+  },
+  "devDependencies": {
+    "@types/node": "^22.0.0",
+    "typescript": "^5.5.4"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

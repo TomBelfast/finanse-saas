@@ -1,0 +1,104 @@
+// Standalone Express server (replacement for Firebase Functions)
+// Load environment variables from .env.local FIRST, before any other imports
+// This is critical because Clerk SDK reads CLERK_SECRET_KEY during module initialization
+import './config/loadEnv';
+
+import express from 'express';
+import cors from 'cors';
+import bodyParser from 'body-parser';
+import { getDatabasePool } from './shared/infra/database';
+import { createUsersRepository } from './shared/infra/repositories/repositoryFactory';
+import { db } from './config/bootstrap';
+import { logger } from './shared/utils/logger';
+
+const app = express();
+const PORT = parseInt(process.env.PORT || '3001', 10);
+
+// Middleware - CORS must be first!
+app.use(cors({
+  origin: (origin, callback) => {
+    // Allow all origins in development
+    // In production, you should specify allowed origins
+    callback(null, true);
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  exposedHeaders: ['Content-Length', 'X-Request-Id'],
+  maxAge: 86400, // 24 hours
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+}));
+
+// Handle OPTIONS preflight requests explicitly
+app.options('*', (req, res) => {
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(204);
+});
+
+app.use((req, res, next) => {
+  logger.httpRequest(req.method, req.url);
+  next();
+});
+app.use(bodyParser.json({ limit: '50mb' })); // Increased for file uploads
+app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+
+// Health check
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', database: 'connected' });
+});
+
+// Import routes
+import { usersRouter } from './modules/users/infra/restRoutes';
+import { subscriptionsRouter } from './modules/userFinances/infra/restRoutes';
+import { authRouter } from './modules/auth/infra/restRoutes';
+import { testRouter } from './modules/userFinances/infra/testRoutes';
+import { uploadRouter } from './modules/upload/infra/uploadRoutes';
+
+// Mount routes
+app.use('/api/auth', authRouter);
+app.use('/api/users', usersRouter);
+// All finance routes (subscriptions, insurances, loans) are in one router
+app.use('/api', subscriptionsRouter);
+app.use('/api/test', testRouter);
+app.use('/api/upload', uploadRouter);
+
+// Error handler
+interface ErrorWithStatus extends Error {
+  status?: number;
+}
+
+app.use((err: ErrorWithStatus, req: express.Request, res: express.Response, _next: express.NextFunction) => {
+  logger.error('Request error', err, { url: req.url, method: req.method });
+  res.status(err.status || 500).json({
+    error: err.message || 'Internal server error',
+  });
+});
+
+// Start server
+if (require.main === module) {
+  const HOST = process.env.HOST || '0.0.0.0'; // Listen on all interfaces
+  app.listen(PORT, HOST, () => {
+    logger.info(`🚀 API Server running on http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
+    logger.info(`📊 Database: MariaDB (${process.env.DB_NAME || 'Finanse'})`);
+    logger.info(`🌐 CORS: Enabled for all origins`);
+    // Log Clerk configuration status
+    if (process.env.CLERK_SECRET_KEY) {
+      logger.info(`✅ Clerk: CLERK_SECRET_KEY is configured`);
+    } else {
+      logger.warn(`⚠️  Clerk: CLERK_SECRET_KEY is NOT configured - API authentication will fail!`);
+      logger.warn(`   Add CLERK_SECRET_KEY to apps/functions/.env.local and restart the server`);
+    }
+    if (process.env.CLERK_PUBLISHABLE_KEY) {
+      logger.info(`✅ Clerk: CLERK_PUBLISHABLE_KEY is configured`);
+    } else {
+      logger.warn(`⚠️  Clerk: CLERK_PUBLISHABLE_KEY is NOT configured - Clerk Core 2 requires this!`);
+      logger.warn(`   Add CLERK_PUBLISHABLE_KEY to apps/functions/.env.local and restart the server`);
+    }
+  });
+}
+
+export default app;

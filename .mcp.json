@@ -1,0 +1,8 @@
+{
+  "mcpServers": {
+    "logger": {
+      "command": "node",
+      "args": ["K:/SSSAAAAAAS dzialajacy/packages/logger/dist/mcp/cli.js"]
+    }
+  }
+}

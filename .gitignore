@@ -1,0 +1,12 @@
+node_modules/
+.env.local
+.env
+*.log
+dist/
+dist_manual/
+.turbo/
+.DS_Store
+*.tsbuildinfo
+build_error*.txt
+build_result*.txt
+nul
