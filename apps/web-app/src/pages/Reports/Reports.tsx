@@ -375,7 +375,135 @@ const Reports: React.FC = () => {
       aiMonthly,
       aiYearly,
     };
-  }, [loans, subscriptions, insurances, ai]);
+  }, [loans, subscriptions, insurances, ai, parseAmount]);
+
+  // Memoized chart data for pie chart (monthly costs distribution)
+  const categoryChartData = useMemo(() => {
+    const COLORS = [
+      "hsl(var(--chart-1))",
+      "hsl(var(--chart-2))",
+      "hsl(var(--chart-3))",
+      "hsl(var(--chart-4))",
+      "hsl(var(--chart-5))",
+    ];
+    const data = [
+      { name: 'Kredyty', value: totals.loansMonthly, fill: COLORS[0] },
+      { name: 'Finanse', value: totals.subscriptionsMonthly, fill: COLORS[1] },
+      { name: 'Ubezpieczenia', value: totals.insurancesMonthly, fill: COLORS[2] },
+      { name: 'AI', value: totals.aiMonthly, fill: COLORS[3] },
+    ].filter(item => item.value > 0);
+    
+    const config = data.reduce((acc, item) => {
+      acc[item.name] = { label: item.name, color: item.fill };
+      return acc;
+    }, {} as Record<string, { label: string; color: string }>);
+    
+    return { data, config, COLORS };
+  }, [totals.loansMonthly, totals.subscriptionsMonthly, totals.insurancesMonthly, totals.aiMonthly]);
+
+  // Memoized chart data for bar chart (monthly costs comparison)
+  const barChartData = useMemo(() => {
+    const COLORS = [
+      "hsl(var(--chart-1))",
+      "hsl(var(--chart-2))",
+      "hsl(var(--chart-3))",
+      "hsl(var(--chart-4))",
+    ];
+    const data = [
+      { name: 'Kredyty', value: totals.loansMonthly, fill: COLORS[0] },
+      { name: 'Finanse', value: totals.subscriptionsMonthly, fill: COLORS[1] },
+      { name: 'Ubezpieczenia', value: totals.insurancesMonthly, fill: COLORS[2] },
+      { name: 'AI', value: totals.aiMonthly, fill: COLORS[3] },
+    ].filter(item => item.value > 0);
+    
+    const config = data.reduce((acc, item) => {
+      acc[item.name] = { label: item.name, color: item.fill };
+      return acc;
+    }, {} as Record<string, { label: string; color: string }>);
+    
+    return { data, config, COLORS };
+  }, [totals.loansMonthly, totals.subscriptionsMonthly, totals.insurancesMonthly, totals.aiMonthly]);
+
+  // Memoized active loans data
+  const activeLoansData = useMemo(() => {
+    const statusMap: Record<string, string> = {
+      'active': 'aktywna',
+      'paid': 'spłacona',
+      'delayed': 'opóźniona',
+      'defaulted': 'niespłacona',
+      'refinanced': 'refinansowana',
+    };
+    
+    const activeLoans = loans.filter((loan) => {
+      const mappedStatus = statusMap[loan.status] || loan.status;
+      return mappedStatus === 'aktywna';
+    });
+    
+    const COLORS = [
+      "hsl(var(--chart-1))",
+      "hsl(var(--chart-2))",
+      "hsl(var(--chart-3))",
+      "hsl(var(--chart-4))",
+      "hsl(var(--chart-5))",
+    ];
+    
+    const chartData = activeLoans.map((loan, index: number) => ({
+      name: loan.name || `Kredyt ${index + 1}`,
+      remaining: parseAmount(loan.remaining_amount || 0),
+      monthly: parseAmount(loan.next_payment_amount || 0),
+      fill: COLORS[index % COLORS.length],
+    })).filter(item => item.remaining > 0 || item.monthly > 0);
+    
+    const config = chartData.reduce((acc, item) => {
+      acc[item.name] = { label: item.name, color: item.fill };
+      return acc;
+    }, {} as Record<string, { label: string; color: string }>);
+    
+    return { activeLoans, chartData, config, COLORS };
+  }, [loans, parseAmount]);
+
+  // Memoized subscriptions chart data
+  const subscriptionsChartData = useMemo(() => {
+    if (subscriptions.length === 0) {
+      return null;
+    }
+    
+    const COLORS = [
+      "hsl(var(--chart-1))",
+      "hsl(var(--chart-2))",
+      "hsl(var(--chart-3))",
+      "hsl(var(--chart-4))",
+      "hsl(var(--chart-5))",
+    ];
+    
+    const chartData = subscriptions
+      .filter((sub) => parseAmount(sub.amount || 0) > 0)
+      .map((sub, index: number) => {
+        const amount = parseAmount(sub.amount || 0);
+        const cycle = sub.cycle || 'monthly';
+        const monthlyAmount = (cycle === 'yearly' || cycle === 'roczny') ? amount / 12 : amount;
+        
+        return {
+          name: sub.name || `Subskrypcja ${index + 1}`,
+          amount: monthlyAmount,
+          fill: COLORS[index % COLORS.length],
+          cycle: cycle === 'yearly' || cycle === 'roczny' ? 'Roczny' : 'Miesięczny',
+        };
+      })
+      .sort((a, b) => b.amount - a.amount);
+    
+    const config = chartData.reduce((acc, item) => {
+      acc[item.name] = { label: item.name, color: item.fill };
+      return acc;
+    }, {} as Record<string, { label: string; color: string }>);
+    
+    return { chartData, config, COLORS };
+  }, [subscriptions, parseAmount]);
+
+  // Memoized tooltip formatter
+  const currencyFormatter = useCallback((v: unknown) => {
+    return formatCurrency(typeof v === 'number' ? v : Number(v) || 0, userCurrency);
+  }, [userCurrency]);
 
   // Chart preferences
   const [chartTypes, setChartTypes] = useState(() => {
