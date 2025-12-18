@@ -481,14 +481,13 @@ const Reports: React.FC = () => {
       .map((sub, index: number) => {
         const amount = parseAmount(sub.amount || 0);
         // Default to monthly if cycle is not available in API response
-        const cycle = 'monthly';
         const monthlyAmount = amount;
         
         return {
           name: sub.name || `Subskrypcja ${index + 1}`,
           amount: monthlyAmount,
           fill: COLORS[index % COLORS.length],
-          cycle: cycle === 'yearly' || cycle === 'roczny' ? 'Roczny' : 'Miesięczny',
+          cycle: 'Miesięczny',
         };
       })
       .sort((a, b) => b.amount - a.amount);
