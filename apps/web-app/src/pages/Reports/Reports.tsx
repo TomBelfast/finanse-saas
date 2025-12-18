@@ -7,6 +7,7 @@ import { addDays, format } from 'date-fns';
 import { DateRange } from "react-day-picker";
 import { AppStore, formatCurrency, Currency } from '@akademiasaas/shared';
 import { apiClient } from '../../services/apiClient';
+import { logger } from '~/utils/logger';
 import {
   BarChart,
   LineChart,
@@ -198,7 +199,7 @@ const Reports: React.FC = () => {
         setInsurances(insurancesData as any[]);
         setAI(aiData as any[]);
       } catch (error) {
-        console.error('Error loading data:', error);
+        logger.error('Error loading data', error instanceof Error ? error : new Error(String(error)));
       } finally {
         setLoading(false);
       }
@@ -401,7 +402,7 @@ const Reports: React.FC = () => {
   };
 
   const handleDownloadReport = () => {
-    console.log('Downloading report with date range:', date);
+    logger.info('Downloading report', { dateRange: date });
   };
 
   // --- RENDERERS ---
