@@ -32,6 +32,7 @@ import {
 } from 'recharts';
 import { AppStore, formatCurrency, Currency } from '@akademiasaas/shared';
 import { apiClient } from '../../services/apiClient';
+import { ApiInsurance } from '~/types/api';
 import {
   ChartContainer,
   ChartTooltip,
@@ -152,7 +153,7 @@ const Insurances = () => {
   const userCurrency = (userDetails?.defaultCurrency || 'pln') as Currency;
 
   // Helper function to parse amount
-  const parseAmount = (amount: any): number => {
+  const parseAmount = (amount: unknown): number => {
     if (typeof amount === 'number') return amount;
     if (typeof amount === 'string') {
       // Remove currency symbols and spaces, replace comma with dot
@@ -167,7 +168,7 @@ const Insurances = () => {
     setLoading(true);
     try {
       const insurances = await apiClient.getInsurances();
-      const mapped = (insurances as any[]).map(row => {
+      const mapped = (insurances as ApiInsurance[]).map(row => {
         // Parse documents
         let attachments = [];
         try {
@@ -223,7 +224,7 @@ const Insurances = () => {
         };
       });
       setData(mapped);
-    } catch (error: any) {
+    } catch (error: unknown) {
       logger.error('Błąd podczas ładowania ubezpieczeń', error instanceof Error ? error : new Error(String(error)));
     } finally {
       setLoading(false);
@@ -441,7 +442,7 @@ const Insurances = () => {
 
       setModalOpen(false);
       loadData();
-    } catch (e: any) {
+    } catch (e: unknown) {
       logger.error('Błąd zapisu ubezpieczenia', e instanceof Error ? e : new Error(String(e)));
       alert(e?.message || 'Błąd zapisu');
     }
@@ -697,7 +698,7 @@ const Insurances = () => {
                           cursor={false} 
                           content={<ChartTooltipContent 
                             hideLabel 
-                            formatter={(value: number, name: string, props: any) => {
+                            formatter={(value: unknown, name: string, props: { payload?: { paymentStatus?: string } }) => {
                               const paymentStatus = props.payload?.paymentStatus || '';
                               return [formatCurrency(value, userCurrency), paymentStatus];
                             }}
@@ -789,7 +790,7 @@ const Insurances = () => {
                         <ChartTooltip 
                           content={<ChartTooltipContent 
                             hideLabel
-                            formatter={(value: number, name: string, props: any) => {
+                            formatter={(value: unknown, name: string, props: { payload?: { paymentStatus?: string } }) => {
                               const paymentStatus = props.payload?.paymentStatus || '';
                               return [formatCurrency(value, userCurrency), paymentStatus];
                             }}
@@ -799,7 +800,7 @@ const Insurances = () => {
                         <Pie
                           data={chartDataWithPercentages}
                           dataKey="total"
-                          label={(entry: any) => {
+                          label={(entry: { name: string; total: number }) => {
                             return `${entry.name}: ${formatCurrency(entry.total, userCurrency)}`;
                           }}
                           nameKey="name"
@@ -882,7 +883,7 @@ const Insurances = () => {
                         cursor={false} 
                         content={<ChartTooltipContent 
                           hideLabel 
-                          formatter={(value: number, name: string, props: any) => {
+                          formatter={(value: unknown, name: string, props: { payload?: { cycle?: string } }) => {
                             const cycle = props.payload?.cycle || '';
                             const paymentStatus = props.payload?.paymentStatus || '';
                             return [formatCurrency(value, userCurrency), `${cycle} - ${paymentStatus}`];
@@ -949,7 +950,7 @@ const Insurances = () => {
                 <Label htmlFor="paymentStatus">Płatność</Label>
                 <Select
                   value={formData.paymentStatus}
-                  onValueChange={(value) => setFormData({ ...formData, paymentStatus: value as any })}
+                  onValueChange={(value) => setFormData({ ...formData, paymentStatus: value as 'do_zaplaty' | 'zaplacono' })}
                 >
                   <SelectTrigger id="paymentStatus">
                     <SelectValue placeholder="Wybierz" />
@@ -966,7 +967,7 @@ const Insurances = () => {
               <Label htmlFor="renewalCycle">Cykl odnowienia</Label>
               <Select
                 value={formData.renewalCycle}
-                onValueChange={(value) => setFormData({ ...formData, renewalCycle: value as any })}
+                onValueChange={(value) => setFormData({ ...formData, renewalCycle: value as 'monthly' | 'yearly' })}
               >
                 <SelectTrigger id="renewalCycle">
                   <SelectValue placeholder="Wybierz" />
@@ -1016,7 +1017,7 @@ const Insurances = () => {
               <UploadField
                 fileList={attachments.map(a => ({ url: a.url, name: a.name, uid: a.name }))}
                 onChange={(value) => {
-                  const newAttachments = value.map((f: any) => ({
+                  const newAttachments = value.map((f: { name: string; url: string; uid?: string; type?: string }) => ({
                     name: f.name,
                     url: f.url,
                     type: f.type || '',
