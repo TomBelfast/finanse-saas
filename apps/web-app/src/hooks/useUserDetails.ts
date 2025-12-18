@@ -2,12 +2,13 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserDetails } from '../../../../packages/shared/src/store/reducers/user/actions/getUserDetails';
 import { logger } from '~/utils/logger';
+import { AppStore } from '@akademiasaas/shared';
 
 export const useUserDetails = () => {
   const dispatch = useDispatch();
-  const user = useSelector((state: any) => state.user.data);
-  const loading = useSelector((state: any) => state.user.loading);
-  const error = useSelector((state: any) => state.user.error);
+  const user = useSelector((state: AppStore) => state.user.data);
+  const loading = useSelector((state: AppStore) => state.user.loading);
+  const error = useSelector((state: AppStore) => state.user.error);
 
   useEffect(() => {
     if (import.meta.env.VITE_DEBUG === 'true') {
@@ -19,16 +20,16 @@ export const useUserDetails = () => {
       }
       // Pobierz uid z Clerk, jeśli dostępny
       // TODO: Update to use Clerk instead of Firebase
-      const uid = undefined; // (window as any)?.firebase?.auth?.()?.currentUser?.uid; // REMOVED
+      const uid = undefined; // (window as unknown as { firebase?: { auth?: () => { currentUser?: { uid?: string } } } })?.firebase?.auth?.()?.currentUser?.uid; // REMOVED
       if (uid) {
-        dispatch(getUserDetails(uid) as any)
-          .then((res: any) => {
+        dispatch(getUserDetails(uid) as unknown as { then: (callback: (res: unknown) => void) => void; catch: (callback: (err: unknown) => void) => void })
+          .then((res: unknown) => {
             if (import.meta.env.VITE_DEBUG === 'true') {
               logger.debug('[useUserDetails] getUserDetails resolved', { success: !!res });
             }
           })
-          .catch((err: any) => {
-            logger.error('[useUserDetails] getUserDetails error', err);
+          .catch((err: unknown) => {
+            logger.error('[useUserDetails] getUserDetails error', err instanceof Error ? err : new Error(String(err)));
           });
       } else {
         if (import.meta.env.VITE_DEBUG === 'true') {
