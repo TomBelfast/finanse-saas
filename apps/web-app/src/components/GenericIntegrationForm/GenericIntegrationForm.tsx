@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo } from 'react'
-import { useForm, UseFormReturn } from 'react-hook-form'
+import { useForm, UseFormReturn, FieldPath } from 'react-hook-form'
 import { useTranslation } from 'react-i18next'
 import {
   Form,
@@ -86,8 +86,7 @@ function GenericIntegrationForm<T extends object>({
             <FormField
               key={name}
               control={form.control}
-              // eslint-disable-next-line @typescript-eslint/no-explicit-any
-              name={name as any}
+              name={name as FieldPath<T>}
               rules={{
                 required: field.required ? t<string>('common:validationErrors.fieldIsRequired') : false,
               }}

@@ -20,9 +20,13 @@ export const useBroadcastMessage = () => {
       // await apiClient.broadcastMessage(payload)
       toast.success('Broadcast message sent successfully')
     } catch (error: unknown) {
-      const err = error as { status?: number; message?: string };
-      if (err?.status === 403 || err?.message?.includes('403')) {
-        toast.error('You are not authorized to send broadcast messages')
+      if (error && typeof error === 'object') {
+        const err = error as { status?: number; message?: string };
+        if (err?.status === 403 || err?.message?.includes('403')) {
+          toast.error('You are not authorized to send broadcast messages')
+        } else {
+          toast.error('Failed to send broadcast message')
+        }
       } else {
         toast.error('Failed to send broadcast message')
       }
