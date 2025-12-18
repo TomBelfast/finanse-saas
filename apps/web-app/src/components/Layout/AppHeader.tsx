@@ -74,7 +74,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                     <DropdownMenuContent className="w-56" align="end" forceMount>
                         <DropdownMenuLabel className="font-normal">
                             <div className="flex flex-col space-y-1">
-                                <p className="text-sm font-medium leading-none">{user?.first_name} {user?.last_name}</p>
+                                <p className="text-sm font-medium leading-none">{user?.firstName} {user?.lastName}</p>
                                 <p className="text-xs leading-none text-gray-500">{user?.email}</p>
                             </div>
                         </DropdownMenuLabel>
