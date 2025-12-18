@@ -172,7 +172,7 @@ const AI = () => {
         // Parse documents
         let attachments = [];
         try {
-          attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents || row.attachments || []);
+          attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents ? (Array.isArray(row.documents) ? row.documents : []) : []);
         } catch (e) { 
           logger.error('Error parsing attachments', e instanceof Error ? e : new Error(String(e)));
         }
@@ -216,8 +216,8 @@ const AI = () => {
           renewalCycle: renewalCycle as 'monthly' | 'yearly',
           note: row.description,
           attachments: attachments,
-          aiCompany: row.ai_company,
-          aiType: row.ai_type,
+          aiCompany: row.insurance_company, // ApiAI uses insurance_company field
+          aiType: row.insurance_type, // ApiAI uses insurance_type field
           periodStart: row.period_start,
           periodEnd: row.period_end
         };
