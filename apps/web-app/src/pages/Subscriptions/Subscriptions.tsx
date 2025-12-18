@@ -109,6 +109,7 @@ interface Subscription {
   note?: string
   attachments?: Attachment[]
   tag?: string
+  category?: string // Added for compatibility with filtering
 }
 
 const COLLECTION = 'subscriptions'
@@ -325,7 +326,7 @@ const Subscriptions = () => {
       setData(mappedData)
     } catch (error: unknown) {
       logger.error('Błąd podczas usuwania', error instanceof Error ? error : new Error(String(error)), { subscriptionId: id });
-      toast.error(error?.message || 'Nie udało się usunąć subskrypcji')
+      toast.error((error instanceof Error ? error.message : null) || (typeof error === 'object' && error !== null && 'message' in error ? String(error.message) : null) || 'Nie udało się usunąć subskrypcji')
     }
   }
 
@@ -373,17 +374,29 @@ const Subscriptions = () => {
       }
 
       const subscriptions = await apiClient.getSubscriptions()
-      const mappedData = subscriptions.map((sub: ApiSubscription) => ({
-        id: sub.id,
-        name: sub.name,
-        amount: sub.amount,
-        cycle: sub.cycle || 'miesięczny',
-        renewalDate: sub.renewalDate || sub.renewal_date,
-        status: sub.status || 'aktywna',
-        note: sub.note || sub.description || '',
-        attachments: sub.attachments || sub.documents || [],
-        tag: sub.tag || sub.category || 'inne',
-      })) as Subscription[]
+      const mappedData = subscriptions.map((sub: ApiSubscription) => {
+        let attachments: Attachment[] = [];
+        if (sub.documents) {
+          try {
+            const parsed = typeof sub.documents === 'string' ? JSON.parse(sub.documents) : sub.documents;
+            attachments = Array.isArray(parsed) ? parsed : [];
+          } catch {
+            attachments = [];
+          }
+        }
+        
+        return {
+          id: sub.id,
+          name: sub.name,
+          amount: sub.amount,
+          cycle: 'miesięczny', // Default - cycle not in API response
+          renewalDate: typeof sub.renewal_date === 'string' ? sub.renewal_date : (sub.renewal_date instanceof Date ? sub.renewal_date.toISOString() : ''),
+          status: sub.status || 'aktywna',
+          note: sub.description || '',
+          attachments,
+          tag: sub.category || 'inne',
+        } as Subscription;
+      })
       setData(mappedData)
 
       setModalOpen(false)
