@@ -103,7 +103,14 @@ export default ProtectedRoute
 // Deklaracja globalna dla debugowania
 declare global {
   interface Window {
-    _debug_protectedRoute?: any
-    _debug_protectedRouteRender?: any
+    _debug_protectedRoute?: {
+      isAuthenticated?: boolean;
+      userId?: string;
+      loading?: boolean;
+    };
+    _debug_protectedRouteRender?: {
+      renderCount?: number;
+      lastRender?: Date;
+    };
   }
 }

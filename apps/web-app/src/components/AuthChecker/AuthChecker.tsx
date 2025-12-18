@@ -92,7 +92,7 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
                 updatedAt: new Date(),
                 systemRole: null,
                 isImpersonated: false,
-              } as any;
+              } as UserDocument & { systemRole: null | 'admin'; isImpersonated: boolean };
 
               // Dispatch getUserDetailsSuccess action directly
               dispatch({

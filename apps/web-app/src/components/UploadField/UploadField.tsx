@@ -99,8 +99,8 @@ const UploadField: FunctionComponent<Props> = ({
   }, [fileList]);
 
   const getApiBaseUrl = () => {
-    if (typeof window !== 'undefined' && (window as any).VITE_API_URL) {
-      return (window as any).VITE_API_URL;
+    if (typeof window !== 'undefined' && 'VITE_API_URL' in window && typeof (window as { VITE_API_URL?: string }).VITE_API_URL === 'string') {
+      return (window as { VITE_API_URL: string }).VITE_API_URL;
     }
     const hostname = window?.location?.hostname || 'localhost';
     if (hostname !== 'localhost' && hostname !== '127.0.0.1') {

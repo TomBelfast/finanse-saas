@@ -55,13 +55,13 @@ const CurrencySettings: FunctionComponent<Props> = () => {
   const form = useForm<CurrencyFormValues>({
     resolver: zodResolver(currencySchema),
     defaultValues: {
-      defaultCurrency: (userDetails?.defaultCurrency as any) || 'pln',
+      defaultCurrency: (userDetails?.defaultCurrency as 'pln' | 'usd' | 'eur' | 'gbp' | undefined) || 'pln',
     },
   });
 
   useEffect(() => {
     if (userDetails?.defaultCurrency) {
-      form.setValue('defaultCurrency', userDetails.defaultCurrency as any);
+      form.setValue('defaultCurrency', userDetails.defaultCurrency as 'pln' | 'usd' | 'eur' | 'gbp');
     }
   }, [userDetails, form]);
 
