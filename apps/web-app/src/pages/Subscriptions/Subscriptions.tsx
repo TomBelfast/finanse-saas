@@ -203,7 +203,7 @@ const Subscriptions = () => {
         setData(mappedData)
         setInitialDataLoaded(true)
       } catch (error: any) {
-        console.error('Błąd podczas ładowania subskrypcji:', error)
+        logger.error('Błąd podczas ładowania subskrypcji', error instanceof Error ? error : new Error(String(error)));
         const errorMessage = error?.message || error?.error || 'Nie udało się załadować subskrypcji'
         toast.error(errorMessage)
         setData([])
@@ -296,7 +296,7 @@ const Subscriptions = () => {
       })) as Subscription[]
       setData(mappedData)
     } catch (error: any) {
-      console.error('Błąd podczas usuwania:', error)
+      logger.error('Błąd podczas usuwania', error instanceof Error ? error : new Error(String(error)), { subscriptionId: id });
       toast.error(error?.message || 'Nie udało się usunąć subskrypcji')
     }
   }
@@ -363,7 +363,7 @@ const Subscriptions = () => {
       setAttachments([])
       form.reset()
     } catch (error: any) {
-      console.error('Error:', error)
+      logger.error('Błąd zapisu subskrypcji', error instanceof Error ? error : new Error(String(error)));
       toast.error(error.message || 'Wystąpił błąd podczas zapisywania')
     }
   }
