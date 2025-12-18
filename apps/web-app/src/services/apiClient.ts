@@ -1,5 +1,7 @@
 // API Client for REST API (replacement for Firebase)
 // Use VITE_API_URL from env, or try to detect the correct backend URL
+
+import { ApiSubscription, ApiInsurance, ApiLoan, ApiAI } from '~/types/api';
 const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;
@@ -103,10 +105,10 @@ class ApiClient {
   }
 
   async getCurrentUser() {
-    return this.request<any>('/users/me');
+    return this.request<Record<string, unknown>>('/users/me');
   }
 
-  async updateUser(data: Partial<any>) {
+  async updateUser(data: Partial<Record<string, unknown>>) {
     return this.request('/users/me', {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -115,17 +117,17 @@ class ApiClient {
 
   // Subscriptions
   async getSubscriptions() {
-    return this.request<any[]>('/subscriptions');
+    return this.request<ApiSubscription[]>('/subscriptions');
   }
 
-  async createSubscription(data: any) {
+  async createSubscription(data: Partial<ApiSubscription>) {
     return this.request('/subscriptions', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateSubscription(id: string, data: any) {
+  async updateSubscription(id: string, data: Partial<ApiSubscription>) {
     return this.request(`/subscriptions/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -140,17 +142,17 @@ class ApiClient {
 
   // Insurances
   async getInsurances() {
-    return this.request('/insurances');
+    return this.request<ApiInsurance[]>('/insurances');
   }
 
-  async createInsurance(data: any) {
+  async createInsurance(data: Partial<ApiInsurance>) {
     return this.request('/insurances', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateInsurance(id: string, data: any) {
+  async updateInsurance(id: string, data: Partial<ApiInsurance>) {
     return this.request(`/insurances/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -165,17 +167,17 @@ class ApiClient {
 
   // Loans
   async getLoans() {
-    return this.request('/loans');
+    return this.request<ApiLoan[]>('/loans');
   }
 
-  async createLoan(data: any) {
+  async createLoan(data: Partial<ApiLoan>) {
     return this.request('/loans', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateLoan(id: string, data: any) {
+  async updateLoan(id: string, data: Partial<ApiLoan>) {
     return this.request(`/loans/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
@@ -190,17 +192,17 @@ class ApiClient {
 
   // AI
   async getAI() {
-    return this.request('/ai');
+    return this.request<ApiAI[]>('/ai');
   }
 
-  async createAI(data: any) {
+  async createAI(data: Partial<ApiAI>) {
     return this.request('/ai', {
       method: 'POST',
       body: JSON.stringify(data),
     });
   }
 
-  async updateAI(id: string, data: any) {
+  async updateAI(id: string, data: Partial<ApiAI>) {
     return this.request(`/ai/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
