@@ -210,17 +210,17 @@ const AI = () => {
           amount: row.amount ? parseAmount(row.amount) : 0,
           amountDue: row.amount ? parseAmount(row.amount) : 0,
           currency: row.currency,
-          nextPaymentDate: row.renewal_date,
+          nextPaymentDate: typeof row.renewal_date === 'string' ? row.renewal_date : (row.renewal_date instanceof Date ? row.renewal_date.toISOString() : ''),
           status: row.status,
           paymentStatus: paymentStatus,
           renewalCycle: renewalCycle as 'monthly' | 'yearly',
-          note: row.description,
+          note: row.description || undefined,
           attachments: attachments,
           aiCompany: row.insurance_company, // ApiAI uses insurance_company field
           aiType: row.insurance_type, // ApiAI uses insurance_type field
-          periodStart: row.period_start,
-          periodEnd: row.period_end
-        };
+          periodStart: typeof row.period_start === 'string' ? row.period_start : (row.period_start instanceof Date ? row.period_start.toISOString() : undefined),
+          periodEnd: typeof row.period_end === 'string' ? row.period_end : (row.period_end instanceof Date ? row.period_end.toISOString() : undefined)
+        } as AI;
       });
       setData(mapped);
     } catch (error: unknown) {
