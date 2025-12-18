@@ -26,7 +26,7 @@ testRouter.post('/debug/insurance/:userId', async (req, res) => {
       'INSERT INTO user_insurances (id, user_id, name, insurance_company, amount, currency, status, period_start, period_end, renewal_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())',
       [id, userId, name, 'Test Insurance Co', 100, 'PLN', 'active', now, nextYear, nextYear]
     );
-    const [rows] = await pool.execute<InsuranceRow[]>('SELECT * FROM user_insurances WHERE id = ?', [id]);
+    const [rows] = await pool.execute('SELECT * FROM user_insurances WHERE id = ?', [id]) as [InsuranceRow[], unknown];
     if (!Array.isArray(rows) || rows.length === 0) {
       return res.status(500).json({ error: 'Failed to retrieve created insurance' });
     }
@@ -184,7 +184,7 @@ testRouter.post('/insurances', async (req, res) => {
       'INSERT INTO user_insurances (id, user_id, name, insurance_company, amount, currency, status, period_start, period_end, renewal_date, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())',
       [id, TEST_USER_ID, name, 'Test Insurance Co', req.body.amount || 0, 'PLN', 'active', now, nextYear, nextYear]
     );
-    const [rows] = await pool.execute<InsuranceRow[]>('SELECT * FROM user_insurances WHERE id = ?', [id]);
+    const [rows] = await pool.execute('SELECT * FROM user_insurances WHERE id = ?', [id]) as [InsuranceRow[], unknown];
     if (!Array.isArray(rows) || rows.length === 0) {
       return res.status(500).json({ error: 'Failed to retrieve created insurance' });
     }
