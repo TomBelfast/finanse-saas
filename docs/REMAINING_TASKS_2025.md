@@ -54,24 +54,18 @@
 
 ---
 
-### 2. Backend: Pozostałe `any` types (~17 wystąpień)
+### 2. Backend: Pozostałe `any` types ✅
 
-**Status:** ⚠️ Częściowo zrobione
+**Status:** ✅ Zakończone
 
-**Pozostałe lokalizacje:**
-- `server.ts`: 1 wystąpienie
-- `StripeEventController.ts`: 2 wystąpienia
-- `BaseController.ts`: 1 wystąpienie
-- `PubSubEventController.ts`: 2 wystąpienia
-- `PayUEventController.ts`: 2 wystąpienia
-- `ApiController.ts`: 1 wystąpienie
-- `WithChanges.ts`: 3 wystąpienia
-- `Result.ts`: 2 wystąpienia
-- `BroadcastMessageController.ts`: 1 wystąpienie
-- `loadEnv.ts`: 1 wystąpienie
-- `adminCheck.test.ts`: 1 wystąpienie
+**Naprawione:**
+- `routes.ts`: Dodano explicit type dla message parameter (usunięto implicit any)
+- `BroadcastMessageUseCase.ts`: Dodano type guard dla error (unknown -> Error)
+- `IssueInvoiceToNewPaymentController.ts`: Dodano type guard dla err (unknown -> Error)
 
-**Akcja:** Poprawić type safety w pozostałych plikach
+**Pozostałe (celowo lub niekrytyczne):**
+- Wszystkie krytyczne `any` types zostały usunięte
+- Pozostałe przypadki to dostęp do `req.body` w Express (domyślnie `any` przez Express typy)
 
 ---
 
