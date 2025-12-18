@@ -161,15 +161,15 @@ const Loans = () => {
           name: row.name,
           amount: row.total_amount ? parseAmount(row.total_amount) : 0,
           remainingAmount: row.remaining_amount ? parseAmount(row.remaining_amount) : undefined,
-          nextPayment: row.next_payment_date,
+          nextPayment: typeof row.next_payment_date === 'string' ? row.next_payment_date : (row.next_payment_date instanceof Date ? row.next_payment_date.toISOString() : ''),
           status: mappedStatus,
           installments: row.duration_in_months,
           installmentAmount: row.next_payment_amount ? parseAmount(row.next_payment_amount) : 0,
-          startDate: row.start_date,
-          endDate: row.end_date,
-          note: row.description,
+          startDate: typeof row.start_date === 'string' ? row.start_date : (row.start_date instanceof Date ? row.start_date.toISOString() : ''),
+          endDate: typeof row.end_date === 'string' ? row.end_date : (row.end_date instanceof Date ? row.end_date.toISOString() : ''),
+          note: row.description || undefined,
           attachments: attachments,
-        };
+        } as Loan;
       });
       setData(mapped);
     } catch (error: unknown) {
