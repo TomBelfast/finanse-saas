@@ -10,3 +10,15 @@ dist_manual/
 build_error*.txt
 build_result*.txt
 nul
+
+# Playwright
+/playwright-report/
+/playwright/.auth/
+/test-results/
+/playwright/videos/
+/playwright/screenshots/
+apps/web-app/playwright-report/
+apps/web-app/playwright/.auth/
+apps/web-app/test-results/
+apps/web-app/playwright/videos/
+apps/web-app/playwright/screenshots/
