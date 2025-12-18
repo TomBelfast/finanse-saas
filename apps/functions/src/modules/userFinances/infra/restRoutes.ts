@@ -4,6 +4,7 @@ import { verifyClerkToken } from '../../auth/infra/restRoutes';
 import { MariaDBUserSubscriptionRepository } from '../../../shared/infra/repositories/MariaDBUserSubscriptionRepository';
 import { AuthenticatedRequest, getUserIdFromRequest, InsuranceRow, LoanRow } from '../../../shared/types/express';
 import { logger } from '../../../shared/utils/logger';
+import { handleError } from '../../../shared/utils/errorHandler';
 
 const router = express.Router();
 const pool = getDatabasePool();
@@ -58,13 +59,11 @@ router.get('/subscriptions', verifyClerkToken, async (req, res) => {
     logger.info('Get subscriptions: Success', { userId, count: subscriptions.length });
     res.json(subscriptions);
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Get subscriptions error:', err, {
-      stack: err.stack,
-      message: err.message,
-      name: err.name
+    const errorMessage = handleError(error, {
+      operation: 'get_subscriptions',
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
     });
-    res.status(500).json({ error: err.message || 'Failed to get subscriptions' });
+    res.status(500).json({ error: errorMessage });
   }
 });
 
@@ -169,9 +168,12 @@ router.delete('/subscriptions/:id', verifyClerkToken, async (req, res) => {
     await subscriptionsRepo.delete(id);
     res.json({ success: true });
   } catch (error: unknown) {
-    const err = error as Error;
-    logger.error('Delete subscription error:', err);
-    res.status(500).json({ error: err.message || 'Failed to delete subscription' });
+    const { error: errorMessage, statusCode } = createErrorResponse(error, {
+      operation: 'delete_subscription',
+      subscriptionId: req.params.id,
+      userId: getUserIdFromRequest(req as AuthenticatedRequest),
+    }, 'Failed to delete subscription');
+    res.status(statusCode).json({ error: errorMessage });
   }
 });
 

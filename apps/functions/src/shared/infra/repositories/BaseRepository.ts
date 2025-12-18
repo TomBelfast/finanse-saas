@@ -1,10 +1,44 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
 
+/**
+ * Get Redis configuration from environment variables.
+ * @throws Error if required environment variables are missing in production
+ */
+function getRedisConfig(): { url: string; token: string } {
+  const url = process.env.UPSTASH_REDIS_REST_URL;
+  const token = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  // In production, require valid Redis configuration
+  if (process.env.NODE_ENV === 'production') {
+    if (!url || !token || url === 'https://example.com' || token === 'INVALID') {
+      throw new Error(
+        'UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required in production. ' +
+        'Please set them in environment variables.'
+      );
+    }
+  }
+
+  // Development fallback (with warning)
+  if (!url || !token || url === 'https://example.com' || token === 'INVALID') {
+    console.warn(
+      '⚠️  UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not set. ' +
+      'Rate limiting may not work correctly. Using fallback values.'
+    );
+    return {
+      url: 'https://example.com',
+      token: 'INVALID',
+    };
+  }
+
+  return { url, token };
+}
+
+const redisConfig = getRedisConfig();
 const rateLimit = new Ratelimit({
   redis: new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL || 'https://example.com',
-    token: process.env.UPSTASH_REDIS_REST_TOKEN || 'INVALID',
+    url: redisConfig.url,
+    token: redisConfig.token,
   }),
   limiter: Ratelimit.fixedWindow(1, `1 s`),
   prefix: `db-limiter`,

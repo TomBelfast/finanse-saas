@@ -15,11 +15,46 @@ const app = express();
 const PORT = parseInt(process.env.PORT || '3001', 10);
 
 // Middleware - CORS must be first!
+// CORS configuration with environment-based origin whitelist
+const getAllowedOrigins = (): string[] => {
+  const envOrigins = process.env.CORS_ALLOWED_ORIGINS;
+  if (envOrigins) {
+    return envOrigins.split(',').map(origin => origin.trim());
+  }
+  
+  // Development: Allow all origins for local development
+  // Production: Must set CORS_ALLOWED_ORIGINS environment variable
+  if (process.env.NODE_ENV === 'production') {
+    logger.warn('CORS_ALLOWED_ORIGINS not set in production - this is insecure!');
+    return [];
+  }
+  
+  // Development fallback
+  return ['*'];
+};
+
+const allowedOrigins = getAllowedOrigins();
+const isDevelopment = process.env.NODE_ENV !== 'production';
+
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow all origins in development
-    // In production, you should specify allowed origins
-    callback(null, true);
+    // Allow requests with no origin (mobile apps, Postman, etc.) in development
+    if (!origin && isDevelopment) {
+      return callback(null, true);
+    }
+    
+    // In production, require origin
+    if (!origin && !isDevelopment) {
+      return callback(new Error('CORS: Origin header required in production'));
+    }
+    
+    // Check if origin is allowed
+    if (allowedOrigins.includes('*') || (origin && allowedOrigins.includes(origin))) {
+      callback(null, true);
+    } else {
+      logger.warn(`CORS: Blocked origin ${origin}`);
+      callback(new Error(`CORS: Origin ${origin} is not allowed`));
+    }
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
@@ -32,11 +67,18 @@ app.use(cors({
 
 // Handle OPTIONS preflight requests explicitly
 app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(204);
+  const origin = req.headers.origin;
+  const isAllowed = !origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin);
+  
+  if (isAllowed) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.sendStatus(204);
+  } else {
+    res.status(403).json({ error: 'CORS: Origin not allowed' });
+  }
 });
 
 app.use((req, res, next) => {

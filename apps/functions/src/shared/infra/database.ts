@@ -10,31 +10,65 @@ export interface DatabaseConfig {
   connectionLimit?: number;
 }
 
-const defaultConfig: DatabaseConfig = {
-  host: process.env.DB_HOST || '192.168.0.9',
-  port: parseInt(process.env.DB_PORT || '3306', 10),
-  user: process.env.DB_USER || 'Saas',
-  password: process.env.DB_PASSWORD || 'Finanse2025',
-  database: process.env.DB_NAME || 'Finanse',
-  connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '10', 10),
-};
+/**
+ * Get database configuration from environment variables.
+ * All values are required - no hardcoded defaults for security.
+ * @throws Error if required environment variables are missing
+ */
+function getDatabaseConfig(): DatabaseConfig {
+  const requiredEnvVars = {
+    host: process.env.DB_HOST,
+    port: process.env.DB_PORT,
+    user: process.env.DB_USER,
+    password: process.env.DB_PASSWORD,
+    database: process.env.DB_NAME,
+  };
+
+  // Validate all required environment variables are present
+  const missingVars = Object.entries(requiredEnvVars)
+    .filter(([_, value]) => !value)
+    .map(([key]) => key);
+
+  if (missingVars.length > 0) {
+    throw new Error(
+      `Missing required database environment variables: ${missingVars.join(', ')}. ` +
+      `Please set them in apps/functions/.env.local`
+    );
+  }
+
+  return {
+    host: requiredEnvVars.host!,
+    port: parseInt(requiredEnvVars.port!, 10),
+    user: requiredEnvVars.user!,
+    password: requiredEnvVars.password!,
+    database: requiredEnvVars.database!,
+    connectionLimit: parseInt(process.env.DB_CONNECTION_LIMIT || '10', 10),
+  };
+}
 
 // Create connection pool
 let pool: mysql.Pool | null = null;
 
 export function getDatabasePool(): mysql.Pool {
   if (!pool) {
+    const config = getDatabaseConfig();
     pool = mysql.createPool({
-      host: defaultConfig.host,
-      port: defaultConfig.port,
-      user: defaultConfig.user,
-      password: defaultConfig.password,
-      database: defaultConfig.database,
+      host: config.host,
+      port: config.port,
+      user: config.user,
+      password: config.password,
+      database: config.database,
       waitForConnections: true,
-      connectionLimit: defaultConfig.connectionLimit,
+      connectionLimit: config.connectionLimit,
       queueLimit: 0,
       enableKeepAlive: true,
       keepAliveInitialDelay: 0,
+    });
+    logger.info('Database connection pool created', {
+      host: config.host,
+      port: config.port,
+      database: config.database,
+      connectionLimit: config.connectionLimit,
     });
   }
   return pool;
@@ -56,7 +90,18 @@ export async function executeQuery<T = unknown>(
   try {
     logger.sql(query, params);
     const [rows] = await connection.execute(query, params);
+    if (!Array.isArray(rows)) {
+      logger.warn('Query returned non-array result', { query, params });
+      return [];
+    }
     return rows as T[];
+  } catch (error: unknown) {
+    logger.error('Database query error', {
+      query,
+      params,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
   } finally {
     connection.release();
   }
@@ -67,8 +112,17 @@ export async function executeQueryOne<T = unknown>(
   query: string,
   params: unknown[] = []
 ): Promise<T | null> {
-  const results = await executeQuery<T>(query, params);
-  return results.length > 0 ? results[0] : null;
+  try {
+    const results = await executeQuery<T>(query, params);
+    return results.length > 0 ? results[0] : null;
+  } catch (error: unknown) {
+    logger.error('Database queryOne error', {
+      query,
+      params,
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  }
 }
 
 // Helper function for transactions

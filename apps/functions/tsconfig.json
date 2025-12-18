@@ -10,8 +10,10 @@
     "checkJs": true,
     "skipLibCheck": true,
     "strict": true,
-    "useUnknownInCatchVariables": false,
-    "noImplicitReturns": false,
+    "useUnknownInCatchVariables": true, // Improved: Better error handling type safety
+    "noImplicitReturns": true, // Improved: Require explicit return statements
+    "noUnusedLocals": true, // Improved: Catch unused variables
+    "noUnusedParameters": true, // Improved: Catch unused function parameters
     "forceConsistentCasingInFileNames": true,
     "noEmit": false,
     "outDir": "dist_manual",
