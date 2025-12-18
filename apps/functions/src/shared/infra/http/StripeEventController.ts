@@ -2,9 +2,9 @@ import { logger } from '../../utils/logger';
 import Stripe from 'stripe';
 
 export abstract class StripeEventController {
-  protected abstract executeImpl(event: Stripe.Event): Promise<any>;
+  protected abstract executeImpl(event: Stripe.Event): Promise<unknown>;
 
-  public async execute(event: Stripe.Event): Promise<any> {
+  public async execute(event: Stripe.Event): Promise<unknown> {
     try {
       return this.executeImpl(event);
     } catch (err) {

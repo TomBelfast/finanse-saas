@@ -3,9 +3,9 @@ import { FunctionsErrorCode } from 'firebase-functions/lib/v1/providers/https';
 import { BusinessEvent } from '@akademiasaas/shared';
 
 export abstract class PubSubEventController<T = BusinessEvent> {
-  protected abstract executeImpl(event: T, parsed?: boolean): Promise<any>;
+  protected abstract executeImpl(event: T, parsed?: boolean): Promise<unknown>;
 
-  public async execute(event: T, parsed?: boolean): Promise<any> {
+  public async execute(event: T, parsed?: boolean): Promise<unknown> {
     try {
       return this.executeImpl(event, parsed);
     } catch (err) {

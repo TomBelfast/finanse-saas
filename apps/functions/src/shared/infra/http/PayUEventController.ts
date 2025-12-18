@@ -30,9 +30,9 @@ export type PayUPayload = {
 };
 
 export abstract class PayUEventController {
-  protected abstract executeImpl(payload: PayUPayload): Promise<any>;
+  protected abstract executeImpl(payload: PayUPayload): Promise<unknown>;
 
-  public async execute(payload: PayUPayload): Promise<any> {
+  public async execute(payload: PayUPayload): Promise<unknown> {
     try {
       return this.executeImpl(payload);
     } catch (err) {

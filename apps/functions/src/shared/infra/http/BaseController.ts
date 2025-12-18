@@ -2,7 +2,7 @@ import { logger } from '../../utils/logger';
 import * as express from 'express';
 
 export abstract class BaseController {
-  protected abstract executeImpl(req: express.Request, res: express.Response): Promise<any>;
+  protected abstract executeImpl(req: express.Request, res: express.Response): Promise<void>;
 
   public async execute(req: express.Request, res: express.Response): Promise<void> {
     try {

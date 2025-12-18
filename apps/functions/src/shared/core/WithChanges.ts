@@ -5,17 +5,17 @@ export interface WithChanges {
 }
 
 export class Changes {
-  private changes: Result<any>[];
+  private changes: Result<unknown>[];
 
   constructor() {
     this.changes = [];
   }
 
-  public addChange(result: Result<any>): void {
-    this.changes.push(result);
+  public addChange<T>(result: Result<T>): void {
+    this.changes.push(result as Result<unknown>);
   }
 
-  public getChangeResult(): Result<any> {
+  public getChangeResult(): Result<unknown> {
     return Result.combine(this.changes);
   }
 }

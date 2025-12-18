@@ -11,7 +11,7 @@ export class BroadcastMessageController extends CloudFunctionController {
     super();
   }
 
-  protected async executeImpl(payload: unknown, user: AuthenticatedUser): Promise<any> {
+  protected async executeImpl(payload: unknown, user: AuthenticatedUser): Promise<{ status: string; body: unknown }> {
     try {
       logger.debug(`Handling broadcast message payload ${JSON.stringify(payload)}`);
       const dto = validator(payload);

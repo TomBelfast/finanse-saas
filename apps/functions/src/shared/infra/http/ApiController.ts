@@ -10,7 +10,7 @@ import { ApiUserToken } from 'shared/core/AuthenticatedUser';
 import { isAuthorizedApiRequest } from 'shared/infra/http/middleware/apiAuthorizer';
 
 export abstract class ApiController {
-  protected abstract executeImpl(req: ApiRequest, res: express.Response): Promise<any>;
+  protected abstract executeImpl(req: ApiRequest, res: express.Response): Promise<void>;
 
   public async execute(req: express.Request, res: express.Response): Promise<void> {
     if (!isAuthorizedApiRequest(req)) {

@@ -1,5 +1,6 @@
 import { Ratelimit } from '@upstash/ratelimit';
 import { Redis } from '@upstash/redis';
+import { logger } from '../../utils/logger';
 
 /**
  * Get Redis configuration from environment variables.
@@ -21,9 +22,9 @@ function getRedisConfig(): { url: string; token: string } {
 
   // Development fallback (with warning)
   if (!url || !token || url === 'https://example.com' || token === 'INVALID') {
-    console.warn(
-      '⚠️  UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not set. ' +
-      'Rate limiting may not work correctly. Using fallback values.'
+    logger.warn(
+      'UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not set. Rate limiting may not work correctly. Using fallback values.',
+      { url: url || 'missing', token: token ? 'set' : 'missing' }
     );
     return {
       url: 'https://example.com',
