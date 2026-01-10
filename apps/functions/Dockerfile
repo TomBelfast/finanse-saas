@@ -6,8 +6,10 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm@9.15.4
 
-# Force NODE_ENV=development during build to ensure devDependencies are installed
-# (TypeScript, webpack, etc. are needed for building)
+# Accept NODE_ENV as build argument (Coolify passes it as production)
+# But we need development during build, so we'll override it inline when needed
+ARG NODE_ENV=development
+# Set ENV after ARG to ensure development is used during build
 ENV NODE_ENV=development
 
 # Copy package files
@@ -16,23 +18,24 @@ COPY packages/shared/package.json ./packages/shared/
 COPY apps/functions/package.json ./apps/functions/
 
 # Install ALL dependencies (including devDependencies needed for build)
+# Force NODE_ENV=development inline to override any build argument from Coolify
 # Use --ignore-scripts to prevent husky from running in Docker
-RUN pnpm install --frozen-lockfile --ignore-scripts
+RUN NODE_ENV=development pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy shared package source
 COPY packages/shared ./packages/shared
 
-# Build shared package first
-RUN cd packages/shared && pnpm build
+# Build shared package first (ensure NODE_ENV=development)
+RUN cd packages/shared && NODE_ENV=development pnpm build
 
 # Copy backend source
 COPY apps/functions ./apps/functions
 
-# Build backend
+# Build backend (ensure NODE_ENV=development during build)
 # Note: copyEnvFile.js script may fail, but it's not critical - environment variables
 # will be provided via Docker environment variables in production
 RUN cd apps/functions && \
-    pnpm run build 2>&1 || \
+    NODE_ENV=development pnpm run build 2>&1 || \
     (echo "Build script completed, checking dist directory..." && \
      test -d dist && echo "✓ Dist directory exists" || \
      (echo "✗ Build failed - dist directory not found" && exit 1))

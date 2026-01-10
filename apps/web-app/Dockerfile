@@ -6,8 +6,10 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm@9.15.4
 
-# Force NODE_ENV=development during build to ensure devDependencies are installed
-# (TypeScript, Vite, etc. are needed for building)
+# Accept NODE_ENV as build argument (Coolify passes it as production)
+# But we need development during build, so we'll override it inline when needed
+ARG NODE_ENV=development
+# Set ENV after ARG to ensure development is used during build
 ENV NODE_ENV=development
 
 # Copy package files
@@ -16,13 +18,14 @@ COPY packages/shared/package.json ./packages/shared/
 COPY apps/web-app/package.json ./apps/web-app/
 
 # Install ALL dependencies (including devDependencies needed for build)
-RUN pnpm install --frozen-lockfile
+# Force NODE_ENV=development inline to override any build argument
+RUN NODE_ENV=development pnpm install --frozen-lockfile
 
 # Copy shared package source
 COPY packages/shared ./packages/shared
 
-# Build shared package first
-RUN cd packages/shared && pnpm build
+# Build shared package first (ensure NODE_ENV=development)
+RUN cd packages/shared && NODE_ENV=development pnpm build
 
 # Copy frontend source
 COPY apps/web-app ./apps/web-app
@@ -37,8 +40,8 @@ ENV VITE_CLERK_PUBLISHABLE_KEY=$VITE_CLERK_PUBLISHABLE_KEY
 ENV VITE_API_URL=$VITE_API_URL
 ENV VITE_DEBUG=$VITE_DEBUG
 
-# Build frontend
-RUN cd apps/web-app && pnpm build
+# Build frontend (NODE_ENV doesn't matter for vite build, but set it anyway)
+RUN cd apps/web-app && NODE_ENV=development pnpm build
 
 # Production stage with nginx
 FROM nginx:alpine
