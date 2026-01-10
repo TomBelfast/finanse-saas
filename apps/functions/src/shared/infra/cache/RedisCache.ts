@@ -8,18 +8,7 @@ function getRedisConfig(): { url: string; token: string; enabled: boolean } {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
-  // In production, require valid Redis configuration
-  if (process.env.NODE_ENV === 'production') {
-    if (!url || !token || url === 'https://example.com' || token === 'INVALID') {
-      throw new Error(
-        'UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN are required in production. ' +
-        'Please set them in environment variables.'
-      );
-    }
-    return { url, token, enabled: true };
-  }
-
-  // Development: disable if not properly configured or placeholder values
+  // Check for placeholder or invalid values
   const isPlaceholderUrl = !url || 
     url === 'https://example.com' || 
     url.includes('example.com') ||
@@ -29,9 +18,17 @@ function getRedisConfig(): { url: string; token: string; enabled: boolean } {
   const isPlaceholderToken = !token || 
     token === 'INVALID' || 
     token === 'your_token' ||
-    token.length < 10;
+    (token && token.length < 10);
 
+  // If placeholder values, disable Redis (cache will be disabled, but app will work)
   if (isPlaceholderUrl || isPlaceholderToken) {
+    if (process.env.NODE_ENV === 'production') {
+      logger.warn(
+        'Redis cache is disabled in production - UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN not configured. ' +
+        'Application will work without cache, but performance may be reduced. ' +
+        'To enable cache, set valid Redis credentials in environment variables.'
+      );
+    }
     return {
       url: 'https://example.com',
       token: 'INVALID',
@@ -41,6 +38,9 @@ function getRedisConfig(): { url: string; token: string; enabled: boolean } {
 
   // Check if URL looks valid (should be Upstash URL)
   if (!url.includes('upstash.io') && !url.includes('upstash.com')) {
+    if (process.env.NODE_ENV === 'production') {
+      logger.warn('Redis URL does not appear to be a valid Upstash URL. Cache disabled.');
+    }
     return {
       url: 'https://example.com',
       token: 'INVALID',
@@ -48,6 +48,7 @@ function getRedisConfig(): { url: string; token: string; enabled: boolean } {
     };
   }
 
+  // Valid Redis configuration found
   return { url, token, enabled: true };
 }
 
@@ -72,8 +73,10 @@ export class RedisCache {
     // Only enable cache if Redis is properly configured
     this.isEnabled = redisConfig.enabled && redis !== null;
     
-    if (!this.isEnabled && process.env.NODE_ENV !== 'production') {
-      logger.warn('Redis cache is disabled - UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not properly configured');
+    if (!this.isEnabled) {
+      logger.warn('Redis cache is disabled - UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not properly configured. Application will work without cache.');
+    } else {
+      logger.info('Redis cache is enabled and ready');
     }
   }
 
