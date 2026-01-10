@@ -6,12 +6,17 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm@9.15.4
 
+# Force NODE_ENV=development during build to ensure devDependencies are installed
+# (TypeScript, webpack, etc. are needed for building)
+ENV NODE_ENV=development
+
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/functions/package.json ./apps/functions/
 
-# Install dependencies (ignore scripts - husky not needed in Docker)
+# Install ALL dependencies (including devDependencies needed for build)
+# Use --ignore-scripts to prevent husky from running in Docker
 RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy shared package source
@@ -39,6 +44,9 @@ WORKDIR /app
 
 # Install pnpm
 RUN npm install -g pnpm@9.15.4
+
+# Set NODE_ENV=production for runtime (can be overridden by environment variables)
+ENV NODE_ENV=production
 
 # Copy package files (workspace structure for pnpm - all workspace packages needed)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./

@@ -6,12 +6,16 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm@9.15.4
 
+# Force NODE_ENV=development during build to ensure devDependencies are installed
+# (TypeScript, Vite, etc. are needed for building)
+ENV NODE_ENV=development
+
 # Copy package files
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/web-app/package.json ./apps/web-app/
 
-# Install dependencies
+# Install ALL dependencies (including devDependencies needed for build)
 RUN pnpm install --frozen-lockfile
 
 # Copy shared package source
