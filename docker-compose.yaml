@@ -88,7 +88,11 @@ services:
         # Coolify passes NODE_ENV=production, but we need devDependencies for building
         NODE_ENV: development
         VITE_CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
-        VITE_API_URL: ${VITE_API_URL:-https://finanse.aihub.ovh/api}
+        # IMPORTANT: Set VITE_API_URL to backend URL (either direct port or subdomain)
+        # Option 1: Use backend subdomain (recommended): https://api.finanse.aihub.ovh/api
+        # Option 2: Use direct port (if accessible): http://finanse.aihub.ovh:3015/api
+        # Note: In Coolify, configure backend to have its own domain (e.g., api.finanse.aihub.ovh -> port 3015)
+        VITE_API_URL: ${VITE_API_URL:-https://api.finanse.aihub.ovh/api}
         VITE_DEBUG: ${VITE_DEBUG:-false}
     container_name: finanse-frontend
     restart: unless-stopped
