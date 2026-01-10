@@ -28,6 +28,10 @@ services:
     build:
       context: .
       dockerfile: apps/functions/Dockerfile
+      args:
+        # Override NODE_ENV from Coolify - we need development during build
+        # Coolify passes NODE_ENV=production, but we need devDependencies for building
+        NODE_ENV: development
     container_name: finanse-backend
     restart: unless-stopped
     ports:
@@ -80,6 +84,9 @@ services:
       context: .
       dockerfile: apps/web-app/Dockerfile
       args:
+        # Override NODE_ENV from Coolify - we need development during build
+        # Coolify passes NODE_ENV=production, but we need devDependencies for building
+        NODE_ENV: development
         VITE_CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
         VITE_API_URL: ${VITE_API_URL:-https://finanse.aihub.ovh/api}
         VITE_DEBUG: ${VITE_DEBUG:-false}
