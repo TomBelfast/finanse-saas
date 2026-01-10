@@ -40,19 +40,22 @@ WORKDIR /app
 # Install pnpm
 RUN npm install -g pnpm@9.15.4
 
-# Copy package files
+# Copy package files (workspace structure for pnpm - all workspace packages needed)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/logger/package.json ./packages/logger/
 COPY apps/functions/package.json ./apps/functions/
 
-# Install production dependencies only
-RUN pnpm install --frozen-lockfile --prod
-
-# Copy built files
+# Copy built files from builder (needed before install for workspace resolution)
 COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
 COPY --from=builder /app/packages/shared/package.json ./packages/shared/
 COPY --from=builder /app/apps/functions/dist ./apps/functions/dist
 COPY --from=builder /app/apps/functions/package.json ./apps/functions/
+
+# Install production dependencies only
+# pnpm workspace requires all workspace packages to be present (even if not used)
+# Using --prod to install only production dependencies
+RUN pnpm install --frozen-lockfile --prod
 
 # Set working directory to functions
 WORKDIR /app/apps/functions
