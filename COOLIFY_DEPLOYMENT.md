@@ -26,9 +26,9 @@ Coolify działa najlepiej z osobnymi aplikacjami. Zalecamy deployment backendu i
 #### Environment Variables (WYMAGANE):
 
 ```env
-# Database (użyj zarządzanej bazy danych lub docker-compose)
+# Database - ZEWNĘTRZNA BAZA DANYCH (istniejąca)
 USE_MARIADB=true
-DB_HOST=mariadb  # lub zewnętrzny host
+DB_HOST=192.168.0.9  # IP/host zewnętrznej bazy danych (ZMIEŃ NA SWÓJ!)
 DB_PORT=3306
 DB_USER=Saas
 DB_PASSWORD=Finanse2025
@@ -46,11 +46,18 @@ CLERK_PUBLISHABLE_KEY=pk_test_xxx...
 # CORS - ustaw URL frontendu
 CORS_ALLOWED_ORIGINS=https://twoj-frontend.com,https://www.twoj-frontend.com
 
-# Optional
+# Optional - Redis Cache
+# Option 1: Standard Redis (from Coolify or external Redis instance)
+REDIS_URL=redis://username:password@host:port/db
+# Example: redis://default:password@redis-host:6379/0
+
+# Option 2: Upstash Redis REST API (alternative)
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=xxx...
+
+# Other optional services
 STRIPE_API_KEY=sk_live_xxx...
 POSTMARK_API_KEY=xxx...
-REDIS_URL=https://xxx.upstash.io
-REDIS_TOKEN=xxx...
 ```
 
 #### Port:
@@ -96,7 +103,31 @@ VITE_DEBUG=false
 
 ### 3. MariaDB Database
 
-#### Opcja A: Zarządzana baza danych Coolify
+#### ⚠️ WAŻNE: Używasz istniejącej bazy danych
+
+Jeśli aplikacja ma działać na **tej samej bazie danych** (zewnętrznej), pomiń tworzenie nowej bazy.
+
+#### Konfiguracja połączenia z zewnętrzną bazą danych:
+
+W **Environment Variables** backendu ustaw:
+
+```env
+# Zewnętrzna baza danych (już istniejąca)
+USE_MARIADB=true
+DB_HOST=192.168.0.9  # IP/host zewnętrznej bazy danych
+DB_PORT=3306
+DB_USER=Saas
+DB_PASSWORD=Finanse2025
+DB_NAME=Finanse
+DB_CONNECTION_LIMIT=10
+```
+
+**Uwagi:**
+- `DB_HOST` - ustaw IP lub hostname zewnętrznej bazy danych
+- Jeśli baza jest w innej sieci, upewnij się, że port 3306 jest dostępny z Coolify
+- Możesz potrzebować skonfigurować firewall, aby pozwolić na połączenia z IP Coolify
+
+#### Opcja A: Zarządzana baza danych Coolify (jeśli chcesz nową)
 
 1. W Coolify: **Resources** → **Database** → **MariaDB**
 2. Utwórz nową bazę danych
@@ -104,7 +135,7 @@ VITE_DEBUG=false
 
 #### Opcja B: Docker Compose (jeśli Coolify to obsługuje)
 
-Użyj `docker-compose.yml` z tego repozytorium.
+Użyj `docker-compose.yml` z tego repozytorium (tylko jeśli chcesz lokalną bazę).
 
 ---
 
@@ -113,7 +144,7 @@ Użyj `docker-compose.yml` z tego repozytorium.
 Jeśli Coolify obsługuje Docker Compose:
 
 1. W Coolify: **Nowa aplikacja** → **Docker Compose**
-2. **Compose File Path**: `docker-compose.yml`
+2. **Compose File Path**: `docker-compose.yaml` (lub `docker-compose.yml` - oba formaty działają, ale `.yaml` jest preferowany przez Coolify)
 3. **Root Directory**: `.`
 
 ### Environment Variables dla całego stacku:
@@ -159,7 +190,27 @@ git push
 
 ### 4. Konfiguracja bazy danych
 
-#### Jeśli używasz zarządzanej bazy danych:
+#### ⚠️ Używasz istniejącej bazy danych - pomiń tworzenie nowej!
+
+Jeśli aplikacja ma działać na **tej samej bazie danych**, która już istnieje:
+
+1. **Nie twórz nowej bazy** w Coolify
+2. **Ustaw tylko `DB_HOST`** na IP/hostname zewnętrznej bazy danych w Environment Variables backendu
+3. **Sprawdź dostępność** - upewnij się, że baza danych jest dostępna z sieci Coolify (firewall, port 3306)
+4. **Upewnij się, że schema jest aktualna** - jeśli potrzebujesz migracji, wykonaj je ręcznie w istniejącej bazie
+
+#### Przykładowa konfiguracja:
+
+```env
+# W Coolify Environment Variables dla backendu:
+DB_HOST=192.168.0.9  # IP twojej istniejącej bazy danych
+DB_PORT=3306
+DB_USER=Saas
+DB_PASSWORD=Finanse2025
+DB_NAME=Finanse
+```
+
+#### Jeśli chcesz utworzyć nową bazę (opcjonalne):
 
 1. W Coolify: **Resources** → **Database** → **MariaDB**
 2. Utwórz bazę danych
@@ -168,10 +219,6 @@ git push
    ```sql
    -- Skopiuj zawartość database/schema.sql i wykonaj w bazie danych
    ```
-
-#### Jeśli używasz docker-compose:
-
-Baza danych zostanie utworzona automatycznie z `database/schema.sql`.
 
 ---
 
@@ -228,6 +275,21 @@ Sprawdź w konsoli przeglądarki (F12), czy nie ma błędów połączenia z API.
 2. Sprawdź credentials (DB_USER, DB_PASSWORD, DB_NAME)
 3. Sprawdź czy schema.sql został wykonany
 
+### Redis Cache:
+
+1. **Standard Redis (REDIS_URL)**: 
+   - Upewnij się, że connection string jest w formacie `redis://username:password@host:port/db`
+   - Jeśli używasz Redis z Coolify, użyj connection stringa dostarczonego przez Coolify
+   - Sprawdź czy Redis jest dostępny z kontenera backendu (firewall, sieć)
+
+2. **Upstash Redis (UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN)**:
+   - Upewnij się, że URL zawiera `upstash.io` lub `upstash.com`
+   - Sprawdź czy token jest poprawny i nie wygasł
+
+3. **Cache nie działa (opcjonalne)**:
+   - Jeśli Redis nie jest skonfigurowany, aplikacja będzie działać bez cache (z ostrzeżeniem w logach)
+   - Cache jest opcjonalny - aplikacja działa również bez niego
+
 ---
 
 ## 📚 Dodatkowe zasoby
@@ -252,6 +314,7 @@ Sprawdź w konsoli przeglądarki (F12), czy nie ma błędów połączenia z API.
 - [ ] Zweryfikowano działanie frontendu
 - [ ] Skonfigurowano HTTPS (automatycznie przez Coolify)
 - [ ] Skonfigurowano CORS dla produkcji
+- [ ] (Opcjonalnie) Skonfigurowano Redis cache (REDIS_URL lub UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN)
 
 ---
 
