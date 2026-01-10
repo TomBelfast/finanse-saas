@@ -1,0 +1,105 @@
+version: '3.8'
+
+services:
+  # MariaDB Database
+  mariadb:
+    image: mariadb:11.3
+    container_name: finanse-mariadb
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-Finanse}
+      MYSQL_USER: ${DB_USER:-Saas}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-Finanse2025}
+    ports:
+      - "${DB_PORT:-3306}:3306"
+    volumes:
+      - mariadb_data:/var/lib/mysql
+      - ./database/schema.sql:/docker-entrypoint-initdb.d/schema.sql:ro
+    healthcheck:
+      test: ["CMD", "mariadb-admin", "ping", "-h", "localhost", "-u", "root", "-p${DB_ROOT_PASSWORD:-rootpassword}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - finanse-network
+
+  # Backend API
+  backend:
+    build:
+      context: .
+      dockerfile: apps/functions/Dockerfile
+    container_name: finanse-backend
+    restart: unless-stopped
+    ports:
+      - "${BACKEND_PORT:-3015}:3015"
+    environment:
+      # Database
+      USE_MARIADB: "true"
+      DB_HOST: mariadb
+      DB_PORT: 3306
+      DB_USER: ${DB_USER:-Saas}
+      DB_PASSWORD: ${DB_PASSWORD:-Finanse2025}
+      DB_NAME: ${DB_NAME:-Finanse}
+      DB_CONNECTION_LIMIT: ${DB_CONNECTION_LIMIT:-10}
+      
+      # Server
+      PORT: 3015
+      NODE_ENV: production
+      
+      # Clerk (REQUIRED - set these in Coolify environment variables)
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY}
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
+      
+      # CORS (set your frontend URL)
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
+      
+      # Optional integrations
+      REDIS_URL: ${REDIS_URL:-}
+      REDIS_TOKEN: ${REDIS_TOKEN:-}
+      STRIPE_API_KEY: ${STRIPE_API_KEY:-}
+      POSTMARK_API_KEY: ${POSTMARK_API_KEY:-}
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:3015/health', (r) => {process.exit(r.statusCode === 200 ? 0 : 1)})"]
+      interval: 30s
+      timeout: 10s
+      start_period: 40s
+      retries: 3
+    networks:
+      - finanse-network
+
+  # Frontend
+  frontend:
+    build:
+      context: .
+      dockerfile: apps/web-app/Dockerfile
+      args:
+        VITE_CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:3015/api}
+        VITE_DEBUG: ${VITE_DEBUG:-false}
+    container_name: finanse-frontend
+    restart: unless-stopped
+    ports:
+      - "${FRONTEND_PORT:-3005}:80"
+    depends_on:
+      - backend
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost/health"]
+      interval: 30s
+      timeout: 10s
+      start_period: 10s
+      retries: 3
+    networks:
+      - finanse-network
+
+volumes:
+  mariadb_data:
+    driver: local
+
+networks:
+  finanse-network:
+    driver: bridge
+
