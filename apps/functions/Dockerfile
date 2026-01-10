@@ -12,9 +12,10 @@ ARG NODE_ENV=development
 # Set ENV after ARG to ensure development is used during build
 ENV NODE_ENV=development
 
-# Copy package files
+# Copy package files (pnpm workspace requires ALL workspace packages)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/logger/package.json ./packages/logger/
 COPY apps/functions/package.json ./apps/functions/
 
 # Install ALL dependencies (including devDependencies needed for build)

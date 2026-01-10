@@ -12,14 +12,15 @@ ARG NODE_ENV=development
 # Set ENV after ARG to ensure development is used during build
 ENV NODE_ENV=development
 
-# Copy package files
+# Copy package files (pnpm workspace requires ALL workspace packages)
 COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
+COPY packages/logger/package.json ./packages/logger/
 COPY apps/web-app/package.json ./apps/web-app/
 
 # Install ALL dependencies (including devDependencies needed for build)
 # Force NODE_ENV=development inline to override any build argument
-RUN NODE_ENV=development pnpm install --frozen-lockfile
+RUN NODE_ENV=development pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy shared package source
 COPY packages/shared ./packages/shared
