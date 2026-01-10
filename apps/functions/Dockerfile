@@ -11,8 +11,8 @@ COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
 COPY packages/shared/package.json ./packages/shared/
 COPY apps/functions/package.json ./apps/functions/
 
-# Install dependencies
-RUN pnpm install --frozen-lockfile
+# Install dependencies (ignore scripts - husky not needed in Docker)
+RUN pnpm install --frozen-lockfile --ignore-scripts
 
 # Copy shared package source
 COPY packages/shared ./packages/shared
@@ -52,10 +52,10 @@ COPY --from=builder /app/packages/shared/package.json ./packages/shared/
 COPY --from=builder /app/apps/functions/dist ./apps/functions/dist
 COPY --from=builder /app/apps/functions/package.json ./apps/functions/
 
-# Install production dependencies only
+# Install production dependencies only (ignore scripts - husky not needed in Docker)
 # pnpm workspace requires all workspace packages to be present (even if not used)
 # Using --prod to install only production dependencies
-RUN pnpm install --frozen-lockfile --prod
+RUN pnpm install --frozen-lockfile --prod --ignore-scripts
 
 # Set working directory to functions
 WORKDIR /app/apps/functions
