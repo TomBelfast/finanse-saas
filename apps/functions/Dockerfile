@@ -47,7 +47,8 @@ COPY packages/logger/package.json ./packages/logger/
 COPY apps/functions/package.json ./apps/functions/
 
 # Copy built files from builder (needed before install for workspace resolution)
-COPY --from=builder /app/packages/shared/dist ./packages/shared/dist
+# Note: shared package outputs to ./lib, not ./dist
+COPY --from=builder /app/packages/shared/lib ./packages/shared/lib
 COPY --from=builder /app/packages/shared/package.json ./packages/shared/
 COPY --from=builder /app/apps/functions/dist ./apps/functions/dist
 COPY --from=builder /app/apps/functions/package.json ./apps/functions/
