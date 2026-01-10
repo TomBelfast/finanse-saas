@@ -40,8 +40,36 @@
 
 ### Konfiguracja domen w Coolify:
 
-- **Domena frontendu** (`finanse.aihub.ovh`) powinna wskazywać na serwis `frontend` (port 3005)
-- **Domena backendu** (opcjonalnie) może wskazywać na serwis `backend` (port 3015), lub użyj proxy przez frontend
+**WAŻNE:** Backend musi być dostępny z przeglądarki! Skonfiguruj jedną z opcji:
+
+#### Opcja 1: Osobna domena dla backendu (ZALECANE) ⭐
+
+1. W Coolify, dodaj **drugą domenę** dla serwisu `backend`:
+   - **Domena**: `api.finanse.aihub.ovh` 
+   - **Serwis**: `backend` (port 3015)
+   - Coolify automatycznie skonfiguruje HTTPS przez Let's Encrypt
+
+2. W **Environment Variables** ustaw:
+   ```env
+   VITE_API_URL=https://api.finanse.aihub.ovh/api
+   ```
+
+3. **Domena frontendu** (`finanse.aihub.ovh`) wskazuje na serwis `frontend` (port 3005)
+
+#### Opcja 2: Backend na tej samej domenie (jeśli masz nginx proxy na zewnętrznym hoście)
+
+1. Skonfiguruj nginx na zewnętrznym hoście żeby proxy'owało `/api` do backendu:
+   ```nginx
+   location /api {
+       proxy_pass http://<IP-COOLIFY>:3015;
+       # ... inne ustawienia proxy
+   }
+   ```
+
+2. W **Environment Variables** ustaw:
+   ```env
+   VITE_API_URL=https://finanse.aihub.ovh/api
+   ```
 
 ### Environment Variables (ustaw w Coolify dla całego stacku):
 
