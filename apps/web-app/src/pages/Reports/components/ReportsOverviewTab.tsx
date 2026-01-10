@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { formatCurrency, Currency } from '@akademiasaas/shared';
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
@@ -19,7 +19,7 @@ interface ReportsOverviewTabProps {
   currencyFormatter: (v: unknown) => string;
 }
 
-export const ReportsOverviewTab: React.FC<ReportsOverviewTabProps> = ({
+export const ReportsOverviewTab: React.FC<ReportsOverviewTabProps> = memo(({
   totals,
   categoryChartData,
   barChartData,
@@ -178,5 +178,5 @@ export const ReportsOverviewTab: React.FC<ReportsOverviewTabProps> = ({
       </div>
     </div>
   );
-};
+});
 

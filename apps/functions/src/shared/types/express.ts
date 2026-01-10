@@ -39,6 +39,25 @@ export function isAuthenticated(req: AuthenticatedRequest): req is Authenticated
 /**
  * Generic database row types for SQL query results
  */
+export interface SubscriptionRow {
+    id: string
+    user_id: string
+    name: string
+    amount: number
+    currency: string
+    period_start: Date
+    period_end: Date
+    renewal_date: Date
+    provider: string
+    description: string | null
+    status: string
+    is_automatic_renewal: number
+    category: string | null
+    documents: string | null
+    created_at: Date
+    updated_at: Date
+}
+
 export interface InsuranceRow {
     id: string
     user_id: string
@@ -49,8 +68,13 @@ export interface InsuranceRow {
     period_end: Date
     renewal_date: Date
     insurance_company: string
+    policy_number: string | null
+    insured_object: string | null
+    description: string | null
     insurance_type: string
     status: string
+    category: string | null
+    documents: string | null
     created_at: Date
     updated_at: Date
 }

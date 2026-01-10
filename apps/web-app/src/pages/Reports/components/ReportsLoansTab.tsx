@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "~/components/ui/chart";
 import { BarChart, Bar, CartesianGrid, XAxis, YAxis, Cell } from 'recharts';
@@ -9,7 +9,7 @@ interface ReportsLoansTabProps {
   currencyFormatter: (v: unknown) => string;
 }
 
-export const ReportsLoansTab: React.FC<ReportsLoansTabProps> = ({
+export const ReportsLoansTab: React.FC<ReportsLoansTabProps> = memo(({
   activeLoansData,
   currencyFormatter,
 }) => {
@@ -69,5 +69,5 @@ export const ReportsLoansTab: React.FC<ReportsLoansTabProps> = ({
       </div>
     </div>
   );
-};
+});
 

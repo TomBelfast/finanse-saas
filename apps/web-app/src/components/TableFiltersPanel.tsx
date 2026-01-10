@@ -36,10 +36,13 @@ export const TableFiltersPanel: React.FC<TableFiltersPanelProps> = ({ fields, va
   };
 
   const handleNumberRangeChange = (name: string, type: 'min' | 'max', value: string) => {
-    const currentRange = values[name] || {};
+    const currentRange = values[name];
+    const rangeObj = (currentRange && typeof currentRange === 'object' && !(currentRange instanceof Date) && ('min' in currentRange || 'max' in currentRange))
+      ? currentRange as { min?: number; max?: number }
+      : {};
     onChange({
       ...values,
-      [name]: { ...currentRange, [type]: value === '' ? undefined : Number(value) },
+      [name]: { ...rangeObj, [type]: value === '' ? undefined : Number(value) },
     });
   };
 

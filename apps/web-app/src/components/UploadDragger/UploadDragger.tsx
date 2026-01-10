@@ -125,10 +125,13 @@ const UploadDragger: FunctionComponent<Props> = ({
     type?: string;
   }
 
-  const onRemove = (fileToRemove: FileItem) => {
-    updateFileList((prev) =>
-      prev.filter((savedFile) => savedFile.uid !== fileToRemove.uid)
-    );
+  const onRemove = (fileToRemove: File | FileItem) => {
+    const uid = 'uid' in fileToRemove ? fileToRemove.uid : undefined;
+    if (uid) {
+      updateFileList((prev) =>
+        prev.filter((savedFile) => savedFile.uid !== uid)
+      );
+    }
   };
 
   if (readonly && fileList.length === 0) return null;
@@ -136,7 +139,7 @@ const UploadDragger: FunctionComponent<Props> = ({
   return (
     <FileUpload
       onFileSelect={handleFiles}
-      onRemove={onRemove}
+      onRemove={onRemove as (file: File | FileItem) => void}
       multiple={multiple}
       disabled={readonly}
       className={readonly ? 'hidden' : ''}

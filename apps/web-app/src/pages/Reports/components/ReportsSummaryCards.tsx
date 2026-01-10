@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { formatCurrency, Currency } from '@akademiasaas/shared';
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { DollarSign } from "lucide-react";
@@ -10,7 +10,7 @@ interface ReportsSummaryCardsProps {
   userCurrency: Currency;
 }
 
-export const ReportsSummaryCards: React.FC<ReportsSummaryCardsProps> = ({
+export const ReportsSummaryCards: React.FC<ReportsSummaryCardsProps> = memo(({
   totals,
   loading,
   userCurrency,
@@ -131,5 +131,5 @@ export const ReportsSummaryCards: React.FC<ReportsSummaryCardsProps> = ({
       </Card>
     </div>
   );
-};
+});
 

@@ -7,6 +7,7 @@ import {
     UserLoanType,
 } from '@akademiasaas/shared';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from '../../utils/logger';
 
 interface Dependencies {
     pool: Pool;
@@ -76,38 +77,39 @@ export class MariaDBUserLoanRepository {
         const id = uuidv4();
         const now = new Date();
 
-        await this.dependencies.pool.execute(
-            `INSERT INTO user_loans (
+        const query = `INSERT INTO user_loans (
         id, user_id, name, total_amount, remaining_amount, interest_rate, currency,
         start_date, end_date, next_payment_date, next_payment_amount, lender,
         loan_number, description, loan_type, status, payment_frequency,
         duration_in_months, category, documents, created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                id,
-                dto.userId,
-                dto.name,
-                dto.totalAmount,
-                dto.remainingAmount,
-                dto.interestRate,
-                dto.currency,
-                toDate(dto.startDate),
-                toDate(dto.endDate),
-                toDate(dto.nextPaymentDate),
-                dto.nextPaymentAmount,
-                dto.lender,
-                dto.loanNumber || null,
-                dto.description || null,
-                dto.loanType,
-                dto.status,
-                dto.paymentFrequency,
-                dto.durationInMonths,
-                dto.category || null,
-                dto.documents ? JSON.stringify(dto.documents) : null,
-                now,
-                now,
-            ]
-        );
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const params = [
+            id,
+            dto.userId,
+            dto.name,
+            dto.totalAmount,
+            dto.remainingAmount,
+            dto.interestRate,
+            dto.currency,
+            toDate(dto.startDate),
+            toDate(dto.endDate),
+            toDate(dto.nextPaymentDate),
+            dto.nextPaymentAmount,
+            dto.lender,
+            dto.loanNumber || null,
+            dto.description || null,
+            dto.loanType,
+            dto.status,
+            dto.paymentFrequency,
+            dto.durationInMonths,
+            dto.category || null,
+            dto.documents ? JSON.stringify(dto.documents) : null,
+            now,
+            now,
+        ];
+
+        logger.sql(query, params);
+        await this.dependencies.pool.execute(query, params);
 
         return this.getById(id) as Promise<UserLoanDocument>;
     }
@@ -192,10 +194,9 @@ export class MariaDBUserLoanRepository {
         if (fields.length > 0) {
             fields.push('updated_at = NOW()');
             values.push(id);
-            await this.dependencies.pool.execute(
-                `UPDATE user_loans SET ${fields.join(', ')} WHERE id = ?`,
-                values
-            );
+            const updateQuery = `UPDATE user_loans SET ${fields.join(', ')} WHERE id = ?`;
+            logger.sql(updateQuery, values);
+            await this.dependencies.pool.execute(updateQuery, values);
         }
 
         const updated = await this.getById(id);
@@ -206,14 +207,15 @@ export class MariaDBUserLoanRepository {
     }
 
     async delete(id: string): Promise<void> {
-        await this.dependencies.pool.execute('DELETE FROM user_loans WHERE id = ?', [id]);
+        const query = 'DELETE FROM user_loans WHERE id = ?';
+        logger.sql(query, [id]);
+        await this.dependencies.pool.execute(query, [id]);
     }
 
     async getById(id: string): Promise<UserLoanDocument | null> {
-        const [rows] = await this.dependencies.pool.execute<LoanRow[]>(
-            'SELECT * FROM user_loans WHERE id = ?',
-            [id]
-        );
+        const query = 'SELECT * FROM user_loans WHERE id = ?';
+        logger.sql(query, [id]);
+        const [rows] = await this.dependencies.pool.execute<LoanRow[]>(query, [id]);
         if (rows.length === 0) return null;
         return this.mapRowToDocument(rows[0]);
     }
@@ -221,10 +223,9 @@ export class MariaDBUserLoanRepository {
     // Database index on user_loans(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
     // OPTIMIZATION: Consider adding pagination support (limit/offset) for users with many loans
     async getByUserId(userId: string): Promise<UserLoanDocument[]> {
-        const [rows] = await this.dependencies.pool.execute<LoanRow[]>(
-            'SELECT * FROM user_loans WHERE user_id = ? ORDER BY created_at DESC',
-            [userId]
-        );
+        const query = 'SELECT * FROM user_loans WHERE user_id = ? ORDER BY created_at DESC';
+        logger.sql(query, [userId]);
+        const [rows] = await this.dependencies.pool.execute<LoanRow[]>(query, [userId]);
         return rows.map((row) => this.mapRowToDocument(row));
     }
 }

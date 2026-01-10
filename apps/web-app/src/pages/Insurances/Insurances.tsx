@@ -428,10 +428,10 @@ const Insurances = () => {
         renewalDate = currentDate.toISOString().split('T')[0];
       }
 
-      const payload = {
+      const payload: Partial<ApiInsurance> = {
         ...formData,
         amount: formData.amountDue, // map amountDue to amount for backend
-        documents: safeAttachments,
+        documents: safeAttachments.length > 0 ? JSON.stringify(safeAttachments) : null,
         description: formData.note,
         renewal_date: renewalDate,
         status: formData.status || 'active', // Upewnij się, że status jest wysyłany

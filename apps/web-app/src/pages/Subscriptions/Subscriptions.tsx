@@ -139,8 +139,11 @@ const filterFields: FilterField[] = [
     name: 'status',
     label: 'Status',
     options: [
-      { value: 'aktywna', label: 'Aktywna' },
-      { value: 'nieaktywna', label: 'Nieaktywna' },
+      { value: 'active', label: 'Active' },
+      { value: 'inactive', label: 'Inactive' },
+      { value: 'pending_renewal', label: 'Pending Renewal' },
+      { value: 'cancelled', label: 'Cancelled' },
+      { value: 'expired', label: 'Expired' },
     ],
   },
   {
@@ -179,7 +182,7 @@ const Subscriptions = () => {
     // @ts-expect-error - zodResolver type mismatch with z.coerce.number()
     resolver: zodResolver(formSchema),
     defaultValues: {
-      status: 'aktywna',
+      status: 'active',
       cycle: 'miesięczny',
       tag: 'inne',
       note: '',
@@ -192,6 +195,16 @@ const Subscriptions = () => {
       setLoading(true)
       try {
         const subscriptions = await apiClient.getSubscriptions()
+        logger.debug('Loaded subscriptions from API', { count: subscriptions?.length, subscriptions });
+        
+        // Ensure subscriptions is an array
+        if (!Array.isArray(subscriptions)) {
+          logger.error('Subscriptions is not an array', { subscriptions });
+          setData([])
+          setInitialDataLoaded(true)
+          return
+        }
+        
         // Mapowanie danych z API do formatu komponentu
         const mappedData = subscriptions.map((sub: ApiSubscription) => {
           // Parse documents from JSON string if needed
@@ -208,15 +221,16 @@ const Subscriptions = () => {
           return {
             id: sub.id,
             name: sub.name,
-            amount: sub.amount,
+            amount: typeof sub.amount === 'number' ? sub.amount : parseFloat(String(sub.amount)) || 0,
             cycle: 'miesięczny', // Default - cycle not in API response
             renewalDate: typeof sub.renewal_date === 'string' ? sub.renewal_date : (sub.renewal_date instanceof Date ? sub.renewal_date.toISOString() : ''),
-            status: sub.status || 'aktywna',
+            status: sub.status || 'active',
             note: sub.description || '',
             attachments,
             tag: sub.category || 'inne',
           } as Subscription;
         })
+        logger.debug('Mapped subscriptions data', { count: mappedData.length, mappedData });
         setData(mappedData)
         setInitialDataLoaded(true)
       } catch (error: unknown) {
@@ -237,7 +251,8 @@ const Subscriptions = () => {
 
 
   const filteredData = useMemo(() => {
-    return data.filter((sub) => {
+    logger.debug('Filtering data', { dataCount: data.length, filters });
+    const filtered = data.filter((sub) => {
       // Filtrowanie po nazwie (case-insensitive, częściowe dopasowanie)
       const nameMatch = !filters.name || 
         (sub.name && sub.name.toLowerCase().includes(filters.name.toLowerCase().trim()));
@@ -248,11 +263,8 @@ const Subscriptions = () => {
         (filters.cycle === 'miesięczny' && (sub.cycle === 'monthly' || sub.cycle === 'miesięczny')) ||
         (filters.cycle === 'roczny' && (sub.cycle === 'yearly' || sub.cycle === 'roczny'));
       
-      // Filtrowanie po statusie (obsługa różnych formatów)
-      const statusMatch = !filters.status || 
-        sub.status === filters.status ||
-        (filters.status === 'aktywna' && (sub.status === 'active' || sub.status === 'aktywna')) ||
-        (filters.status === 'nieaktywna' && (sub.status === 'inactive' || sub.status === 'nieaktywna'));
+      // Filtrowanie po statusie
+      const statusMatch = !filters.status || sub.status === filters.status;
       
       // Filtrowanie po kategorii/tagu
       const tagMatch = !filters.tag || 
@@ -261,6 +273,8 @@ const Subscriptions = () => {
       
       return nameMatch && cycleMatch && statusMatch && tagMatch;
     });
+    logger.debug('Filtered data result', { filteredCount: filtered.length, originalCount: data.length });
+    return filtered;
   }, [data, filters])
 
   const openAddModal = () => {
@@ -273,7 +287,7 @@ const Subscriptions = () => {
       amount: 0,
       cycle: 'miesięczny',
       renewalDate: '',
-      status: 'aktywna',
+      status: 'active',
       tag: 'inne',
       note: '',
     })
@@ -314,10 +328,10 @@ const Subscriptions = () => {
         return {
           id: sub.id,
           name: sub.name,
-          amount: sub.amount,
+          amount: typeof sub.amount === 'number' ? sub.amount : parseFloat(String(sub.amount)) || 0,
           cycle: 'miesięczny',
           renewalDate: typeof sub.renewal_date === 'string' ? sub.renewal_date : (sub.renewal_date instanceof Date ? sub.renewal_date.toISOString() : ''),
-          status: sub.status || 'aktywna',
+          status: sub.status || 'active',
           note: sub.description || '',
           attachments,
           tag: sub.category || 'inne',
@@ -332,12 +346,6 @@ const Subscriptions = () => {
 
   const onSubmit = async (values: FormValues) => {
     try {
-      const statusMap: Record<string, string> = {
-        aktywna: 'active',
-        nieaktywna: 'inactive',
-        anulowana: 'cancelled',
-      }
-
       const renewalDate = values.renewalDate ? new Date(values.renewalDate) : new Date()
       const cycle = values.cycle || 'miesięczny'
 
@@ -358,10 +366,10 @@ const Subscriptions = () => {
         periodEnd: periodEnd.toISOString(),
         renewalDate: renewalDate.toISOString(),
         provider: 'Manual',
-        status: statusMap[values.status || 'aktywna'] || 'active',
+        status: values.status || 'active',
         isAutomaticRenewal: true,
         description: values.note?.trim() || '',
-        documents: attachments || [],
+        documents: (attachments && attachments.length > 0) ? JSON.stringify(attachments) : null,
         category: values.tag || 'inne',
       }
 
@@ -388,10 +396,10 @@ const Subscriptions = () => {
         return {
           id: sub.id,
           name: sub.name,
-          amount: sub.amount,
+          amount: typeof sub.amount === 'number' ? sub.amount : parseFloat(String(sub.amount)) || 0,
           cycle: 'miesięczny', // Default - cycle not in API response
           renewalDate: typeof sub.renewal_date === 'string' ? sub.renewal_date : (sub.renewal_date instanceof Date ? sub.renewal_date.toISOString() : ''),
-          status: sub.status || 'aktywna',
+          status: sub.status || 'active',
           note: sub.description || '',
           attachments,
           tag: sub.category || 'inne',
@@ -993,8 +1001,11 @@ const Subscriptions = () => {
                         </SelectTrigger>
                       </FormControl>
                       <SelectContent>
-                        <SelectItem value="aktywna">Aktywna</SelectItem>
-                        <SelectItem value="nieaktywna">Nieaktywna</SelectItem>
+                        <SelectItem value="active">Active</SelectItem>
+                        <SelectItem value="inactive">Inactive</SelectItem>
+                        <SelectItem value="pending_renewal">Pending Renewal</SelectItem>
+                        <SelectItem value="cancelled">Cancelled</SelectItem>
+                        <SelectItem value="expired">Expired</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />

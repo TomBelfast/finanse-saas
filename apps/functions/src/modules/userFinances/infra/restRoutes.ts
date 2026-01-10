@@ -1,15 +1,14 @@
 import express from 'express';
 import { getDatabasePool } from '../../../shared/infra/database';
 import { verifyClerkToken } from '../../auth/infra/restRoutes';
-import { MariaDBUserSubscriptionRepository } from '../../../shared/infra/repositories/MariaDBUserSubscriptionRepository';
-import { AuthenticatedRequest, getUserIdFromRequest, InsuranceRow, LoanRow } from '../../../shared/types/express';
+import { AuthenticatedRequest, getUserIdFromRequest, InsuranceRow, LoanRow, SubscriptionRow } from '../../../shared/types/express';
 import { logger } from '../../../shared/utils/logger';
 import { handleError, createErrorResponse } from '../../../shared/utils/errorHandler';
 import { redisCache, RedisCache } from '../../../shared/infra/cache/RedisCache';
+import { v4 as uuidv4 } from 'uuid';
 
 const router = express.Router();
 const pool = getDatabasePool();
-const subscriptionsRepo = new MariaDBUserSubscriptionRepository({ pool });
 
 // Helper function to convert ISO date strings to MySQL format
 const toMySQLDate = (dateValue: string | undefined | null, fallback: string): string => {
@@ -35,9 +34,9 @@ const toMySQLDate = (dateValue: string | undefined | null, fallback: string): st
 };
 
 // Get user subscriptions
-// OPTIMIZATION: Repository method getByUserId doesn't support pagination yet
 // Database index on user_subscriptions(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
 // Redis cache implemented with 5 minute TTL
+// Returns data directly from database in snake_case format (no transformation)
 router.get('/subscriptions', verifyClerkToken, async (req, res) => {
   try {
     const authReq = req as AuthenticatedRequest;
@@ -62,9 +61,21 @@ router.get('/subscriptions', verifyClerkToken, async (req, res) => {
       return;
     }
 
-    // Cache miss - fetch from database
+    // Cache miss - fetch directly from database (snake_case format)
     logger.info('Get subscriptions: Fetching for user', { userId });
-    const subscriptions = await subscriptionsRepo.getByUserId(userId);
+    const query = 'SELECT * FROM user_subscriptions WHERE user_id = ? ORDER BY created_at DESC';
+    const [rows] = await pool.execute<SubscriptionRow[]>(query, [userId]);
+    
+    // Convert Date objects to ISO strings for JSON response
+    const subscriptions = rows.map((row) => ({
+      ...row,
+      period_start: row.period_start instanceof Date ? row.period_start.toISOString() : row.period_start,
+      period_end: row.period_end instanceof Date ? row.period_end.toISOString() : row.period_end,
+      renewal_date: row.renewal_date instanceof Date ? row.renewal_date.toISOString() : row.renewal_date,
+      created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+      updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
+      is_automatic_renewal: Boolean(row.is_automatic_renewal),
+    }));
     
     // Cache the result for 5 minutes
     await redisCache.set(cacheKey, subscriptions, 300);
@@ -110,25 +121,66 @@ router.post('/subscriptions', verifyClerkToken, async (req, res) => {
     const nextMonth = new Date(now);
     nextMonth.setMonth(nextMonth.getMonth() + 1);
 
-    const subscriptionData = {
-      userId: userId,
-      name: req.body.name,
-      amount: parseFloat(req.body.amount) || 0,
-      currency: req.body.currency || 'PLN',
-      periodStart: req.body.periodStart || now.toISOString(),
-      periodEnd: req.body.periodEnd || nextMonth.toISOString(),
-      renewalDate: req.body.renewalDate || nextMonth.toISOString(),
-      provider: req.body.provider || 'Manual',
-      status: (() => { const r = req.body.status || 'active'; const m: Record<string, string> = { 'aktywna': 'active', 'nieaktywna': 'inactive', 'oczekująca na odnowienie': 'pending_renewal', 'oczekująca': 'pending_renewal', 'anulowana': 'cancelled', 'wygasła': 'expired' }; return m[r] || r; })(),
-      isAutomaticRenewal: req.body.isAutomaticRenewal !== false,
-      description: req.body.description || req.body.note || '',
-      category: req.body.category || req.body.tag || 'inne',
-      documents: req.body.documents || [],
+    // Map status from Polish to English
+    const statusMap: Record<string, string> = {
+      'aktywna': 'active',
+      'nieaktywna': 'inactive',
+      'oczekująca na odnowienie': 'pending_renewal',
+      'oczekująca': 'pending_renewal',
+      'anulowana': 'cancelled',
+      'wygasła': 'expired'
+    };
+    const status = statusMap[req.body.status] || req.body.status || 'active';
+
+    // Insert directly into database (snake_case format)
+    const id = uuidv4();
+    const query = `INSERT INTO user_subscriptions (
+      id, user_id, name, amount, currency, period_start, period_end,
+      renewal_date, provider, description, status, is_automatic_renewal,
+      category, documents, created_at, updated_at
+    ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
+    
+    const params = [
+      id,
+      userId,
+      name,
+      parseFloat(amount) || 0,
+      req.body.currency || 'PLN',
+      req.body.period_start || req.body.periodStart || now,
+      req.body.period_end || req.body.periodEnd || nextMonth,
+      req.body.renewal_date || req.body.renewalDate || nextMonth,
+      req.body.provider || 'Manual',
+      req.body.description || req.body.note || null,
+      status,
+      req.body.is_automatic_renewal !== false && req.body.isAutomaticRenewal !== false ? 1 : 0,
+      req.body.category || req.body.tag || 'inne',
+      req.body.documents ? JSON.stringify(req.body.documents) : null,
+    ];
+
+    logger.info('Create subscription: Creating', { userId, name, amount });
+    await pool.execute(query, params);
+
+    // Fetch created subscription and return in snake_case format
+    const [rows] = await pool.execute<SubscriptionRow[]>('SELECT * FROM user_subscriptions WHERE id = ?', [id]);
+    if (rows.length === 0) {
+      throw new Error('Failed to retrieve created subscription');
+    }
+
+    const subscription = {
+      ...rows[0],
+      period_start: rows[0].period_start instanceof Date ? rows[0].period_start.toISOString() : rows[0].period_start,
+      period_end: rows[0].period_end instanceof Date ? rows[0].period_end.toISOString() : rows[0].period_end,
+      renewal_date: rows[0].renewal_date instanceof Date ? rows[0].renewal_date.toISOString() : rows[0].renewal_date,
+      created_at: rows[0].created_at instanceof Date ? rows[0].created_at.toISOString() : rows[0].created_at,
+      updated_at: rows[0].updated_at instanceof Date ? rows[0].updated_at.toISOString() : rows[0].updated_at,
+      is_automatic_renewal: Boolean(rows[0].is_automatic_renewal),
     };
 
-    logger.info('Create subscription: Creating', { userId, name, amount, data: subscriptionData });
-    const subscription = await subscriptionsRepo.create(subscriptionData);
-    logger.info('Create subscription: Success', { userId, subscriptionId: subscription.id });
+    // Invalidate cache
+    const cacheKey = RedisCache.generateKey('user', userId, { type: 'subscriptions' });
+    await redisCache.delete(cacheKey);
+
+    logger.info('Create subscription: Success', { userId, subscriptionId: id });
     res.status(201).json(subscription);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -150,26 +202,102 @@ router.put('/subscriptions/:id', verifyClerkToken, async (req, res) => {
       return;
     }
 
-    // Verify ownership
-    const existing = await subscriptionsRepo.getById(id);
-    if (!existing || existing.userId !== userId) {
+    // Verify ownership - check if subscription exists and belongs to user
+    const [existingRows] = await pool.execute<SubscriptionRow[]>('SELECT user_id FROM user_subscriptions WHERE id = ?', [id]);
+    if (existingRows.length === 0) {
+      res.status(404).json({ error: 'Subscription not found' });
+      return;
+    }
+    if (existingRows[0].user_id !== userId) {
       res.status(403).json({ error: 'Forbidden' });
       return;
     }
 
-    const updateData = { ...req.body };
-    if (updateData.status) {
-      const subStatusMapUpdate: Record<string, string> = {
-        'aktywna': 'active',
-        'nieaktywna': 'inactive',
-        'oczekująca na odnowienie': 'pending_renewal',
-        'oczekująca': 'pending_renewal',
-        'anulowana': 'cancelled',
-        'wygasła': 'expired'
-      };
-      updateData.status = subStatusMapUpdate[updateData.status] || updateData.status;
+    // Map status from Polish to English if needed
+    const statusMap: Record<string, string> = {
+      'aktywna': 'active',
+      'nieaktywna': 'inactive',
+      'oczekująca na odnowienie': 'pending_renewal',
+      'oczekująca': 'pending_renewal',
+      'anulowana': 'cancelled',
+      'wygasła': 'expired'
+    };
+
+    // Build update query dynamically based on provided fields (snake_case format)
+    const updateFields: string[] = [];
+    const updateValues: unknown[] = [];
+
+    if (req.body.name !== undefined) {
+      updateFields.push('name = ?');
+      updateValues.push(req.body.name);
     }
-    const subscription = await subscriptionsRepo.update(id, updateData);
+    if (req.body.amount !== undefined) {
+      updateFields.push('amount = ?');
+      updateValues.push(parseFloat(req.body.amount));
+    }
+    if (req.body.currency !== undefined) {
+      updateFields.push('currency = ?');
+      updateValues.push(req.body.currency);
+    }
+    if (req.body.period_start !== undefined || req.body.periodStart !== undefined) {
+      updateFields.push('period_start = ?');
+      updateValues.push(req.body.period_start || req.body.periodStart);
+    }
+    if (req.body.period_end !== undefined || req.body.periodEnd !== undefined) {
+      updateFields.push('period_end = ?');
+      updateValues.push(req.body.period_end || req.body.periodEnd);
+    }
+    if (req.body.renewal_date !== undefined || req.body.renewalDate !== undefined) {
+      updateFields.push('renewal_date = ?');
+      updateValues.push(req.body.renewal_date || req.body.renewalDate);
+    }
+    if (req.body.provider !== undefined) {
+      updateFields.push('provider = ?');
+      updateValues.push(req.body.provider);
+    }
+    if (req.body.description !== undefined || req.body.note !== undefined) {
+      updateFields.push('description = ?');
+      updateValues.push(req.body.description || req.body.note || null);
+    }
+    if (req.body.status !== undefined) {
+      updateFields.push('status = ?');
+      updateValues.push(statusMap[req.body.status] || req.body.status);
+    }
+    if (req.body.is_automatic_renewal !== undefined || req.body.isAutomaticRenewal !== undefined) {
+      updateFields.push('is_automatic_renewal = ?');
+      updateValues.push((req.body.is_automatic_renewal !== false && req.body.isAutomaticRenewal !== false) ? 1 : 0);
+    }
+    if (req.body.category !== undefined || req.body.tag !== undefined) {
+      updateFields.push('category = ?');
+      updateValues.push(req.body.category || req.body.tag || null);
+    }
+    if (req.body.documents !== undefined) {
+      updateFields.push('documents = ?');
+      updateValues.push(Array.isArray(req.body.documents) ? JSON.stringify(req.body.documents) : req.body.documents);
+    }
+
+    if (updateFields.length === 0) {
+      res.status(400).json({ error: 'No fields to update' });
+      return;
+    }
+
+    updateFields.push('updated_at = NOW()');
+    updateValues.push(id);
+
+    const updateQuery = `UPDATE user_subscriptions SET ${updateFields.join(', ')} WHERE id = ?`;
+    await pool.execute(updateQuery, updateValues);
+
+    // Fetch updated subscription and return in snake_case format
+    const [rows] = await pool.execute<SubscriptionRow[]>('SELECT * FROM user_subscriptions WHERE id = ?', [id]);
+    const subscription = {
+      ...rows[0],
+      period_start: rows[0].period_start instanceof Date ? rows[0].period_start.toISOString() : rows[0].period_start,
+      period_end: rows[0].period_end instanceof Date ? rows[0].period_end.toISOString() : rows[0].period_end,
+      renewal_date: rows[0].renewal_date instanceof Date ? rows[0].renewal_date.toISOString() : rows[0].renewal_date,
+      created_at: rows[0].created_at instanceof Date ? rows[0].created_at.toISOString() : rows[0].created_at,
+      updated_at: rows[0].updated_at instanceof Date ? rows[0].updated_at.toISOString() : rows[0].updated_at,
+      is_automatic_renewal: Boolean(rows[0].is_automatic_renewal),
+    };
     
     // Invalidate cache for this user's subscriptions
     const cacheKey = RedisCache.generateKey('user', userId, { type: 'subscriptions' });
@@ -197,14 +325,19 @@ router.delete('/subscriptions/:id', verifyClerkToken, async (req, res) => {
       return;
     }
 
-    // Verify ownership
-    const existing = await subscriptionsRepo.getById(id);
-    if (!existing || existing.userId !== userId) {
+    // Verify ownership - check if subscription exists and belongs to user
+    const [existingRows] = await pool.execute<SubscriptionRow[]>('SELECT user_id FROM user_subscriptions WHERE id = ?', [id]);
+    if (existingRows.length === 0) {
+      res.status(404).json({ error: 'Subscription not found' });
+      return;
+    }
+    if (existingRows[0].user_id !== userId) {
       res.status(403).json({ error: 'Forbidden' });
       return;
     }
 
-    await subscriptionsRepo.delete(id);
+    // Delete directly from database
+    await pool.execute('DELETE FROM user_subscriptions WHERE id = ?', [id]);
     
     // Invalidate cache for this user's subscriptions
     const cacheKey = RedisCache.generateKey('user', userId, { type: 'subscriptions' });
@@ -262,8 +395,17 @@ router.get('/insurances', verifyClerkToken, async (req, res) => {
       }
     }
     
-    const [rows] = await pool.execute(query, params);
-    const insurances = rows as InsuranceRow[];
+    const [rows] = await pool.execute<InsuranceRow[]>(query, params);
+    
+    // Convert Date objects to ISO strings for JSON response (snake_case format, no camelCase transformation)
+    const insurances = rows.map((row) => ({
+      ...row,
+      period_start: row.period_start instanceof Date ? row.period_start.toISOString() : row.period_start,
+      period_end: row.period_end instanceof Date ? row.period_end.toISOString() : row.period_end,
+      renewal_date: row.renewal_date instanceof Date ? row.renewal_date.toISOString() : row.renewal_date,
+      created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+      updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
+    }));
     
     // Cache the result for 5 minutes (only if no pagination)
     if (limit === undefined && offset === undefined) {
@@ -544,8 +686,17 @@ router.get('/loans', verifyClerkToken, async (req, res) => {
       }
     }
     
-    const [rows] = await pool.execute(query, params);
-    const loans = rows as LoanRow[];
+    const [rows] = await pool.execute<LoanRow[]>(query, params);
+    
+    // Convert Date objects to ISO strings for JSON response (snake_case format, no camelCase transformation)
+    const loans = rows.map((row) => ({
+      ...row,
+      start_date: row.start_date instanceof Date ? row.start_date.toISOString() : row.start_date,
+      end_date: row.end_date instanceof Date ? row.end_date.toISOString() : row.end_date,
+      next_payment_date: row.next_payment_date instanceof Date ? row.next_payment_date.toISOString() : row.next_payment_date,
+      created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+      updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
+    }));
     
     // Cache the result for 5 minutes (only if no pagination)
     if (limit === undefined && offset === undefined) {
@@ -828,8 +979,17 @@ router.get('/ai', verifyClerkToken, async (req, res) => {
       }
     }
     
-    const [rows] = await pool.execute(query, params);
-    const aiItems = rows as InsuranceRow[];
+    const [rows] = await pool.execute<InsuranceRow[]>(query, params);
+    
+    // Convert Date objects to ISO strings for JSON response (snake_case format, no camelCase transformation)
+    const aiItems = rows.map((row) => ({
+      ...row,
+      period_start: row.period_start instanceof Date ? row.period_start.toISOString() : row.period_start,
+      period_end: row.period_end instanceof Date ? row.period_end.toISOString() : row.period_end,
+      renewal_date: row.renewal_date instanceof Date ? row.renewal_date.toISOString() : row.renewal_date,
+      created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
+      updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
+    }));
     
     // Cache the result for 5 minutes (only if no pagination)
     if (limit === undefined && offset === undefined) {

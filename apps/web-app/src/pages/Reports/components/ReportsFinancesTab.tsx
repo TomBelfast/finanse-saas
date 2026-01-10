@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { memo, useMemo } from 'react';
 import { formatCurrency, Currency } from '@akademiasaas/shared';
 import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "~/components/ui/chart";
@@ -11,7 +11,7 @@ interface ReportsFinancesTabProps {
   parseAmount: (amount: unknown) => number;
 }
 
-export const ReportsFinancesTab: React.FC<ReportsFinancesTabProps> = ({
+export const ReportsFinancesTab: React.FC<ReportsFinancesTabProps> = memo(({
   subscriptions,
   userCurrency,
   parseAmount,
@@ -101,5 +101,5 @@ export const ReportsFinancesTab: React.FC<ReportsFinancesTabProps> = ({
       </Card>
     </div>
   );
-};
+});
 

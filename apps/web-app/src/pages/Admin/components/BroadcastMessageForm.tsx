@@ -57,13 +57,16 @@ const formSchema = z.object({
 
 type FormValues = z.infer<typeof formSchema>
 
+// Ensure emojiIcon is always a string (not undefined)
+type FormValuesWithEmoji = Omit<FormValues, 'emojiIcon'> & { emojiIcon: string }
+
 const BroadcastMessageForm: React.FC<BroadcastMessageFormProps> = ({ onSuccess }) => {
   const { t } = useTranslation(['admin', 'common'])
   const [showEmojiPicker, setShowEmojiPicker] = useState(false)
   const { sendBroadcastMessage, loading } = useBroadcastMessage()
 
-  const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+  const form = useForm<FormValuesWithEmoji>({
+    resolver: zodResolver(formSchema) as never,
     defaultValues: {
       title: '',
       message: '',
@@ -72,7 +75,7 @@ const BroadcastMessageForm: React.FC<BroadcastMessageFormProps> = ({ onSuccess }
     },
   })
 
-  const handleSubmit = async (values: FormValues) => {
+  const handleSubmit = async (values: FormValuesWithEmoji) => {
     try {
       await sendBroadcastMessage({
         ...values,

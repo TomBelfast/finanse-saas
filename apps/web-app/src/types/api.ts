@@ -73,3 +73,16 @@ export interface ApiLoan {
 // AI uses the same structure as Insurance
 export type ApiAI = ApiInsurance;
 
+// User API response type
+export interface ApiUser {
+  id: string;
+  uid?: string;
+  email?: string;
+  first_name?: string;
+  last_name?: string;
+  default_currency?: string;
+  created_at?: string | Date;
+  updated_at?: string | Date;
+  [key: string]: unknown; // Allow additional fields
+}
+

@@ -13,8 +13,9 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { AppStore, getUserInitial, userActions } from '@akademiasaas/shared';
 import { useAppDispatch } from '~/initializeStore';
-import { useUser } from '@clerk/clerk-react';
+import { useUser, useAuth } from '@clerk/clerk-react';
 import { LogOut, User } from 'lucide-react';
+import { logger } from '~/utils/logger';
 
 interface OwnProps {
   isOpen: boolean;
@@ -27,12 +28,20 @@ const ProfileDrawer: FunctionComponent<Props> = ({ toggleDrawer, isOpen }) => {
   const { t } = useTranslation('dashboard');
   const { details } = useSelector((store: AppStore) => store.user);
   const { user } = useUser();
+  const { signOut } = useAuth();
   const dispatch = useAppDispatch();
 
   const logoutUser = async () => {
-    dispatch(userActions.logOutUser());
-    // Perform any other cleanup or redirection if needed
-    window.location.href = '/auth/login';
+    try {
+      dispatch(userActions.logOutUser());
+      // Use Clerk signOut to properly logout
+      await signOut();
+      window.location.href = '/auth/login';
+    } catch (error) {
+      logger.error('[ProfileDrawer] Error during logout', error);
+      // Fallback: redirect anyway
+      window.location.href = '/auth/login';
+    }
   };
 
   return (

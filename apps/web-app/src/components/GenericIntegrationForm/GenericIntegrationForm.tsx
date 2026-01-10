@@ -55,20 +55,21 @@ function GenericIntegrationForm<T extends object>({
   const defaultValues = useMemo(() => {
     return providedFields.reduce((acc, [name, field]) => {
       if (field.default !== undefined) {
-        acc[name] = field.default
+        (acc as Record<string, unknown>)[name] = field.default
       }
       return acc
     }, {} as Partial<T>)
   }, [providedFields])
 
   const form = useForm<T>({
-    defaultValues: { ...defaultValues, ...model } as Partial<T>,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    defaultValues: { ...defaultValues, ...model } as any,
   })
 
   // Update form when model changes
   useEffect(() => {
     if (model) {
-      form.reset({ ...defaultValues, ...model } as Partial<T>)
+      form.reset({ ...defaultValues, ...model } as unknown as T)
     }
   }, [model, form, defaultValues])
 
@@ -78,7 +79,7 @@ function GenericIntegrationForm<T extends object>({
 
   return (
     <Form {...form}>
-      <form onSubmit={form.handleSubmit(handleSubmit)} className="space-y-6">
+      <form onSubmit={form.handleSubmit(handleSubmit as never)} className="space-y-6">
         {providedFields.map(([name, field]) => {
           if (field.hidden) return null
 

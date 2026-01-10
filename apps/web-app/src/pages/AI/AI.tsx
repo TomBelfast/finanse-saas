@@ -434,7 +434,7 @@ const AI = () => {
         description: formData.note || null,
         documents: safeAttachments.length > 0 ? JSON.stringify(safeAttachments) : null,
         period_start: formData.periodStart || new Date().toISOString().split('T')[0],
-        period_end: formData.periodEnd || null,
+        period_end: formData.periodEnd || undefined,
       };
 
       if (editMode && editingAI) {

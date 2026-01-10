@@ -4,7 +4,7 @@ import { logger } from '../../utils/logger';
 /**
  * Get Redis configuration from environment variables.
  */
-function getRedisConfig(): { url: string; token: string } {
+function getRedisConfig(): { url: string; token: string; enabled: boolean } {
   const url = process.env.UPSTASH_REDIS_REST_URL;
   const token = process.env.UPSTASH_REDIS_REST_TOKEN;
 
@@ -16,40 +16,64 @@ function getRedisConfig(): { url: string; token: string } {
         'Please set them in environment variables.'
       );
     }
+    return { url, token, enabled: true };
   }
 
-  // Development fallback
-  if (!url || !token || url === 'https://example.com' || token === 'INVALID') {
+  // Development: disable if not properly configured or placeholder values
+  const isPlaceholderUrl = !url || 
+    url === 'https://example.com' || 
+    url.includes('example.com') ||
+    url.includes('your-url') ||
+    url === 'https://your-url.upstash.io';
+    
+  const isPlaceholderToken = !token || 
+    token === 'INVALID' || 
+    token === 'your_token' ||
+    token.length < 10;
+
+  if (isPlaceholderUrl || isPlaceholderToken) {
     return {
       url: 'https://example.com',
       token: 'INVALID',
+      enabled: false,
     };
   }
 
-  return { url, token };
+  // Check if URL looks valid (should be Upstash URL)
+  if (!url.includes('upstash.io') && !url.includes('upstash.com')) {
+    return {
+      url: 'https://example.com',
+      token: 'INVALID',
+      enabled: false,
+    };
+  }
+
+  return { url, token, enabled: true };
 }
 
 const redisConfig = getRedisConfig();
-const redis = new Redis({
+const redis = redisConfig.enabled ? new Redis({
   url: redisConfig.url,
   token: redisConfig.token,
-});
+}) : null;
 
 /**
  * Redis Cache Service
  * Provides caching functionality for frequently accessed data
  */
 export class RedisCache {
-  private redis: Redis;
+  private redis: Redis | null;
   private isEnabled: boolean;
+  private failureCount: number = 0;
+  private readonly MAX_FAILURES = 3;
 
   constructor() {
     this.redis = redis;
     // Only enable cache if Redis is properly configured
-    this.isEnabled = redisConfig.url !== 'https://example.com' && redisConfig.token !== 'INVALID';
+    this.isEnabled = redisConfig.enabled && redis !== null;
     
     if (!this.isEnabled && process.env.NODE_ENV !== 'production') {
-      logger.warn('Redis cache is disabled - UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not set');
+      logger.warn('Redis cache is disabled - UPSTASH_REDIS_REST_URL or UPSTASH_REDIS_REST_TOKEN not properly configured');
     }
   }
 
@@ -57,12 +81,24 @@ export class RedisCache {
    * Get cached value by key
    */
   async get<T>(key: string): Promise<T | null> {
-    if (!this.isEnabled) {
+    if (!this.isEnabled || this.failureCount >= this.MAX_FAILURES || !this.redis) {
       return null;
     }
 
     try {
-      const value = await this.redis.get(key);
+      // Add timeout to prevent long waits
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Redis timeout')), 1000);
+      });
+
+      const value = await Promise.race([
+        this.redis.get(key),
+        timeoutPromise,
+      ]);
+
+      // Reset failure count on success
+      this.failureCount = 0;
+      
       if (value) {
         logger.debug('Cache hit', { key });
         return value as T;
@@ -70,7 +106,16 @@ export class RedisCache {
       logger.debug('Cache miss', { key });
       return null;
     } catch (error) {
-      logger.error('Redis cache get error', error instanceof Error ? error : new Error(String(error)), { key });
+      this.failureCount++;
+      if (this.failureCount >= this.MAX_FAILURES) {
+        logger.warn(`Redis cache disabled after ${this.MAX_FAILURES} failures`, { key });
+        this.isEnabled = false;
+      } else {
+        logger.error('Redis cache get error', error instanceof Error ? error : new Error(String(error)), { 
+          key, 
+          failureCount: this.failureCount 
+        });
+      }
       return null;
     }
   }
@@ -79,16 +124,36 @@ export class RedisCache {
    * Set cached value with TTL (time to live) in seconds
    */
   async set(key: string, value: unknown, ttlSeconds: number = 300): Promise<boolean> {
-    if (!this.isEnabled) {
+    if (!this.isEnabled || this.failureCount >= this.MAX_FAILURES || !this.redis) {
       return false;
     }
 
     try {
-      await this.redis.setex(key, ttlSeconds, JSON.stringify(value));
+      // Add timeout to prevent long waits
+      const timeoutPromise = new Promise<never>((_, reject) => {
+        setTimeout(() => reject(new Error('Redis timeout')), 1000);
+      });
+
+      await Promise.race([
+        this.redis.setex(key, ttlSeconds, JSON.stringify(value)),
+        timeoutPromise,
+      ]);
+
+      // Reset failure count on success
+      this.failureCount = 0;
       logger.debug('Cache set', { key, ttlSeconds });
       return true;
     } catch (error) {
-      logger.error('Redis cache set error', error instanceof Error ? error : new Error(String(error)), { key });
+      this.failureCount++;
+      if (this.failureCount >= this.MAX_FAILURES) {
+        logger.warn(`Redis cache disabled after ${this.MAX_FAILURES} failures`, { key });
+        this.isEnabled = false;
+      } else {
+        logger.error('Redis cache set error', error instanceof Error ? error : new Error(String(error)), { 
+          key, 
+          failureCount: this.failureCount 
+        });
+      }
       return false;
     }
   }

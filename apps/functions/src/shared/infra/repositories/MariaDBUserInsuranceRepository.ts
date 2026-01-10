@@ -7,6 +7,7 @@ import {
     UserInsuranceType,
 } from '@akademiasaas/shared';
 import { v4 as uuidv4 } from 'uuid';
+import { logger } from '../../utils/logger';
 
 interface Dependencies {
     pool: Pool;
@@ -68,34 +69,35 @@ export class MariaDBUserInsuranceRepository {
         const id = uuidv4();
         const now = new Date();
 
-        await this.dependencies.pool.execute(
-            `INSERT INTO user_insurances (
+        const query = `INSERT INTO user_insurances (
         id, user_id, name, amount, currency, period_start, period_end,
         renewal_date, insurance_company, policy_number, insured_object,
         description, insurance_type, status, category, documents,
         created_at, updated_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-            [
-                id,
-                dto.userId,
-                dto.name,
-                dto.amount,
-                dto.currency,
-                toDate(dto.periodStart),
-                toDate(dto.periodEnd),
-                toDate(dto.renewalDate),
-                dto.insuranceCompany,
-                dto.policyNumber || null,
-                dto.insuredObject || null,
-                dto.description || null,
-                dto.insuranceType,
-                dto.status,
-                dto.category || null,
-                dto.documents ? JSON.stringify(dto.documents) : null,
-                now,
-                now,
-            ]
-        );
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+        const params = [
+            id,
+            dto.userId,
+            dto.name,
+            dto.amount,
+            dto.currency,
+            toDate(dto.periodStart),
+            toDate(dto.periodEnd),
+            toDate(dto.renewalDate),
+            dto.insuranceCompany,
+            dto.policyNumber || null,
+            dto.insuredObject || null,
+            dto.description || null,
+            dto.insuranceType,
+            dto.status,
+            dto.category || null,
+            dto.documents ? JSON.stringify(dto.documents) : null,
+            now,
+            now,
+        ];
+
+        logger.sql(query, params);
+        await this.dependencies.pool.execute(query, params);
 
         return this.getById(id) as Promise<UserInsuranceDocument>;
     }
@@ -164,10 +166,9 @@ export class MariaDBUserInsuranceRepository {
         if (fields.length > 0) {
             fields.push('updated_at = NOW()');
             values.push(id);
-            await this.dependencies.pool.execute(
-                `UPDATE user_insurances SET ${fields.join(', ')} WHERE id = ?`,
-                values
-            );
+            const updateQuery = `UPDATE user_insurances SET ${fields.join(', ')} WHERE id = ?`;
+            logger.sql(updateQuery, values);
+            await this.dependencies.pool.execute(updateQuery, values);
         }
 
         const updated = await this.getById(id);
@@ -178,14 +179,15 @@ export class MariaDBUserInsuranceRepository {
     }
 
     async delete(id: string): Promise<void> {
-        await this.dependencies.pool.execute('DELETE FROM user_insurances WHERE id = ?', [id]);
+        const query = 'DELETE FROM user_insurances WHERE id = ?';
+        logger.sql(query, [id]);
+        await this.dependencies.pool.execute(query, [id]);
     }
 
     async getById(id: string): Promise<UserInsuranceDocument | null> {
-        const [rows] = await this.dependencies.pool.execute<InsuranceRow[]>(
-            'SELECT * FROM user_insurances WHERE id = ?',
-            [id]
-        );
+        const query = 'SELECT * FROM user_insurances WHERE id = ?';
+        logger.sql(query, [id]);
+        const [rows] = await this.dependencies.pool.execute<InsuranceRow[]>(query, [id]);
         if (rows.length === 0) return null;
         return this.mapRowToDocument(rows[0]);
     }
@@ -193,10 +195,9 @@ export class MariaDBUserInsuranceRepository {
     // Database index on user_insurances(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
     // OPTIMIZATION: Consider adding pagination support (limit/offset) for users with many insurances
     async getByUserId(userId: string): Promise<UserInsuranceDocument[]> {
-        const [rows] = await this.dependencies.pool.execute<InsuranceRow[]>(
-            'SELECT * FROM user_insurances WHERE user_id = ? ORDER BY created_at DESC',
-            [userId]
-        );
+        const query = 'SELECT * FROM user_insurances WHERE user_id = ? ORDER BY created_at DESC';
+        logger.sql(query, [userId]);
+        const [rows] = await this.dependencies.pool.execute<InsuranceRow[]>(query, [userId]);
         return rows.map((row) => this.mapRowToDocument(row));
     }
 }

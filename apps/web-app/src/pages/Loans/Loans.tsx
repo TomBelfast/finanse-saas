@@ -84,6 +84,7 @@ interface Loan {
   id: string;
   name: string;
   amount: number;
+  remainingAmount?: number;
   nextPayment: string;
   status: string;
   installments: number;
@@ -349,7 +350,7 @@ const Loans = () => {
         next_payment_date: formData.nextPayment,
         status: formData.status,
         description: formData.note,
-        documents: safeAttachments
+        documents: safeAttachments.length > 0 ? JSON.stringify(safeAttachments) : null
       };
 
       if (editMode && editingLoan) {

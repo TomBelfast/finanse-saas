@@ -2,12 +2,13 @@ import { useEffect } from 'react';
 import { useDispatch, useSelector } from 'react-redux';
 import { getUserDetails } from '../../../../packages/shared/src/store/reducers/user/actions/getUserDetails';
 import { logger } from '~/utils/logger';
-import { AppStore } from '@akademiasaas/shared';
+import { AppStore, RequestStatus } from '@akademiasaas/shared';
 
 export const useUserDetails = () => {
   const dispatch = useDispatch();
   const user = useSelector((state: AppStore) => state.user.data);
-  const loading = useSelector((state: AppStore) => state.user.loading);
+  const detailsStatus = useSelector((state: AppStore) => state.user.detailsStatus);
+  const loading = detailsStatus === RequestStatus.FETCHING || detailsStatus === RequestStatus.UPDATING;
   const error = useSelector((state: AppStore) => state.user.error);
 
   useEffect(() => {
@@ -20,21 +21,9 @@ export const useUserDetails = () => {
       }
       // Pobierz uid z Clerk - już zaimplementowane w AuthChecker
       // Clerk authentication is handled by AuthChecker component
-      const uid = undefined; // User ID is obtained from Clerk via AuthChecker
-      if (uid) {
-        dispatch(getUserDetails(uid) as unknown as { then: (callback: (res: unknown) => void) => void; catch: (callback: (err: unknown) => void) => void })
-          .then((res: unknown) => {
-            if (import.meta.env.VITE_DEBUG === 'true') {
-              logger.debug('[useUserDetails] getUserDetails resolved', { success: !!res });
-            }
-          })
-          .catch((err: unknown) => {
-            logger.error('[useUserDetails] getUserDetails error', err instanceof Error ? err : new Error(String(err)));
-          });
-      } else {
-        if (import.meta.env.VITE_DEBUG === 'true') {
-          logger.warn('[useUserDetails] Brak uid, nie można pobrać szczegółów użytkownika');
-        }
+      // This hook is deprecated - user details are now managed by AuthChecker
+      if (import.meta.env.VITE_DEBUG === 'true') {
+        logger.debug('[useUserDetails] User details are now managed by AuthChecker component');
       }
     }
   }, [dispatch, user, loading, error]);

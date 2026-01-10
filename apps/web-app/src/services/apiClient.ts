@@ -1,7 +1,7 @@
 // API Client for REST API (replacement for Firebase)
 // Use VITE_API_URL from env, or try to detect the correct backend URL
 
-import { ApiSubscription, ApiInsurance, ApiLoan, ApiAI } from '~/types/api';
+import { ApiSubscription, ApiInsurance, ApiLoan, ApiAI, ApiUser } from '~/types/api';
 const getApiBaseUrl = () => {
   if (import.meta.env.VITE_API_URL) {
     return import.meta.env.VITE_API_URL;

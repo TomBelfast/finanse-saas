@@ -74,27 +74,39 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
           try {
             const fullUser = await apiClient.getCurrentUser();
             if (import.meta.env.VITE_DEBUG === 'true') {
-              logger.debug('[AuthChecker] Fetched user details', { userId: fullUser?.uid, email: fullUser?.email });
+              logger.debug('[AuthChecker] Fetched user details', { 
+                userId: fullUser?.uid, 
+                email: fullUser?.email,
+                firstName: fullUser?.firstName,
+                lastName: fullUser?.lastName
+              });
             }
             // Update Redux store directly with API data (don't use getUserDetails which uses Firebase)
             if (fullUser) {
               // Map API response to UserDocument format and dispatch directly
+              // Backend returns UserDocument with 'uid' field, not 'userId'
               const userDocument: UserDocument & { systemRole: null | 'admin'; isImpersonated: boolean } = {
-                uid: fullUser.uid || user.id,
-                email: fullUser.email || user.primaryEmailAddress?.emailAddress || null,
-                firstName: fullUser.firstName || user.firstName || '',
-                lastName: fullUser.lastName || user.lastName || null,
-                avatarUrl: fullUser.avatarUrl || user.imageUrl || null,
-                lang: fullUser.lang || 'pl',
-                timezone: fullUser.timezone || 'Europe/Warsaw',
-                contactEmail: fullUser.contactEmail || null,
-                createdAt: new Date(),
-                updatedAt: new Date(),
+                uid: (fullUser.uid || fullUser.userId || user.id) as string,
+                email: (fullUser.email || user.primaryEmailAddress?.emailAddress || null) as string | null,
+                firstName: (fullUser.firstName || user.firstName || '') as string,
+                lastName: (fullUser.lastName || user.lastName || null) as string | null,
+                avatarUrl: (fullUser.avatarUrl || fullUser.avatar_url || user.imageUrl || null) as string | null,
+                lang: (fullUser.lang || 'pl') as string,
+                timezone: (fullUser.timezone || 'Europe/Warsaw') as string,
+                contactEmail: (fullUser.contactEmail || fullUser.contact_email || null) as string | null,
+                createdAt: fullUser.createdAt ? new Date(fullUser.createdAt as string) : new Date(),
+                updatedAt: fullUser.updatedAt ? new Date(fullUser.updatedAt as string) : new Date(),
                 systemRole: null,
                 isImpersonated: false,
               } as UserDocument & { systemRole: null | 'admin'; isImpersonated: boolean };
 
               // Dispatch getUserDetailsSuccess action directly
+              if (import.meta.env.VITE_DEBUG === 'true') {
+                logger.debug('[AuthChecker] Dispatching getUserDetailsSuccess', { 
+                  firstName: userDocument.firstName, 
+                  lastName: userDocument.lastName 
+                });
+              }
               dispatch({
                 type: 'User/getUserDetailsSuccess',
                 payload: userDocument,
@@ -108,9 +120,9 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
                 firstName: user.firstName || '',
                 lastName: user.lastName || '',
                 email: user.primaryEmailAddress?.emailAddress || '',
-              });
+              }) as { uid?: string } | null | undefined;
               if (createdUser && import.meta.env.VITE_DEBUG === 'true') {
-                logger.debug('[AuthChecker] User created via API', { userId: createdUser?.uid });
+                logger.debug('[AuthChecker] User created via API', { userId: createdUser?.uid || 'unknown' });
               }
             } catch (createError) {
               logger.error('[AuthChecker] Error creating user', createError);

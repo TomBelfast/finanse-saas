@@ -3,16 +3,22 @@ import { cn } from '~/lib/utils';
 import { UploadCloud, X, File as FileIcon } from 'lucide-react';
 import { Button } from './button';
 
+interface FileItem {
+  name: string;
+  url?: string;
+  uid?: string;
+}
+
 interface FileUploadProps {
     onFileSelect: (files: File[]) => void;
-    onRemove?: (file: File) => void;
+    onRemove?: (file: File | FileItem) => void;
     multiple?: boolean;
     accept?: string;
     className?: string;
     disabled?: boolean;
     maxSizeInMB?: number;
     files?: File[];
-    fileList?: { name: string; url?: string; uid?: string }[];
+    fileList?: FileItem[];
 }
 
 export const FileUpload: React.FC<FileUploadProps> = ({
@@ -137,7 +143,16 @@ export const FileUpload: React.FC<FileUploadProps> = ({
                                 <FileIcon className="w-4 h-4 text-primary shrink-0" />
                                 <span className="text-sm truncate max-w-[200px]">{file.name}</span>
                             </div>
-                            {/* Note: logic for removing remote files implies specific handler */}
+                            {onRemove && (
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    className="h-8 w-8 hover:text-destructive"
+                                    onClick={() => onRemove(file)}
+                                >
+                                    <X className="w-4 h-4" />
+                                </Button>
+                            )}
                         </div>
                     ))}
                 </div>
