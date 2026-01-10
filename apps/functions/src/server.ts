@@ -38,23 +38,30 @@ const isDevelopment = process.env.NODE_ENV !== 'production';
 
 app.use(cors({
   origin: (origin, callback) => {
-    // Allow requests with no origin (mobile apps, Postman, etc.) in development
-    if (!origin && isDevelopment) {
+    // Allow requests with no origin (direct API calls, mobile apps, Postman, etc.)
+    // In production, we still allow no-origin requests (they're not from browsers)
+    if (!origin) {
+      logger.debug('CORS: Request with no origin (direct API call)', { isDevelopment });
       return callback(null, true);
     }
     
-    // In production, require origin
-    if (!origin && !isDevelopment) {
-      return callback(new Error('CORS: Origin header required in production'));
+    // Check if origin is allowed
+    if (allowedOrigins.includes('*')) {
+      logger.debug('CORS: Allowing all origins (*)', { origin });
+      return callback(null, true);
     }
     
-    // Check if origin is allowed
-    if (allowedOrigins.includes('*') || (origin && allowedOrigins.includes(origin))) {
-      callback(null, true);
-    } else {
-      logger.warn(`CORS: Blocked origin ${origin}`);
-      callback(new Error(`CORS: Origin ${origin} is not allowed`));
+    if (origin && allowedOrigins.includes(origin)) {
+      logger.debug('CORS: Allowed origin', { origin });
+      return callback(null, true);
     }
+    
+    // Origin not allowed
+    logger.warn('CORS: Blocked origin', { 
+      origin, 
+      allowedOrigins: allowedOrigins.length > 0 ? allowedOrigins : 'none configured' 
+    });
+    callback(new Error(`CORS: Origin ${origin} is not allowed. Allowed origins: ${allowedOrigins.join(', ') || 'none configured'}`));
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
