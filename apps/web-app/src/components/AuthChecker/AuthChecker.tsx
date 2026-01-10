@@ -78,11 +78,18 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
                 userId: fullUser?.uid, 
                 email: fullUser?.email,
                 firstName: fullUser?.firstName,
-                lastName: fullUser?.lastName
+                lastName: fullUser?.lastName,
+                defaultCurrency: fullUser?.defaultCurrency || fullUser?.default_currency || 'pln'
               });
             }
             // Update Redux store directly with API data (don't use getUserDetails which uses Firebase)
             if (fullUser) {
+              // Normalize currency to lowercase (API may return uppercase, but we use lowercase in the app)
+              const defaultCurrency = fullUser.defaultCurrency || fullUser.default_currency || 'pln';
+              const normalizedCurrency = typeof defaultCurrency === 'string' 
+                ? defaultCurrency.toLowerCase() as 'pln' | 'eur' | 'usd' | 'gbp'
+                : 'pln';
+
               // Map API response to UserDocument format and dispatch directly
               // Backend returns UserDocument with 'uid' field, not 'userId'
               const userDocument: UserDocument & { systemRole: null | 'admin'; isImpersonated: boolean } = {
@@ -94,6 +101,7 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
                 lang: (fullUser.lang || 'pl') as string,
                 timezone: (fullUser.timezone || 'Europe/Warsaw') as string,
                 contactEmail: (fullUser.contactEmail || fullUser.contact_email || null) as string | null,
+                defaultCurrency: normalizedCurrency,
                 createdAt: fullUser.createdAt ? new Date(fullUser.createdAt as string) : new Date(),
                 updatedAt: fullUser.updatedAt ? new Date(fullUser.updatedAt as string) : new Date(),
                 systemRole: null,

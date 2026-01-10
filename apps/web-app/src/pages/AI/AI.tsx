@@ -107,14 +107,9 @@ interface AI {
 }
 
 const getPaymentStatusColor = (status: string, nextPaymentDate?: string) => {
-  if (status === 'zaplacono') return 'success'; // Zielony
-  if (!nextPaymentDate) return 'secondary'; // Szary
-  const now = new Date();
-  const next = new Date(nextPaymentDate);
-  const diffDays = Math.ceil((next.getTime() - now.getTime()) / (1000 * 60 * 60 * 24));
-  if (diffDays > 7) return 'warning'; // Żółty
-  if (diffDays > 1) return 'destructive'; // Pomarańczowy/Czerwony (używam destructive jako czerwony)
-  if (diffDays <= 1) return 'destructive'; // Czerwony
+  // Dla subskrypcji AI zawsze "do zapłaty" - zawsze ten sam kolor
+  if (status === 'do_zaplaty') return 'destructive'; // Czerwony - zawsze ten sam kolor
+  if (status === 'zaplacono') return 'success'; // Zielony (nie używane dla subskrypcji AI)
   return 'secondary';
 };
 
@@ -184,25 +179,9 @@ const AI = () => {
           if (match) renewalCycle = match[1];
         }
 
-        // Mapowanie statusów - API zwraca angielskie, ale możemy je zostawić jako są
-        // paymentStatus zależy od statusu i daty płatności
-        let paymentStatus: 'do_zaplaty' | 'zaplacono' = 'do_zaplaty';
-        if (row.status === 'expired' || row.status === 'cancelled') {
-          paymentStatus = 'zaplacono';
-        } else if (row.status === 'active' || row.status === 'pending') {
-          // Dla aktywnych i oczekujących - sprawdź datę płatności
-          if (row.renewal_date) {
-            const renewalDate = new Date(row.renewal_date);
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            renewalDate.setHours(0, 0, 0, 0);
-            // Jeśli data płatności minęła, oznacza że do zapłaty
-            // Jeśli data płatności jest w przyszłości, oznacza że zapłacono
-            paymentStatus = renewalDate < today ? 'do_zaplaty' : 'zaplacono';
-          } else {
-            paymentStatus = 'do_zaplaty';
-          }
-        }
+        // Dla subskrypcji AI zawsze "do zapłaty" - to są cykliczne płatności
+        // paymentStatus zawsze 'do_zaplaty' dla subskrypcji
+        const paymentStatus: 'do_zaplaty' | 'zaplacono' = 'do_zaplaty';
 
         return {
           id: row.id,
@@ -346,12 +325,7 @@ const AI = () => {
 
   const handlePayment = async (ai: AI) => {
     try {
-      // 1. Przenieś obecny rekord do "expired" (opłacony/zakończony okres)
-      await apiClient.updateAI(ai.id, {
-        status: 'expired',
-      });
-
-      // 2. Wylicz nową datę płatności na podstawie cyklu
+      // Wylicz nową datę płatności na następny okres (miesiąc/rok)
       let nextDate = '';
       if (ai.nextPaymentDate) {
         const current = new Date(ai.nextPaymentDate);
@@ -369,24 +343,23 @@ const AI = () => {
           }
         }
         nextDate = current.toISOString().split('T')[0];
+      } else {
+        // Jeśli nie ma daty, ustaw na następny okres od dzisiaj
+        const today = new Date();
+        if (ai.renewalCycle === 'monthly') {
+          today.setMonth(today.getMonth() + 1);
+        } else {
+          today.setFullYear(today.getFullYear() + 1);
+        }
+        nextDate = today.toISOString().split('T')[0];
       }
 
-      // 3. Utwórz nowy rekord z nową datą i statusem "do_zaplaty"
-      const newAI: Partial<ApiAI> = {
-        name: ai.name,
-        amount: ai.amount,
-        currency: ai.currency || userCurrency || 'PLN',
-        period_start: ai.periodStart || new Date().toISOString().split('T')[0],
-        period_end: ai.periodEnd || '',
+      // Zaktualizuj tylko datę renewal_date - status pozostaje aktywny, paymentStatus zawsze "do zapłaty"
+      await apiClient.updateAI(ai.id, {
         renewal_date: nextDate,
-        insurance_company: ai.aiCompany || '', // ApiAI uses insurance_company field
-        insurance_type: ai.aiType || '', // ApiAI uses insurance_type field
-        status: 'active',
-        documents: JSON.stringify(Array.isArray(ai.attachments) ? ai.attachments : []),
-        description: ai.note || null,
-      };
+        status: 'active', // Zawsze aktywny dla subskrypcji
+      });
 
-      await apiClient.createAI(newAI);
       loadData();
     } catch (error) {
       logger.error('Błąd płatności', error instanceof Error ? error : new Error(String(error)));
@@ -404,24 +377,8 @@ const AI = () => {
         ? attachments.map(a => ({ name: a?.name || '', url: a?.url || '', type: a?.type || '' }))
         : [];
 
-      // Jeśli paymentStatus jest "zaplacono", ustaw renewal_date na przyszłą datę
-      let renewalDate = formData.nextPaymentDate;
-      if (formData.paymentStatus === 'zaplacono' && formData.nextPaymentDate) {
-        const currentDate = new Date(formData.nextPaymentDate);
-        const cycle = formData.renewalCycle || 'monthly';
-        
-        if (cycle === 'monthly') {
-          currentDate.setMonth(currentDate.getMonth() + 1);
-        } else {
-          currentDate.setFullYear(currentDate.getFullYear() + 1);
-        }
-        renewalDate = currentDate.toISOString().split('T')[0];
-      } else if (formData.paymentStatus === 'do_zaplaty' && formData.nextPaymentDate) {
-        // Jeśli zmieniamy na "do zapłaty", ustaw datę na przeszłą (np. wczoraj)
-        const currentDate = new Date(formData.nextPaymentDate);
-        currentDate.setDate(currentDate.getDate() - 1);
-        renewalDate = currentDate.toISOString().split('T')[0];
-      }
+      // Używamy daty z formularza bez zmian - subskrypcje są zawsze "do zapłaty"
+      const renewalDate = formData.nextPaymentDate || new Date().toISOString().split('T')[0];
 
       const payload: Partial<ApiAI> = {
         name: formData.name,
@@ -430,7 +387,7 @@ const AI = () => {
         insurance_company: formData.aiCompany || '',
         insurance_type: formData.aiType || '',
         status: formData.status || 'active',
-        renewal_date: renewalDate,
+        renewal_date: renewalDate || new Date().toISOString().split('T')[0],
         description: formData.note || null,
         documents: safeAttachments.length > 0 ? JSON.stringify(safeAttachments) : null,
         period_start: formData.periodStart || new Date().toISOString().split('T')[0],
@@ -924,39 +881,22 @@ const AI = () => {
               />
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="grid gap-2">
-                <Label htmlFor="status">Status</Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value) => setFormData({ ...formData, status: value })}
-                >
-                  <SelectTrigger id="status">
-                    <SelectValue placeholder="Wybierz" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="active">Aktywna</SelectItem>
-                    <SelectItem value="pending">Oczekująca</SelectItem>
-                    <SelectItem value="expired">Wygasła</SelectItem>
-                    <SelectItem value="cancelled">Anulowana</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="grid gap-2">
-                <Label htmlFor="paymentStatus">Płatność</Label>
-                <Select
-                  value={formData.paymentStatus}
-                  onValueChange={(value) => setFormData({ ...formData, paymentStatus: value as 'do_zaplaty' | 'zaplacono' })}
-                >
-                  <SelectTrigger id="paymentStatus">
-                    <SelectValue placeholder="Wybierz" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="do_zaplaty">Do zapłaty</SelectItem>
-                    <SelectItem value="zaplacono">Zapłacono</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="grid gap-2">
+              <Label htmlFor="status">Status</Label>
+              <Select
+                value={formData.status}
+                onValueChange={(value) => setFormData({ ...formData, status: value })}
+              >
+                <SelectTrigger id="status">
+                  <SelectValue placeholder="Wybierz" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="active">Aktywna</SelectItem>
+                  <SelectItem value="pending">Oczekująca</SelectItem>
+                  <SelectItem value="expired">Wygasła</SelectItem>
+                  <SelectItem value="cancelled">Anulowana</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
 
             <div className="grid gap-2">
@@ -981,7 +921,7 @@ const AI = () => {
                 <Input
                   id="nextPaymentDate"
                   type="date"
-                  value={formData.nextPaymentDate ? (formData.nextPaymentDate.includes('T') ? formData.nextPaymentDate.split('T')[0] : formData.nextPaymentDate) : ''}
+                  value={formData.nextPaymentDate ? (formData.nextPaymentDate.includes('T') ? formData.nextPaymentDate.split('T')[0] : formData.nextPaymentDate.substring(0, 10)) : ''}
                   onChange={(e) => setFormData({ ...formData, nextPaymentDate: e.target.value })}
                 />
               </div>

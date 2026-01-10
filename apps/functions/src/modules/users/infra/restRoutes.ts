@@ -132,11 +132,17 @@ router.get('/me', verifyClerkToken, async (req, res) => {
       }
     }
 
+    // Normalize defaultCurrency to lowercase if present
+    if (userData && userData.defaultCurrency) {
+      userData.defaultCurrency = (userData.defaultCurrency as string).toLowerCase() as 'pln' | 'eur' | 'usd' | 'gbp';
+    }
+
     logger.info('GET /api/users/me - Returning user data', { 
       userId, 
       firstName: userData?.firstName || 'empty',
       lastName: userData?.lastName || 'empty',
-      email: userData?.email || 'empty'
+      email: userData?.email || 'empty',
+      defaultCurrency: userData?.defaultCurrency || 'empty'
     });
     res.json(userData);
   } catch (error: unknown) {
@@ -156,8 +162,24 @@ router.put('/me', verifyClerkToken, validateBody(updateUserSchema), async (req, 
     }
     const updateData = req.body;
 
+    logger.info('PUT /api/users/me - Updating user', { 
+      userId, 
+      updateData,
+      defaultCurrency: updateData.defaultCurrency 
+    });
+
     await usersRepository.updateUser(userId, updateData);
     const updatedUser = await usersRepository.findUserById(userId);
+
+    // Normalize defaultCurrency to lowercase if present
+    if (updatedUser && updatedUser.defaultCurrency) {
+      updatedUser.defaultCurrency = (updatedUser.defaultCurrency as string).toLowerCase() as 'pln' | 'eur' | 'usd' | 'gbp';
+    }
+
+    logger.info('PUT /api/users/me - User updated successfully', { 
+      userId, 
+      defaultCurrency: updatedUser?.defaultCurrency 
+    });
 
     res.json(updatedUser);
     return;
