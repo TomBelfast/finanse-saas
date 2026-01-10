@@ -383,6 +383,19 @@ Sprawdź w konsoli przeglądarki (F12), czy nie ma błędów połączenia z API.
    - Jeśli Redis nie jest skonfigurowany, aplikacja będzie działać bez cache (z ostrzeżeniem w logach)
    - Cache jest opcjonalny - aplikacja działa również bez niego
 
+### Build fails z błędem "pnpm build" lub brakuje devDependencies:
+
+1. **Problem z NODE_ENV=production podczas buildu**:
+   - Coolify może dodać `NODE_ENV=production` jako build-time variable
+   - To może powodować, że pnpm pomija devDependencies (TypeScript, webpack, etc.)
+   - **Rozwiązanie**: Dockerfile już obsługuje to poprawnie - ustawia `NODE_ENV=development` podczas buildu
+   - W Coolify możesz też ustawić `NODE_ENV` jako "Runtime only" (nie "Build-time"), ale nie jest to wymagane
+
+2. **Jeśli nadal masz problemy**:
+   - Sprawdź logi buildu w Coolify - szukaj błędów związanych z brakującymi pakietami
+   - Upewnij się, że używasz najnowszej wersji Dockerfile (commit `d05daa0` lub nowszy)
+   - Wykonaj pełny rebuild (z opcją "Clear Cache" w Coolify, jeśli dostępna)
+
 ---
 
 ## 📚 Dodatkowe zasoby
