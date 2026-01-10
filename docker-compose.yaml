@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:
   # MariaDB Database (OPCJONALNE - tylko jeśli chcesz lokalną bazę)
   # Jeśli używasz zewnętrznej bazy danych, zakomentuj tę sekcję i ustaw DB_HOST w backendzie
@@ -53,11 +51,14 @@ services:
       CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
       
       # CORS (set your frontend URL)
-      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-*}
+      CORS_ALLOWED_ORIGINS: ${CORS_ALLOWED_ORIGINS:-https://finanse.aihub.ovh,https://www.finanse.aihub.ovh}
       
-      # Optional integrations
+      # Optional integrations - Redis
       REDIS_URL: ${REDIS_URL:-}
-      REDIS_TOKEN: ${REDIS_TOKEN:-}
+      UPSTASH_REDIS_REST_URL: ${UPSTASH_REDIS_REST_URL:-}
+      UPSTASH_REDIS_REST_TOKEN: ${UPSTASH_REDIS_REST_TOKEN:-}
+      
+      # Other optional services
       STRIPE_API_KEY: ${STRIPE_API_KEY:-}
       POSTMARK_API_KEY: ${POSTMARK_API_KEY:-}
     # depends_on:
@@ -80,7 +81,7 @@ services:
       dockerfile: apps/web-app/Dockerfile
       args:
         VITE_CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
-        VITE_API_URL: ${VITE_API_URL:-http://localhost:3015/api}
+        VITE_API_URL: ${VITE_API_URL:-https://finanse.aihub.ovh/api}
         VITE_DEBUG: ${VITE_DEBUG:-false}
     container_name: finanse-frontend
     restart: unless-stopped

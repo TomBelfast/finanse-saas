@@ -10,9 +10,86 @@
 
 ---
 
-## 🔧 Opcja 1: Deployment jako osobne aplikacje (ZALECANE dla Coolify)
+## 🔧 Opcja 1: Deployment jako Docker Compose (ZALECANE ⭐)
 
-Coolify działa najlepiej z osobnymi aplikacjami. Zalecamy deployment backendu i frontendu jako osobnych aplikacji.
+**To jest zalecana opcja** - użyj pliku `docker-compose.yaml`, który definiuje oba serwisy (Frontend i Backend) razem. To jest najprostszy sposób deploymentu w Coolify.
+
+### ⚙️ Konfiguracja Build Pack w Coolify:
+
+**WAŻNE:** Musisz ustawić Build Pack na **Docker Compose**, nie Dockerfile!
+
+#### Jeśli tworzysz nową aplikację:
+1. W Coolify: **Nowa aplikacja** → wybierz **Docker Compose**
+2. **Repository**: Wybierz swoje repozytorium (np. `TomBelfast/finanse-saas`)
+3. **Branch**: `main` lub `master`
+4. **Compose File Path**: `docker-compose.yaml`
+5. **Root Directory**: `.` (katalog główny repozytorium)
+
+#### Jeśli już masz aplikację z Dockerfile i chcesz zmienić na Docker Compose:
+1. Wejdź w ustawienia aplikacji w Coolify
+2. Znajdź sekcję **Build Pack** lub **Build Settings**
+3. Zmień **Build Pack** z `Dockerfile` na **`Docker Compose`**
+4. Ustaw **Compose File Path**: `docker-compose.yaml`
+5. Ustaw **Root Directory**: `.`
+6. Zapisz zmiany i wykonaj **Redeploy**
+
+### Porty (automatycznie skonfigurowane w docker-compose.yaml):
+
+- **Frontend**: Port `3005` (publiczny) → Container port `80`
+- **Backend**: Port `3015` (publiczny) → Container port `3015`
+
+### Konfiguracja domen w Coolify:
+
+- **Domena frontendu** (`finanse.aihub.ovh`) powinna wskazywać na serwis `frontend` (port 3005)
+- **Domena backendu** (opcjonalnie) może wskazywać na serwis `backend` (port 3015), lub użyj proxy przez frontend
+
+### Environment Variables (ustaw w Coolify dla całego stacku):
+
+```env
+# Database - ZEWNĘTRZNA BAZA DANYCH
+USE_MARIADB=true
+DB_HOST=192.168.0.9  # IP/host zewnętrznej bazy danych (ZMIEŃ NA SWÓJ!)
+DB_PORT=3306
+DB_USER=Saas
+DB_PASSWORD=Finanse2025
+DB_NAME=Finanse
+DB_CONNECTION_LIMIT=10
+
+# Server
+PORT=3015
+NODE_ENV=production
+
+# Clerk (WYMAGANE)
+CLERK_SECRET_KEY=sk_test_xxx...
+CLERK_PUBLISHABLE_KEY=pk_test_xxx...
+
+# CORS - domena frontendu
+CORS_ALLOWED_ORIGINS=https://finanse.aihub.ovh,https://www.finanse.aihub.ovh
+
+# Frontend Build Args (dla Vite)
+VITE_API_URL=https://finanse.aihub.ovh/api
+VITE_DEBUG=false
+
+# Optional - Redis Cache
+# Option 1: Standard Redis (from Coolify)
+REDIS_URL=redis://username:password@host:port/db
+
+# Option 2: Upstash Redis REST API
+UPSTASH_REDIS_REST_URL=https://xxx.upstash.io
+UPSTASH_REDIS_REST_TOKEN=xxx...
+
+# Other optional services
+STRIPE_API_KEY=sk_live_xxx...
+POSTMARK_API_KEY=xxx...
+```
+
+**Uwaga:** `VITE_API_URL` musi być ustawione na `https://finanse.aihub.ovh/api` (lub inną domenę backendu, jeśli używasz osobnej domeny).
+
+---
+
+## 🔧 Opcja 2: Deployment jako osobne aplikacje
+
+Jeśli wolisz deployment jako osobne aplikacje (nie zalecane, jeśli masz docker-compose.yaml):
 
 ### 1. Backend API
 
@@ -139,17 +216,7 @@ Użyj `docker-compose.yml` z tego repozytorium (tylko jeśli chcesz lokalną baz
 
 ---
 
-## 🔧 Opcja 2: Deployment jako Docker Compose
-
-Jeśli Coolify obsługuje Docker Compose:
-
-1. W Coolify: **Nowa aplikacja** → **Docker Compose**
-2. **Compose File Path**: `docker-compose.yaml` (lub `docker-compose.yml` - oba formaty działają, ale `.yaml` jest preferowany przez Coolify)
-3. **Root Directory**: `.`
-
-### Environment Variables dla całego stacku:
-
-Ustaw wszystkie zmienne wymienione powyżej w sekcji Environment Variables.
+**Uwaga:** Ta opcja jest bardziej skomplikowana. Zalecamy użycie **Opcji 1: Docker Compose** z plikiem `docker-compose.yaml`.
 
 ---
 
@@ -165,7 +232,33 @@ git commit -m "Add Dockerfiles for Coolify deployment"
 git push
 ```
 
-### 2. Konfiguracja w Coolify - Backend
+### 2. Konfiguracja w Coolify (Docker Compose) ⭐
+
+**Jeśli używasz Opcji 1 (Docker Compose - ZALECANE):**
+
+1. **Repository**: Wybierz swoje repozytorium (np. `TomBelfast/finanse-saas`)
+2. **Branch**: `main` lub `master`
+3. **Build Pack**: **Docker Compose** (nie Dockerfile!)
+4. **Compose File Path**: `docker-compose.yaml`
+5. **Root Directory**: `.`
+6. **Environment Variables**: Ustaw wszystkie wymagane zmienne (patrz sekcja Environment Variables powyżej)
+   - **WAŻNE:** `VITE_API_URL` musi być ustawione na `https://finanse.aihub.ovh/api`
+7. **Domeny**:
+   - Domena `finanse.aihub.ovh` powinna wskazywać na serwis `frontend` (port 3005)
+   - Backend będzie dostępny na porcie 3015 (lub przez proxy przez frontend)
+
+**Po konfiguracji:**
+- Frontend uruchomi się na porcie 3005 (container port 80)
+- Backend uruchomi się na porcie 3015
+- Oba serwisy będą w tej samej sieci Docker i mogą się komunikować
+
+---
+
+### 3. Konfiguracja w Coolify - Osobne aplikacje (Opcja 2)
+
+**Jeśli używasz Opcji 2 (osobne aplikacje):**
+
+#### Backend:
 
 1. **Repository**: Wybierz swoje repozytorium
 2. **Branch**: `main` lub `master`
@@ -173,9 +266,9 @@ git push
 4. **Dockerfile Location**: `apps/functions/Dockerfile`
 5. **Root Directory**: `.`
 6. **Port**: `3015`
-7. **Environment Variables**: Ustaw wszystkie wymagane zmienne (patrz wyżej)
+7. **Environment Variables**: Ustaw wszystkie wymagane zmienne (patrz Opcja 2 powyżej)
 
-### 3. Konfiguracja w Coolify - Frontend
+#### Frontend:
 
 1. **Repository**: Wybierz swoje repozytorium
 2. **Branch**: `main` lub `master`
@@ -184,9 +277,9 @@ git push
 5. **Root Directory**: `.`
 6. **Build Arguments**:
    - `VITE_CLERK_PUBLISHABLE_KEY`: Twój Clerk publishable key
-   - `VITE_API_URL`: URL backendu (np. `https://api.twoja-domena.com/api`)
+   - `VITE_API_URL`: `https://finanse.aihub.ovh/api` (lub URL backendu)
    - `VITE_DEBUG`: `false`
-7. **Port**: `80`
+7. **Port**: `80` (lub `3005` jeśli chcesz)
 
 ### 4. Konfiguracja bazy danych
 
@@ -302,19 +395,38 @@ Sprawdź w konsoli przeglądarki (F12), czy nie ma błędów połączenia z API.
 
 ## 🎯 Quick Start Checklist
 
-- [ ] Repozytorium zawiera Dockerfile dla backendu
-- [ ] Repozytorium zawiera Dockerfile dla frontendu
-- [ ] Utworzono aplikację Backend w Coolify
-- [ ] Utworzono aplikację Frontend w Coolify
-- [ ] Ustawiono wszystkie environment variables
-- [ ] Ustawiono build arguments dla frontendu
+### Docker Compose (ZALECANE ⭐):
+
+- [ ] Repozytorium zawiera plik `docker-compose.yaml`
+- [ ] Utworzono aplikację w Coolify z **Build Pack: Docker Compose**
+- [ ] Ustawiono **Compose File Path**: `docker-compose.yaml`
+- [ ] Ustawiono **Root Directory**: `.`
+- [ ] Ustawiono wszystkie environment variables (w tym `VITE_API_URL=https://finanse.aihub.ovh/api`)
+- [ ] Skonfigurowano domenę `finanse.aihub.ovh` wskazującą na serwis `frontend` (port 3005)
+- [ ] Skonfigurowano bazę danych MariaDB (zewnętrzną lub w Coolify)
+- [ ] Wykonano migrację schematu bazy danych (jeśli potrzebna)
+- [ ] Zweryfikowano działanie `/health` endpoint backendu
+- [ ] Zweryfikowano działanie frontendu na `https://finanse.aihub.ovh`
+- [ ] Skonfigurowano HTTPS (automatycznie przez Coolify)
+- [ ] Skonfigurowano CORS dla produkcji (`CORS_ALLOWED_ORIGINS=https://finanse.aihub.ovh`)
+- [ ] (Opcjonalnie) Skonfigurowano Redis cache (`REDIS_URL` lub `UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN`)
+
+### Osobne aplikacje (Opcja 2):
+
+- [ ] Repozytorium zawiera Dockerfile dla backendu (`apps/functions/Dockerfile`)
+- [ ] Repozytorium zawiera Dockerfile dla frontendu (`apps/web-app/Dockerfile`)
+- [ ] Utworzono aplikację Backend w Coolify z **Build Pack: Dockerfile**
+- [ ] Utworzono aplikację Frontend w Coolify z **Build Pack: Dockerfile**
+- [ ] Ustawiono wszystkie environment variables dla backendu
+- [ ] Ustawiono build arguments dla frontendu (`VITE_API_URL`, `VITE_CLERK_PUBLISHABLE_KEY`)
+- [ ] Skonfigurowano porty: Backend (3015), Frontend (80 lub 3005)
 - [ ] Skonfigurowano bazę danych MariaDB
 - [ ] Wykonano migrację schematu bazy danych
 - [ ] Zweryfikowano działanie `/health` endpoint
 - [ ] Zweryfikowano działanie frontendu
 - [ ] Skonfigurowano HTTPS (automatycznie przez Coolify)
 - [ ] Skonfigurowano CORS dla produkcji
-- [ ] (Opcjonalnie) Skonfigurowano Redis cache (REDIS_URL lub UPSTASH_REDIS_REST_URL/UPSTASH_REDIS_REST_TOKEN)
+- [ ] (Opcjonalnie) Skonfigurowano Redis cache
 
 ---
 
