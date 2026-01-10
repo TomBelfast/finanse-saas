@@ -88,13 +88,8 @@ services:
         # Coolify passes NODE_ENV=production, but we need devDependencies for building
         NODE_ENV: development
         VITE_CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY}
-        # IMPORTANT: Set VITE_API_URL to backend URL
-        # Option 1: HTTP (if no SSL certificate for api.finanse.aihub.ovh)
-        VITE_API_URL: ${VITE_API_URL:-http://api.finanse.aihub.ovh/api}
-        # Option 2: HTTPS (if you have valid SSL certificate)
-        # VITE_API_URL: ${VITE_API_URL:-https://api.finanse.aihub.ovh/api}
-        # Option 3: Direct IP:port (if accessible from browser)
-        # VITE_API_URL: ${VITE_API_URL:-http://192.168.0.25:3015/api}
+        # IMPORTANT: Set VITE_API_URL to backend URL (HTTPS - SSL certificate configured)
+        VITE_API_URL: ${VITE_API_URL:-https://api.finanse.aihub.ovh/api}
         VITE_DEBUG: ${VITE_DEBUG:-false}
     container_name: finanse-frontend
     restart: unless-stopped

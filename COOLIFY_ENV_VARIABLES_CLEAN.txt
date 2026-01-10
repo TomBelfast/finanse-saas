@@ -9,13 +9,10 @@ DB_NAME=Finanse
 DB_CONNECTION_LIMIT=10
 CLERK_SECRET_KEY=sk_test_A77EF0SJMS7xu43mftAbhOZLs3TJNcqOXQYdcUIQsY
 CLERK_PUBLISHABLE_KEY=pk_test_bWlnaHR5LWRvYmVybWFuLTUzLmNsZXJrLmFjY291bnRzLmRldiQ
-# CORS - dodaj zarówno HTTPS jak i HTTP origins (jeśli używasz HTTP)
-CORS_ALLOWED_ORIGINS=https://finanse.aihub.ovh,https://www.finanse.aihub.ovh,http://192.168.0.25:3005,http://finanse.aihub.ovh
-# WAŻNE: Użyj HTTP jeśli nie masz certyfikatu SSL dla api.finanse.aihub.ovh
-# Opcja 1: HTTP (jeśli nie ma SSL) - ZALECANE jeśli brak certyfikatu
-VITE_API_URL=http://api.finanse.aihub.ovh/api
-# Opcja 2: HTTPS (jeśli masz poprawny certyfikat SSL)
-# VITE_API_URL=https://api.finanse.aihub.ovh/api
+# CORS - domeny frontendu (HTTPS)
+CORS_ALLOWED_ORIGINS=https://finanse.aihub.ovh,https://www.finanse.aihub.ovh
+# HTTPS - certyfikat SSL dla api.finanse.aihub.ovh jest skonfigurowany
+VITE_API_URL=https://api.finanse.aihub.ovh/api
 VITE_DEBUG=false
 REDIS_URL=redis://default:gyMUiuSqz4CeHKDzQuK8H5Y1V6qO9VzROCAdOLadSk5UXjomtW5SrcYtpkn4TLSs@a448k4gosogsosk4ck0ko4g0:6379/0
 POSTMARK_API_KEY=
