@@ -18,8 +18,8 @@ const signInAppearance = {
   },
   elements: {
     rootBox: 'w-full',
-    cardBox: 'w-full',
-    card: '!w-full !rounded-[28px] !border !border-slate-200/80 !bg-white !p-7 sm:!p-8 !shadow-[0_35px_80px_-45px_rgba(15,23,42,0.82)]',
+    cardBox: 'w-full !overflow-hidden !rounded-[28px] !border !border-slate-200/80 !bg-white !shadow-[0_35px_80px_-45px_rgba(15,23,42,0.82)]',
+    card: '!m-0 !w-full !rounded-none !border-0 !bg-transparent !p-7 sm:!p-8 !shadow-none',
     main: 'space-y-5',
     headerTitle: '!text-4xl !font-semibold !tracking-tight !text-slate-900',
     headerSubtitle: '!mt-2 !text-base !text-slate-500',
@@ -36,7 +36,7 @@ const signInAppearance = {
     formButtonPrimary:
       '!h-12 !rounded-xl !bg-lime-500 !text-sm !font-semibold !text-slate-900 !shadow-lg !shadow-lime-500/30 hover:!bg-lime-400',
     footer:
-      '!mt-[-10px] !rounded-t-none !rounded-b-[28px] !border !border-slate-200/80 !border-t-0 !bg-white !px-6 !pb-5 !pt-3 [&>div:last-child]:hidden',
+      '!m-0 !rounded-none !border-0 !border-t !border-slate-200/80 !bg-transparent !px-6 !pb-5 !pt-4 [&>div:last-child]:hidden',
     footerAction: '!m-0 !p-0 !bg-transparent',
     footerActionText: '!text-sm !text-slate-500',
     footerActionLink: '!text-sm !font-semibold !text-slate-900 hover:!text-slate-700',
