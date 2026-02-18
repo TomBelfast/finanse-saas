@@ -55,7 +55,7 @@ export const Register: FunctionComponent<Props> = () => {
       const { error } = await supabase.auth.signInWithOAuth({
         provider: 'google',
         options: {
-          redirectTo: import.meta.env.VITE_AUTH_REDIRECT_URL || 'https://finanse.aihub.ovh',
+          redirectTo: import.meta.env.VITE_AUTH_REDIRECT_URL || `${window.location.origin}/auth/callback`,
         },
       });
       if (error) throw error;
