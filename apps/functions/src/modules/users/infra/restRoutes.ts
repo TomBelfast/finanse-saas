@@ -24,25 +24,46 @@ router.get('/me', verifySupabaseToken, async (req, res) => {
     logger.info('GET /api/users/me - Starting', { userId });
     let userData = await usersRepository.findUserById(userId);
 
-    // Auto-create user if not found in database
+    // Auto-create or Re-link user if not found in database by UID
     if (!userData) {
-      logger.info('User not found in DB, creating new user from Supabase data', { userId });
+      const email = authReq.auth?.email;
+      logger.info('User not found by UID, checking by email for re-linking', { userId, email });
 
-      const newUser: Partial<UserDocument> = {
-        uid: userId,
-        email: authReq.auth?.email || '',
-        firstName: authReq.auth?.user_metadata?.first_name || '',
-        lastName: authReq.auth?.user_metadata?.last_name || null,
-        avatarUrl: null,
-        termsAndPrivacyPolicy: true,
-        lang: 'pl',
-        timezone: 'Europe/Warsaw',
-        defaultCurrency: 'pln',
-      };
+      if (email) {
+        const existingUserByEmail = await usersRepository.findUserByEmail(email);
+        if (existingUserByEmail) {
+          logger.info('Found existing user by email, re-linking UID from Clerk to Supabase', {
+            oldUid: existingUserByEmail.uid,
+            newUid: userId
+          });
+          await usersRepository.updateUserId(existingUserByEmail.uid, userId);
+          userData = await usersRepository.findUserById(userId);
+        }
+      }
 
-      await usersRepository.createUser(newUser as UserDocument);
-      userData = await usersRepository.findUserById(userId);
-      logger.info('User created successfully from Supabase metadata', { userId });
+      // If still no userData, create a new one
+      if (!userData) {
+        logger.info('Creating new user from Supabase data', { userId });
+        const newUser: Partial<UserDocument> = {
+          uid: userId,
+          email: authReq.auth?.email || '',
+          firstName: authReq.auth?.user_metadata?.first_name || '',
+          lastName: authReq.auth?.user_metadata?.last_name || '',
+          avatarUrl: null,
+          termsAndPrivacyPolicy: true,
+          lang: 'pl',
+          timezone: 'Europe/Warsaw',
+          defaultCurrency: 'pln',
+          createdAt: new Date(),
+          updatedAt: new Date(),
+          contactEmail: authReq.auth?.email || '',
+          termsAndPolicyAcceptDate: new Date(),
+        };
+
+        await usersRepository.createUser(newUser as UserDocument);
+        userData = await usersRepository.findUserById(userId);
+        logger.info('User created successfully from Supabase metadata', { userId });
+      }
     }
 
     // Normalize defaultCurrency to lowercase if present

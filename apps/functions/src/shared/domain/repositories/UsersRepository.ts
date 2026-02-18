@@ -11,6 +11,7 @@ export interface UsersRepository {
   createUser: (userData: UserDocument) => Promise<void>;
   updateUser: (userId: string, user: Partial<UserDocument>) => Promise<void>;
   updateUserField: (userId: string, key: string[], value: unknown) => Promise<void>;
+  updateUserId: (oldUserId: string, newUserId: string) => Promise<void>;
   getAllUserIds: () => Promise<string[]>;
   getAllUsers: () => Promise<UserDocument[]>;
   getAllCreators: () => Promise<UserDocument[]>;

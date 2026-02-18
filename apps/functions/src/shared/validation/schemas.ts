@@ -6,14 +6,14 @@ import { z } from 'zod'
 
 // User update schema
 export const updateUserSchema = z.object({
-    firstName: z.string().min(1).max(100).optional(),
-    lastName: z.string().min(1).max(100).optional(),
+    firstName: z.string().max(100).optional(),
+    lastName: z.string().max(100).optional(),
     email: z.string().email().optional(),
     contactEmail: z.string().email().nullable().optional(),
     phoneNumber: z.string().max(20).optional(),
     lang: z.enum(['pl', 'en']).optional(),
     timezone: z.string().max(50).optional(),
-    defaultCurrency: z.enum(['PLN', 'EUR', 'USD', 'GBP']).optional(),
+    defaultCurrency: z.enum(['PLN', 'EUR', 'USD', 'GBP', 'pln', 'eur', 'usd', 'gbp']).optional(),
 })
 
 export type UpdateUserInput = z.infer<typeof updateUserSchema>

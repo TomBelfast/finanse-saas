@@ -358,5 +358,41 @@ export class MariaDBUsersRepository implements UsersRepository {
     );
     return rows.map((row) => this.mapRowToUserDocument(row));
   }
+
+  public async updateUserId(oldUserId: string, newUserId: string): Promise<void> {
+    const connection = await this.dependencies.pool.getConnection();
+    try {
+      await connection.beginTransaction();
+
+      // Lista tabel i kolumn do aktualizacji
+      const tablesToUpdate = [
+        { table: 'user_subscriptions', column: 'user_id' },
+        { table: 'user_insurances', column: 'user_id' },
+        { table: 'user_loans', column: 'user_id' },
+        { table: 'user_reminders', column: 'user_id' },
+        { table: 'user_permissions', column: 'user_id' },
+      ];
+
+      // Najpierw aktualizujemy tabele zależne (o ile istnieją)
+      for (const { table, column } of tablesToUpdate) {
+        try {
+          await connection.execute(`UPDATE ${table} SET ${column} = ? WHERE ${column} = ?`, [newUserId, oldUserId]);
+        } catch (tableError) {
+          // Ignorujemy błędy jeśli tabela nie istnieje
+          console.warn(`Could not update table ${table}:`, (tableError as Error).message);
+        }
+      }
+
+      // Na końcu aktualizujemy główną tabelę użytkowników
+      await connection.execute('UPDATE users SET uid = ?, updated_at = NOW() WHERE uid = ?', [newUserId, oldUserId]);
+
+      await connection.commit();
+    } catch (error) {
+      await connection.rollback();
+      throw error;
+    } finally {
+      connection.release();
+    }
+  }
 }
 
