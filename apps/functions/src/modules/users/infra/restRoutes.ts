@@ -21,9 +21,9 @@ router.get('/me', verifySupabaseToken, async (req, res) => {
       return;
     }
 
-    logger.info('GET /api/users/me - Starting', { userId });
-    let userData = await usersRepository.findUserById(userId);
     const email = authReq.auth?.email;
+    logger.info('GET /api/users/me - Starting', { userId, email });
+    let userData = await usersRepository.findUserById(userId);
 
     // Agresywne łączenie: Jeśli mamy email, sprawdźmy czy nie ma innego konta (starego) z tym mailem
     if (email) {

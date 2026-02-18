@@ -121,8 +121,8 @@ export class MariaDBUsersRepository implements UsersRepository {
 
   public async findUserByEmail(email: string): Promise<UserDocument | null> {
     const [rows] = await this.dependencies.pool.execute<UserRow[]>(
-      'SELECT * FROM users WHERE email = ?',
-      [email]
+      'SELECT * FROM users WHERE LOWER(email) = LOWER(?) OR LOWER(contact_email) = LOWER(?) LIMIT 1',
+      [email, email]
     );
     if (rows.length === 0) return null;
     return this.mapRowToUserDocument(rows[0]);
@@ -389,10 +389,14 @@ export class MariaDBUsersRepository implements UsersRepository {
 
       // Na końcu aktualizujemy główną tabelę użytkowników
       // Jeśli nowy UID już istnieje (puste konto), usuwamy go, aby móc przenieść stary rekord na to ID
+      console.log(`[Relink] Deleting new empty user record ${newUserId} if exists`);
       await connection.execute('DELETE FROM users WHERE uid = ? AND uid != ?', [newUserId, oldUserId]);
+
+      console.log(`[Relink] Updating old user ${oldUserId} to new UID ${newUserId}`);
       await connection.execute('UPDATE users SET uid = ?, updated_at = NOW() WHERE uid = ?', [newUserId, oldUserId]);
 
       await connection.commit();
+      console.log(`[Relink] Success for ${newUserId}`);
     } catch (error) {
       await connection.rollback();
       throw error;
