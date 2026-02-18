@@ -143,7 +143,7 @@ const Loans = () => {
         let attachments = [];
         try {
           attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents ? (Array.isArray(row.documents) ? row.documents : []) : []);
-        } catch (e) { 
+        } catch (e) {
           logger.error('Error parsing attachments', e instanceof Error ? e : new Error(String(e)));
         }
 
@@ -224,7 +224,7 @@ const Loans = () => {
   const summary = useMemo(() => {
     // Używamy wszystkich danych (data) dla summary, aby pokazywać całkowite wartości
     const allLoans = data || [];
-    
+
     const activeLoans = allLoans.filter(loan => loan.status === 'aktywna');
     const completedLoans = allLoans.filter(loan => loan.status === 'spłacona');
 
@@ -282,8 +282,8 @@ const Loans = () => {
     });
 
     // Obliczamy postęp: ile zapłacono / (zapłacono + pozostało) * 100
-    const totalProgress = (totalPaidAmount + totalRemainingAmount) > 0 
-      ? (totalPaidAmount / (totalPaidAmount + totalRemainingAmount)) * 100 
+    const totalProgress = (totalPaidAmount + totalRemainingAmount) > 0
+      ? (totalPaidAmount / (totalPaidAmount + totalRemainingAmount)) * 100
       : 0;
 
     return {
@@ -393,7 +393,7 @@ const Loans = () => {
         // Jeśli brak daty, używamy nazwy kredytu jako klucza
         monthKey = loan.name || 'Inne';
       }
-      
+
       if (!acc[monthKey]) {
         acc[monthKey] = { month: monthKey, totalAmount: 0, count: 0, paidAmount: 0 };
       }
@@ -416,7 +416,7 @@ const Loans = () => {
       })
       .map(item => {
         // Jeśli to data, formatuj jako datę, w przeciwnym razie użyj nazwy
-        const monthLabel = item.month.match(/^\d{4}-\d{2}$/) 
+        const monthLabel = item.month.match(/^\d{4}-\d{2}$/)
           ? new Date(item.month + '-01').toLocaleDateString('pl-PL', { month: 'short', year: 'numeric' })
           : item.month;
         return {
@@ -444,8 +444,8 @@ const Loans = () => {
       acc[loan.status] = (acc[loan.status] || 0) + 1;
       return acc;
     }, {} as Record<string, number>);
-    return Object.entries(statuses).map(([status, count], index) => ({ 
-      status, 
+    return Object.entries(statuses).map(([status, count], index) => ({
+      status,
       count,
       fill: COLORS[index % COLORS.length],
     }));
@@ -473,64 +473,72 @@ const Loans = () => {
   } satisfies ChartConfig;
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Kredyty i Pożyczki</h1>
-        <Button onClick={handleOpenAddModal} className="gap-2">
+        <Button onClick={handleOpenAddModal} className="gap-2 shadow-sm hover:shadow-md transition-shadow">
           <Plus className="h-4 w-4" /> Dodaj kredyt
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 stagger-children">
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aktywne pożyczki</CardTitle>
-            <Banknote className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Aktywne pożyczki</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Banknote className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.activeCount}</div>
-            <p className="text-xs text-gray-500">Aktualne zobowiązania</p>
+            <div className="text-2xl font-bold tracking-tight animate-fade-in-up">{summary.activeCount}</div>
+            <p className="text-xs text-muted-foreground mt-1">Aktualne zobowiązania</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Spłacone</CardTitle>
-            <Trophy className="h-4 w-4 text-green-500" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Spłacone</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10">
+              <Trophy className="h-4 w-4 text-emerald-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-500">{summary.completedCount}</div>
-            <p className="text-xs text-gray-500">Zakończone sukcesem</p>
+            <div className="text-2xl font-bold tracking-tight text-emerald-500 animate-fade-in-up">{summary.completedCount}</div>
+            <p className="text-xs text-muted-foreground mt-1">Zakończone sukcesem</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Postęp spłat</CardTitle>
-            <Percent className="h-4 w-4 text-blue-500" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Postęp spłat</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10">
+              <Percent className="h-4 w-4 text-blue-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-500">{summary.totalProgress}%</div>
-            <p className="text-xs text-gray-500">Całkowitego zadłużenia</p>
+            <div className="text-2xl font-bold tracking-tight text-blue-500 animate-fade-in-up">{summary.totalProgress}%</div>
+            <p className="text-xs text-muted-foreground mt-1">Całkowitego zadłużenia</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Miesięczne raty</CardTitle>
-            <Calendar className="h-4 w-4 text-destructive" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Miesięczne raty</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10">
+              <Calendar className="h-4 w-4 text-destructive" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{formatCurrency(summary.totalMonthlyPayment, userCurrency)}</div>
-            <p className="text-xs text-gray-500">Obciążenie budżetu</p>
+            <div className="text-2xl font-bold tracking-tight text-destructive animate-fade-in-up">{formatCurrency(summary.totalMonthlyPayment, userCurrency)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Obciążenie budżetu</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 items-end bg-card p-4 rounded-lg border shadow-sm">
+      <div className="filter-bar flex flex-col sm:flex-row gap-4 items-end">
         <div className="grid gap-2 w-full sm:w-auto">
-          <Label>Szukaj nazwy</Label>
+          <Label className="text-xs font-medium text-muted-foreground">Szukaj nazwy</Label>
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="np. Kredyt Hipoteczny"
               className="pl-9 w-full sm:w-[300px]"
@@ -540,7 +548,7 @@ const Loans = () => {
           </div>
         </div>
         <div className="grid gap-2 w-full sm:w-auto">
-          <Label>Status</Label>
+          <Label className="text-xs font-medium text-muted-foreground">Status</Label>
           <Select
             value={filterStatus}
             onValueChange={setFilterStatus}
@@ -564,10 +572,10 @@ const Loans = () => {
           <TabsTrigger value="left">Pozostało do zapłaty rat</TabsTrigger>
           <TabsTrigger value="summary">Podsumowanie spłat</TabsTrigger>
         </TabsList>
-        <TabsContent value="left" className="mt-4 border rounded-md bg-card">
-          <Table>
+        <TabsContent value="left" className="mt-4 rounded-xl border bg-card shadow-sm overflow-hidden">
+          <Table className="premium-table">
             <TableHeader>
-              <TableRow>
+              <TableRow className="bg-muted/30 hover:bg-muted/30">
                 <TableHead>Nazwa</TableHead>
                 <TableHead>Kwota</TableHead>
                 <TableHead>Ilość rat</TableHead>
@@ -655,15 +663,18 @@ const Loans = () => {
       </Tabs>
 
       {/* Charts Section */}
+      {/* Charts */}
       {filteredData.length > 0 && (
-        <Card className="col-span-4">
-          <CardHeader>
+        <Card className="col-span-4 shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Analiza kredytów i pożyczek
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <BarChart3 className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-lg">Analiza kredytów i pożyczek</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8 pt-6">
             <div className="grid gap-6 md:grid-cols-2">
               {/* Loans over time */}
               <div className="space-y-2">
@@ -681,9 +692,9 @@ const Loans = () => {
                         tickFormatter={(value) => value.slice(0, 3)}
                       />
                       <YAxis tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                      <ChartTooltip 
-                        cursor={false} 
-                        content={<ChartTooltipContent 
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent
                           hideLabel
                           formatter={(value: number, name: string) => {
                             if (name === 'paidAmount' || name === 'remainingAmount') {
@@ -691,7 +702,7 @@ const Loans = () => {
                             }
                             return [formatCurrency(value, userCurrency), name];
                           }}
-                        />} 
+                        />}
                       />
                       <ChartLegend content={<ChartLegendContent />} />
                       <Bar
@@ -719,22 +730,22 @@ const Loans = () => {
                 {(() => {
                   // Grupujemy kredyty według DOKŁADNEJ wysokości raty (nie zakresów!)
                   const allLoans = data || [];
-                  
+
                   // Grupujemy według dokładnej kwoty raty
                   const loansByAmount = allLoans.reduce((acc, loan) => {
                     const installmentAmount = parseAmount(loan.installmentAmount);
                     const amountKey = installmentAmount.toFixed(2); // Używamy dokładnej kwoty jako klucza
-                    
+
                     if (!acc[amountKey]) {
-                      acc[amountKey] = { 
+                      acc[amountKey] = {
                         amount: installmentAmount,
                         amountLabel: formatCurrency(installmentAmount, userCurrency),
-                        total: 0, 
+                        total: 0,
                         count: 0,
                         loanNames: [] // Zbieramy nazwy kredytów
                       };
                     }
-                    
+
                     // Sumujemy kwoty rat (każda rata dodaje swoją kwotę)
                     acc[amountKey].total += installmentAmount;
                     acc[amountKey].count += 1;
@@ -742,7 +753,7 @@ const Loans = () => {
                     if (loan.name) {
                       acc[amountKey].loanNames.push(loan.name);
                     }
-                    
+
                     return acc;
                   }, {} as Record<string, { amount: number; amountLabel: string; total: number; count: number; loanNames: string[] }>);
 
@@ -750,11 +761,11 @@ const Loans = () => {
                   const totalInstallmentAmount = allLoans.reduce((sum, loan) => {
                     return sum + parseAmount(loan.installmentAmount);
                   }, 0);
-                  
+
                   const chartData = Object.values(loansByAmount)
                     .map((item, index) => {
                       // Obliczamy procent: (suma kwot rat dla tej wysokości / całkowita suma) * 100
-                      const percentage = totalInstallmentAmount > 0 
+                      const percentage = totalInstallmentAmount > 0
                         ? Math.round((item.total / totalInstallmentAmount) * 100 * 100) / 100 // Zaokrąglamy do 2 miejsc po przecinku
                         : 0;
                       return {
@@ -785,8 +796,8 @@ const Loans = () => {
                   return chartData.length > 0 ? (
                     <ChartContainer config={amountChartConfig} className="mx-auto aspect-square max-h-[300px]">
                       <PieChart>
-                        <ChartTooltip 
-                          content={<ChartTooltipContent 
+                        <ChartTooltip
+                          content={<ChartTooltipContent
                             hideLabel={false}
                             formatter={(value: unknown) => {
                               const numValue = typeof value === 'number' ? value : Number(value) || 0;
@@ -805,7 +816,7 @@ const Loans = () => {
                               const loanNames = payload?.[0]?.payload?.loanNames || [];
                               return loanNames.length > 0 ? loanNames.join(', ') : '';
                             }}
-                          />} 
+                          />}
                         />
                         <Pie
                           data={chartData}
@@ -849,9 +860,9 @@ const Loans = () => {
                       tickFormatter={(value) => value.slice(0, 3)}
                     />
                     <YAxis tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                    <ChartTooltip 
-                      cursor={false} 
-                      content={<ChartTooltipContent 
+                    <ChartTooltip
+                      cursor={false}
+                      content={<ChartTooltipContent
                         hideLabel
                         formatter={(value: number, name: string) => {
                           if (name === 'paidAmount' || name === 'remainingAmount') {
@@ -859,7 +870,7 @@ const Loans = () => {
                           }
                           return [formatCurrency(value, userCurrency), name];
                         }}
-                      />} 
+                      />}
                     />
                     <ChartLegend content={<ChartLegendContent />} />
                     <Bar

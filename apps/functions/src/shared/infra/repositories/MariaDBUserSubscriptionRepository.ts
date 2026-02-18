@@ -92,8 +92,8 @@ export class MariaDBUserSubscriptionRepository {
       dto.isAutomaticRenewal,
       dto.category || null,
       dto.documents ? JSON.stringify(dto.documents) : null,
-      now,
-      now,
+      toDate(now),
+      toDate(now),
     ];
 
     logger.sql(query, params);

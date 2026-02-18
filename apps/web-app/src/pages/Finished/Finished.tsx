@@ -98,19 +98,19 @@ const Finished = () => {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold tracking-tight">Zakończone</h1>
-        <Button disabled className="gap-2">
+        <Button disabled className="gap-2 shadow-sm">
           <Plus className="h-4 w-4" />
           Dodaj zakończone
         </Button>
       </div>
 
-      <div className="rounded-md border bg-card">
-        <Table>
+      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+        <Table className="premium-table">
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-muted/30 hover:bg-muted/30">
               <TableHead>Typ</TableHead>
               <TableHead>Nazwa</TableHead>
               <TableHead>Kwota</TableHead>
@@ -171,16 +171,18 @@ const Finished = () => {
         </Table>
       </div>
 
-      {/* Charts Section */}
+      {/* Charts */}
       {data.length > 0 && (
-        <Card className="col-span-4">
-          <CardHeader>
+        <Card className="col-span-4 shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Analiza zakończonych zobowiązań
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <BarChart3 className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-lg">Analiza zakończonych zobowiązań</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8 pt-6">
             <div className="grid gap-6 md:grid-cols-2">
               {/* Type distribution */}
               <div className="space-y-2">
@@ -279,19 +281,19 @@ const Finished = () => {
                           tickFormatter={(value) => chartData.find(d => d.type === value)?.typeLabel || value}
                         />
                         <YAxis tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                        <ChartTooltip 
-                          cursor={false} 
-                          content={<ChartTooltipContent 
+                        <ChartTooltip
+                          cursor={false}
+                          content={<ChartTooltipContent
                             indicator="dot"
                             formatter={(value: number) => formatCurrency(value, userCurrency)}
-                          />} 
+                          />}
                         />
                         <Bar dataKey="total" radius={[4, 4, 0, 0]}>
-                          <LabelList 
-                            dataKey="total" 
-                            position="top" 
-                            className="fill-foreground font-bold" 
-                            fontSize={12} 
+                          <LabelList
+                            dataKey="total"
+                            position="top"
+                            className="fill-foreground font-bold"
+                            fontSize={12}
                             formatter={(v: number) => formatCurrency(v, userCurrency)}
                           />
                         </Bar>
@@ -348,9 +350,9 @@ const Finished = () => {
                         tickFormatter={(value) => value.slice(0, 3)}
                       />
                       <YAxis tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                      <ChartTooltip 
-                        cursor={false} 
-                        content={<ChartTooltipContent 
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent
                           hideLabel
                           formatter={(value: number, name: string) => {
                             if (name === 'total') {
@@ -358,7 +360,7 @@ const Finished = () => {
                             }
                             return [value, 'Ilość'];
                           }}
-                        />} 
+                        />}
                       />
                       <ChartLegend content={<ChartLegendContent />} />
                       <Bar

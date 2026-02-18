@@ -4,6 +4,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ===================================
+   PREMIUM FINANSE SAAS DESIGN SYSTEM
+   =================================== */
+
+/* ----- Legacy Ant Design Compat ----- */
 .centered.ant-collapse>.ant-collapse-item>.ant-collapse-header {
   align-items: center;
 }
@@ -12,6 +17,7 @@
   display: flex;
 }
 
+/* ----- Markdown Styles ----- */
 .markdown {
   font-size: 0.875rem;
 }
@@ -74,6 +80,10 @@
   display: none;
 }
 
+/* ===================================
+   PREMIUM TYPOGRAPHY
+   =================================== */
+
 h1,
 h2,
 h3,
@@ -83,28 +93,28 @@ h6 {
   font-weight: 600;
   margin-bottom: .5em;
   margin-top: 0;
-  letter-spacing: -0.02em;
+  letter-spacing: -0.025em;
 }
 
 h1 {
-  font-weight: 700;
-  font-size: 2.5rem;
+  font-weight: 800;
+  font-size: 2.25rem;
   line-height: 1.2;
-  background: linear-gradient(135deg, #10a37f 0%, #059669 100%);
+  background: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(160 70% 50%) 50%, hsl(170 90% 35%) 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
 h2 {
-  font-weight: 600;
-  font-size: 2rem;
+  font-weight: 700;
+  font-size: 1.75rem;
   line-height: 1.3;
 }
 
 h3 {
   font-weight: 600;
-  font-size: 1.5rem;
+  font-size: 1.25rem;
   line-height: 1.4;
 }
 
@@ -114,113 +124,126 @@ h6 {
   font-weight: 500;
 }
 
+/* ===================================
+   DESIGN TOKENS / CSS VARIABLES
+   =================================== */
+
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 0 0% 3.9%;
+    --foreground: 220 15% 10%;
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 3.9%;
+    --card-foreground: 220 15% 10%;
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 3.9%;
-    --primary: 82.7 78% 55.5%;
+    --popover-foreground: 220 15% 10%;
+    --primary: 160 84% 39%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 96.1%;
-    --secondary-foreground: 0 0% 9%;
-    --muted: 0 0% 96.1%;
-    --muted-foreground: 0 0% 45.1%;
-    --accent: 82.7 78% 55.5%;
+    --secondary: 220 14% 96%;
+    --secondary-foreground: 220 15% 15%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
+    --accent: 160 84% 39%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 89.8%;
-    --input: 0 0% 89.8%;
-    --ring: 82.7 78% 55.5%;
-    --chart-1: 82.7 78% 55.5%;
-    --chart-2: 160 60% 45%;
-    --chart-3: 30 80% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --radius: 0.5rem;
-    --success: 142 76% 36%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 160 84% 39%;
+
+    /* Premium chart palette - vibrant & harmonious */
+    --chart-1: 160 84% 39%;
+    /* Emerald */
+    --chart-2: 217 91% 60%;
+    /* Bright Blue */
+    --chart-3: 43 96% 56%;
+    /* Amber Gold */
+    --chart-4: 270 76% 62%;
+    /* Violet */
+    --chart-5: 340 82% 52%;
+    /* Rose */
+    --chart-6: 190 95% 39%;
+    /* Cyan */
+    --chart-7: 25 95% 53%;
+    /* Orange */
+
+    --radius: 0.75rem;
+
+    --success: 152 69% 41%;
     --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
     --warning-foreground: 0 0% 0%;
-    --info: 199 89% 48%;
+    --info: 217 91% 60%;
     --info-foreground: 0 0% 100%;
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 0 0% 9%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 0 0% 9%;
+
+    --sidebar-background: 220 14% 97%;
+    --sidebar-foreground: 220 15% 15%;
+    --sidebar-primary: 160 84% 39%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 95%;
+    --sidebar-accent-foreground: 220 15% 15%;
     --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-ring: 160 84% 39%;
   }
 
   .dark,
   html.dark {
-    --sidebar-background: 0 0% 20%;
-    /* Jaśniejsze menu (#333333) */
-    --sidebar-foreground: 0 0% 98%;
-    --sidebar-primary: 160 84% 39%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 0 0% 25%;
-    /* Akcent w menu */
-    --sidebar-accent-foreground: 0 0% 98%;
-    --sidebar-border: 0 0% 25%;
-    --sidebar-ring: 160 84% 39%;
-    --background: 0 0% 9%;
-    /* Ciemniejsza prawa strona (#171717) */
-    --foreground: 0 0% 98%;
-    --card: 0 0% 13%;
-    /* Karty tylko lekko jaśniejsze od tła (#212121) */
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 13%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 160 84% 39%;
+    --background: 224 20% 7%;
+    --foreground: 210 20% 95%;
+    --card: 224 18% 10%;
+    --card-foreground: 210 20% 95%;
+    --popover: 224 18% 10%;
+    --popover-foreground: 210 20% 95%;
+    --primary: 160 84% 42%;
     --primary-foreground: 0 0% 100%;
-    --secondary: 0 0% 18%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 18%;
-    --muted-foreground: 0 0% 60%;
-    --accent: 160 84% 39%;
+    --secondary: 224 14% 14%;
+    --secondary-foreground: 210 20% 95%;
+    --muted: 224 14% 14%;
+    --muted-foreground: 215 14% 55%;
+    --accent: 160 84% 42%;
     --accent-foreground: 0 0% 100%;
-    --destructive: 0 84.2% 60.2%;
+    --destructive: 0 72% 51%;
     --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 18%;
-    --input: 0 0% 18%;
-    --ring: 160 84% 39%;
-    --chart-1: 160 84% 39%;
-    --chart-2: 210 80% 55%;
-    --chart-3: 35 90% 55%;
-    --chart-4: 280 65% 60%;
-    --chart-5: 340 75% 55%;
-    --success: 142 76% 45%;
+    --border: 224 14% 16%;
+    --input: 224 14% 16%;
+    --ring: 160 84% 42%;
+
+    /* Dark mode chart palette - luminous & high-contrast */
+    --chart-1: 160 84% 48%;
+    /* Emerald Glow */
+    --chart-2: 217 91% 66%;
+    /* Bright Blue */
+    --chart-3: 43 96% 60%;
+    /* Golden Amber */
+    --chart-4: 270 76% 68%;
+    /* Neon Violet */
+    --chart-5: 340 82% 60%;
+    /* Hot Rose */
+    --chart-6: 190 95% 48%;
+    /* Cyan */
+    --chart-7: 25 95% 60%;
+    /* Orange */
+
+    --success: 152 69% 48%;
     --success-foreground: 0 0% 100%;
-    --warning: 38 92% 50%;
+    --warning: 38 92% 55%;
     --warning-foreground: 0 0% 0%;
-    --info: 199 89% 55%;
+    --info: 217 91% 66%;
     --info-foreground: 0 0% 100%;
-  }
 
-  /* --- PREMUM THEMES --- */
-
-  /* 2. Neutrals with Warmth - Pantone Cloud Dancer */
-  .warmth {
-    --background: 43 23% 93%;
-    /* #F0EEE9 */
-    --foreground: 20 10% 10%;
-    --card: 0 0% 100%;
-    --card-foreground: 20 10% 10%;
-    --primary: 210 20% 40%;
-    --accent: 30 15% 50%;
-    --border: 43 10% 80%;
-    --sidebar-background: 43 15% 88%;
-    --sidebar-foreground: 20 10% 20%;
+    --sidebar-background: 224 18% 9%;
+    --sidebar-foreground: 210 20% 95%;
+    --sidebar-primary: 160 84% 42%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 224 14% 14%;
+    --sidebar-accent-foreground: 210 20% 95%;
+    --sidebar-border: 224 14% 14%;
+    --sidebar-ring: 160 84% 42%;
   }
 }
 
-/* End of Base Layer Themes */
+/* ===================================
+   BASE STYLES
+   =================================== */
 
 @layer base {
   * {
@@ -230,5 +253,336 @@ h6 {
   body {
     @apply bg-background text-foreground;
     font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
+}
+
+/* ===================================
+   PREMIUM COMPONENT ENHANCEMENTS
+   =================================== */
+
+@layer components {
+
+  /* ----- STAT CARDS - Glass morphism with gradient icons ----- */
+  .stat-card {
+    @apply relative overflow-hidden transition-all duration-300 ease-out;
+    border: 1px solid hsl(var(--border) / 0.5);
+  }
+
+  .stat-card:hover {
+    transform: translateY(-2px);
+    box-shadow:
+      0 4px 6px -1px hsl(var(--primary) / 0.06),
+      0 10px 15px -3px hsl(var(--primary) / 0.08),
+      0 20px 25px -5px hsl(var(--primary) / 0.04);
+    border-color: hsl(var(--primary) / 0.15);
+  }
+
+  .stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 120px;
+    height: 120px;
+    background: radial-gradient(circle, hsl(var(--primary) / 0.06) 0%, transparent 70%);
+    border-radius: 50%;
+    transform: translate(30%, -30%);
+    pointer-events: none;
+  }
+
+  /* ----- PREMIUM TABLE STYLES ----- */
+  .premium-table tr {
+    @apply transition-colors duration-200;
+  }
+
+  .premium-table tbody tr:hover {
+    background: hsl(var(--primary) / 0.03) !important;
+  }
+
+  .premium-table th {
+    @apply font-semibold text-xs uppercase tracking-wider;
+    color: hsl(var(--muted-foreground));
+  }
+
+  /* ----- CHART CONTAINER PREMIUM STYLE ----- */
+  .chart-premium {
+    @apply rounded-xl p-4;
+    background: linear-gradient(135deg,
+        hsl(var(--card)) 0%,
+        hsl(var(--card) / 0.95) 100%);
+  }
+
+  .dark .chart-premium {
+    background: linear-gradient(135deg,
+        hsl(var(--card)) 0%,
+        hsl(224 18% 12%) 100%);
+  }
+
+  /* ----- FILTER BAR PREMIUM ----- */
+  .filter-bar {
+    @apply rounded-xl border p-4 transition-all duration-200;
+    background: hsl(var(--card) / 0.8);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+  }
+
+  /* ----- BADGE ENHANCEMENTS ----- */
+  .badge-glow {
+    box-shadow: 0 0 8px hsl(var(--primary) / 0.25);
+  }
+
+  /* ----- DIALOG / MODAL PREMIUM ----- */
+  .dialog-premium {
+    border: 1px solid hsl(var(--border) / 0.5);
+    box-shadow:
+      0 25px 50px -12px rgba(0, 0, 0, 0.25),
+      0 0 0 1px hsl(var(--border) / 0.1);
+  }
+
+  .dark .dialog-premium {
+    box-shadow:
+      0 25px 50px -12px rgba(0, 0, 0, 0.5),
+      0 0 1px 0 hsl(var(--primary) / 0.15);
+  }
+}
+
+/* ===================================
+   MICRO-ANIMATIONS
+   =================================== */
+
+@layer utilities {
+
+  /* Fade-in with slide up */
+  .animate-fade-in-up {
+    animation: fadeInUp 0.4s ease-out forwards;
+  }
+
+  /* Subtle pulse for attention */
+  .animate-subtle-pulse {
+    animation: subtlePulse 2s ease-in-out infinite;
+  }
+
+  /* Number counter effect */
+  .animate-count-up {
+    animation: countUp 0.6s ease-out forwards;
+  }
+
+  /* Shimmer loading effect */
+  .animate-shimmer {
+    background: linear-gradient(90deg,
+        hsl(var(--muted)) 25%,
+        hsl(var(--muted) / 0.5) 50%,
+        hsl(var(--muted)) 75%);
+    background-size: 200% 100%;
+    animation: shimmerEffect 1.5s infinite;
+  }
+
+  /* Gradient text utility */
+  .text-gradient-primary {
+    background: linear-gradient(135deg, hsl(160 84% 39%) 0%, hsl(170 90% 35%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-blue {
+    background: linear-gradient(135deg, hsl(217 91% 60%) 0%, hsl(210 100% 50%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-amber {
+    background: linear-gradient(135deg, hsl(43 96% 56%) 0%, hsl(38 92% 50%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .text-gradient-rose {
+    background: linear-gradient(135deg, hsl(340 82% 52%) 0%, hsl(350 80% 45%) 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes subtlePulse {
+
+  0%,
+  100% {
+    opacity: 1;
+  }
+
+  50% {
+    opacity: 0.8;
+  }
+}
+
+@keyframes countUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes shimmerEffect {
+  0% {
+    background-position: -200% 0;
+  }
+
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+/* ===================================
+   RECHARTS GLOBAL ENHANCEMENTS
+   =================================== */
+
+/* Smooth bar chart animations */
+.recharts-bar-rectangle {
+  transition: opacity 0.2s ease;
+}
+
+.recharts-bar-rectangle:hover {
+  opacity: 0.85;
+  filter: brightness(1.1);
+}
+
+/* Better pie chart segments */
+.recharts-sector {
+  transition: opacity 0.2s ease;
+}
+
+.recharts-sector:hover {
+  opacity: 0.85;
+  filter: brightness(1.08) drop-shadow(0 2px 4px rgba(0, 0, 0, 0.15));
+}
+
+/* Premium tooltip styling */
+.recharts-tooltip-wrapper {
+  filter: drop-shadow(0 4px 12px rgba(0, 0, 0, 0.12));
+}
+
+.recharts-default-tooltip {
+  border-radius: 10px !important;
+  border: 1px solid hsl(var(--border) / 0.5) !important;
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* Smoother axis labels */
+.recharts-cartesian-axis-tick-value {
+  font-size: 11px !important;
+  font-weight: 500 !important;
+  fill: hsl(var(--muted-foreground)) !important;
+}
+
+/* Grid lines subtle */
+.recharts-cartesian-grid-horizontal line,
+.recharts-cartesian-grid-vertical line {
+  stroke: hsl(var(--border) / 0.3) !important;
+}
+
+/* Active dot glow */
+.recharts-active-dot circle {
+  filter: drop-shadow(0 0 6px hsl(var(--primary) / 0.4));
+}
+
+/* Legend styling */
+.recharts-legend-item-text {
+  font-size: 12px !important;
+  font-weight: 500 !important;
+  color: hsl(var(--foreground)) !important;
+}
+
+/* ===================================
+   SCROLLBAR CUSTOMIZATION
+   =================================== */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.35);
+}
+
+/* ===================================
+   SELECTION STYLE
+   =================================== */
+
+::selection {
+  background: hsl(var(--primary) / 0.2);
+  color: inherit;
+}
+
+/* ===================================
+   STAGGERED ANIMATION FOR LISTS
+   =================================== */
+
+.stagger-children>* {
+  animation: fadeInUp 0.35s ease-out both;
+}
+
+.stagger-children>*:nth-child(1) {
+  animation-delay: 0ms;
+}
+
+.stagger-children>*:nth-child(2) {
+  animation-delay: 50ms;
+}
+
+.stagger-children>*:nth-child(3) {
+  animation-delay: 100ms;
+}
+
+.stagger-children>*:nth-child(4) {
+  animation-delay: 150ms;
+}
+
+.stagger-children>*:nth-child(5) {
+  animation-delay: 200ms;
+}
+
+.stagger-children>*:nth-child(6) {
+  animation-delay: 250ms;
+}
+
+.stagger-children>*:nth-child(7) {
+  animation-delay: 300ms;
+}
+
+.stagger-children>*:nth-child(8) {
+  animation-delay: 350ms;
 }

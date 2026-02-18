@@ -173,7 +173,7 @@ const Insurances = () => {
         let attachments = [];
         try {
           attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents ? (Array.isArray(row.documents) ? row.documents : []) : []);
-        } catch (e) { 
+        } catch (e) {
           logger.error('Error parsing attachments', e instanceof Error ? e : new Error(String(e)));
         }
 
@@ -260,12 +260,12 @@ const Insurances = () => {
   const summary = useMemo(() => {
     // Używamy wszystkich danych (data) dla summary, aby pokazywać całkowite wartości
     const allInsurances = data || [];
-    
+
     // Filtrujemy tylko aktywne ubezpieczenia (nie anulowane, nie wygasłe)
-    const activeInsurances = allInsurances.filter(ins => 
+    const activeInsurances = allInsurances.filter(ins =>
       ins.status === 'active' || ins.status === 'pending'
     );
-    
+
     // Z aktywnych wybieramy te do zapłaty i zapłacone
     const pendingPayments = activeInsurances.filter(ins => ins.paymentStatus === 'do_zaplaty');
     const paidInsurances = activeInsurances.filter(ins => ins.paymentStatus === 'zaplacono');
@@ -414,7 +414,7 @@ const Insurances = () => {
       if (formData.paymentStatus === 'zaplacono' && formData.nextPaymentDate) {
         const currentDate = new Date(formData.nextPaymentDate);
         const cycle = formData.renewalCycle || 'monthly';
-        
+
         if (cycle === 'monthly') {
           currentDate.setMonth(currentDate.getMonth() + 1);
         } else {
@@ -452,65 +452,72 @@ const Insurances = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold tracking-tight">Ubezpieczenia</h1>
-        <Button onClick={handleOpenAddModal} className="gap-2">
+        <Button onClick={handleOpenAddModal} className="gap-2 shadow-sm hover:shadow-md transition-shadow">
           <Plus className="h-4 w-4" /> Dodaj ubezpieczenie
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        {/* ... Cards code preserved ... */}
-        <Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 stagger-children">
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aktywne ubezpieczenia</CardTitle>
-            <Trophy className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Aktywne ubezpieczenia</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Trophy className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.activeCount}</div>
-            <p className="text-xs text-gray-500">Aktualne polisy</p>
+            <div className="text-2xl font-bold tracking-tight animate-fade-in-up">{summary.activeCount}</div>
+            <p className="text-xs text-muted-foreground mt-1">Aktualne polisy</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Do zapłaty</CardTitle>
-            <Clock className="h-4 w-4 text-destructive" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Do zapłaty</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10">
+              <Clock className="h-4 w-4 text-destructive" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{summary.pendingPaymentsCount}</div>
-            <p className="text-xs text-gray-500">Wymagające uwagi</p>
+            <div className="text-2xl font-bold tracking-tight text-destructive animate-fade-in-up">{summary.pendingPaymentsCount}</div>
+            <p className="text-xs text-muted-foreground mt-1">Wymagające uwagi</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Koszt miesięczny</CardTitle>
-            <Calendar className="h-4 w-4 text-blue-500" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Koszt miesięczny</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10">
+              <Calendar className="h-4 w-4 text-blue-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-500">{formatCurrency(summary.totalMonthly, userCurrency)}</div>
-            <p className="text-xs text-gray-500">Średni koszt</p>
+            <div className="text-2xl font-bold tracking-tight text-blue-500 animate-fade-in-up">{formatCurrency(summary.totalMonthly, userCurrency)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Średni koszt</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Koszt roczny</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Koszt roczny</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10">
+              <DollarSign className="h-4 w-4 text-emerald-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-500">{formatCurrency(summary.totalYearly, userCurrency)}</div>
-            <p className="text-xs text-gray-500">Prognoza</p>
+            <div className="text-2xl font-bold tracking-tight text-emerald-500 animate-fade-in-up">{formatCurrency(summary.totalYearly, userCurrency)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Prognoza</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 items-end bg-card p-4 rounded-lg border shadow-sm">
+      <div className="filter-bar flex flex-col sm:flex-row gap-4 items-end">
         <div className="grid gap-2 w-full sm:w-auto">
-          <Label>Szukaj nazwy</Label>
+          <Label className="text-xs font-medium text-muted-foreground">Szukaj nazwy</Label>
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="np. OC Samochód"
               className="pl-9 w-full sm:w-[300px]"
@@ -520,7 +527,7 @@ const Insurances = () => {
           </div>
         </div>
         <div className="grid gap-2 w-full sm:w-auto">
-          <Label>Status</Label>
+          <Label className="text-xs font-medium text-muted-foreground">Status</Label>
           <Select
             value={filterStatus}
             onValueChange={setFilterStatus}
@@ -537,16 +544,16 @@ const Insurances = () => {
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" className="gap-2 ml-auto" onClick={() => { setFilterName(''); setFilterStatus('all'); }}>
+        <Button variant="outline" className="gap-2 ml-auto hover:bg-muted/80 transition-colors" onClick={() => { setFilterName(''); setFilterStatus('all'); }}>
           <Filter className="h-4 w-4" /> Resetuj filtry
         </Button>
       </div>
 
       {/* Table */}
-      <div className="rounded-md border bg-card">
-        <Table>
+      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+        <Table className="premium-table">
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-muted/30 hover:bg-muted/30">
               <TableHead>Nazwa</TableHead>
               <TableHead>Status płatności</TableHead>
               <TableHead>Status</TableHead>
@@ -577,10 +584,10 @@ const Insurances = () => {
                   <TableCell>
                     <Badge variant="outline">
                       {insurance.status === 'active' ? 'Aktywna' :
-                       insurance.status === 'pending' ? 'Oczekująca' :
-                       insurance.status === 'expired' ? 'Wygasła' :
-                       insurance.status === 'cancelled' ? 'Anulowana' :
-                       insurance.status}
+                        insurance.status === 'pending' ? 'Oczekująca' :
+                          insurance.status === 'expired' ? 'Wygasła' :
+                            insurance.status === 'cancelled' ? 'Anulowana' :
+                              insurance.status}
                     </Badge>
                   </TableCell>
                   <TableCell>{insurance.renewalCycle === 'monthly' ? 'Miesięczny' : 'Roczny'}</TableCell>
@@ -627,15 +634,18 @@ const Insurances = () => {
       </div>
 
       {/* Charts Section */}
+      {/* Charts */}
       {sortedData.length > 0 && (
-        <Card className="col-span-4">
-          <CardHeader>
+        <Card className="col-span-4 shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Analiza ubezpieczeń
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <BarChart3 className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-lg">Analiza ubezpieczeń</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8 pt-6">
             <div className="grid gap-6 md:grid-cols-2">
               {/* All insurance services - Each service as separate bar */}
               <div className="space-y-2">
@@ -643,7 +653,7 @@ const Insurances = () => {
                 {(() => {
                   // Używamy wszystkich ubezpieczeń, nie tylko przefiltrowanych, aby pokazać wszystkie elementy
                   const allInsurances = data || [];
-                  
+
                   const COLORS = [
                     "hsl(var(--chart-1))",
                     "hsl(var(--chart-2))",
@@ -657,10 +667,10 @@ const Insurances = () => {
                     .filter(ins => ins.amountDue)
                     .map((ins, index) => {
                       // Dla rocznych, dzielimy przez 12, dla miesięcznych bierzemy pełną kwotę
-                      const monthlyAmount = ins.renewalCycle === 'yearly' 
-                        ? (ins.amountDue || 0) / 12 
+                      const monthlyAmount = ins.renewalCycle === 'yearly'
+                        ? (ins.amountDue || 0) / 12
                         : (ins.amountDue || 0);
-                      
+
                       return {
                         name: ins.name || `Ubezpieczenie ${index + 1}`,
                         amount: monthlyAmount,
@@ -688,25 +698,25 @@ const Insurances = () => {
                     <ChartContainer config={insuranceConfig} className="max-h-[300px] w-full">
                       <BarChart data={chartData} layout="vertical" margin={{ left: 0 }}>
                         <CartesianGrid horizontal={false} />
-                        <YAxis 
-                          dataKey="name" 
-                          type="category" 
-                          tickLine={false} 
-                          axisLine={false} 
-                          width={150} 
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          tickLine={false}
+                          axisLine={false}
+                          width={150}
                           style={{ fontSize: '12px' }}
                         />
                         <XAxis type="number" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                        <ChartTooltip 
-                          cursor={false} 
-                          content={<ChartTooltipContent 
-                            hideLabel 
+                        <ChartTooltip
+                          cursor={false}
+                          content={<ChartTooltipContent
+                            hideLabel
                             formatter={(value: unknown, name: string, props: { payload?: { paymentStatus?: string } }) => {
                               const paymentStatus = props.payload?.paymentStatus || '';
                               return [formatCurrency(value, userCurrency), paymentStatus];
                             }}
                             labelFormatter={(label) => label}
-                          />} 
+                          />}
                         />
                         <Bar dataKey="amount" layout="vertical" radius={5}>
                           {chartData.map((entry, index) => (
@@ -727,7 +737,7 @@ const Insurances = () => {
                 {(() => {
                   // Używamy wszystkich ubezpieczeń, nie tylko przefiltrowanych
                   const allInsurances = data || [];
-                  
+
                   const COLORS = [
                     "hsl(var(--chart-1))",
                     "hsl(var(--chart-2))",
@@ -747,10 +757,10 @@ const Insurances = () => {
                       // Używamy amountDue jeśli istnieje, w przeciwnym razie amount
                       const baseAmount = ins.amountDue || ins.amount || 0;
                       // Dla rocznych, dzielimy przez 12, dla miesięcznych bierzemy pełną kwotę
-                      const monthlyAmount = ins.renewalCycle === 'yearly' 
-                        ? baseAmount / 12 
+                      const monthlyAmount = ins.renewalCycle === 'yearly'
+                        ? baseAmount / 12
                         : baseAmount;
-                      
+
                       return {
                         name: ins.name || `Ubezpieczenie ${index + 1}`,
                         total: monthlyAmount,
@@ -790,15 +800,15 @@ const Insurances = () => {
                   return chartDataWithPercentages.length > 0 && totalSum > 0 ? (
                     <ChartContainer config={insuranceConfig} className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square max-h-[300px]">
                       <PieChart>
-                        <ChartTooltip 
-                          content={<ChartTooltipContent 
+                        <ChartTooltip
+                          content={<ChartTooltipContent
                             hideLabel
                             formatter={(value: unknown, name: string, props: { payload?: { paymentStatus?: string } }) => {
                               const paymentStatus = props.payload?.paymentStatus || '';
                               return [formatCurrency(value, userCurrency), paymentStatus];
                             }}
                             labelFormatter={(label) => label}
-                          />} 
+                          />}
                         />
                         <Pie
                           data={chartDataWithPercentages}
@@ -827,7 +837,7 @@ const Insurances = () => {
               {(() => {
                 // Używamy wszystkich ubezpieczeń, nie tylko przefiltrowanych
                 const allInsurances = data || [];
-                
+
                 const COLORS = [
                   "hsl(var(--chart-1))",
                   "hsl(var(--chart-2))",
@@ -841,10 +851,10 @@ const Insurances = () => {
                   .filter(ins => ins.amountDue)
                   .map((ins, index) => {
                     // Dla rocznych, dzielimy przez 12, dla miesięcznych bierzemy pełną kwotę
-                    const monthlyAmount = ins.renewalCycle === 'yearly' 
-                      ? (ins.amountDue || 0) / 12 
+                    const monthlyAmount = ins.renewalCycle === 'yearly'
+                      ? (ins.amountDue || 0) / 12
                       : (ins.amountDue || 0);
-                    
+
                     return {
                       name: ins.name || `Ubezpieczenie ${index + 1}`,
                       amount: monthlyAmount,
@@ -873,26 +883,26 @@ const Insurances = () => {
                   <ChartContainer config={cycleConfig} className="max-h-[300px] w-full">
                     <BarChart data={chartData} layout="vertical" margin={{ left: 0 }}>
                       <CartesianGrid horizontal={false} />
-                      <YAxis 
-                        dataKey="name" 
-                        type="category" 
-                        tickLine={false} 
-                        axisLine={false} 
-                        width={150} 
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        tickLine={false}
+                        axisLine={false}
+                        width={150}
                         style={{ fontSize: '12px' }}
                       />
                       <XAxis type="number" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                      <ChartTooltip 
-                        cursor={false} 
-                        content={<ChartTooltipContent 
-                          hideLabel 
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent
+                          hideLabel
                           formatter={(value: unknown, name: string, props: { payload?: { cycle?: string } }) => {
                             const cycle = props.payload?.cycle || '';
                             const paymentStatus = props.payload?.paymentStatus || '';
                             return [formatCurrency(value, userCurrency), `${cycle} - ${paymentStatus}`];
                           }}
                           labelFormatter={(label) => label}
-                        />} 
+                        />}
                       />
                       <Bar dataKey="amount" layout="vertical" radius={5}>
                         {chartData.map((entry, index) => (

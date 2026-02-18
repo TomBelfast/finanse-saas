@@ -409,64 +409,73 @@ const AI = () => {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 p-4 md:p-6">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <h1 className="text-3xl font-bold tracking-tight">AI</h1>
-        <Button onClick={handleOpenAddModal} className="gap-2">
+        <Button onClick={handleOpenAddModal} className="gap-2 shadow-sm hover:shadow-md transition-shadow">
           <Plus className="h-4 w-4" /> Dodaj AI
         </Button>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 stagger-children">
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Aktywne AI</CardTitle>
-            <Trophy className="h-4 w-4 text-primary" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Aktywne AI</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Trophy className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{summary.activeCount}</div>
-            <p className="text-xs text-gray-500">Aktualne subskrypcje</p>
+            <div className="text-2xl font-bold tracking-tight animate-fade-in-up">{summary.activeCount}</div>
+            <p className="text-xs text-muted-foreground mt-1">Aktualne subskrypcje</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Do zapłaty</CardTitle>
-            <Clock className="h-4 w-4 text-destructive" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Do zapłaty</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-destructive/10">
+              <Clock className="h-4 w-4 text-destructive" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-destructive">{summary.pendingPaymentsCount}</div>
-            <p className="text-xs text-gray-500">Wymagające uwagi</p>
+            <div className="text-2xl font-bold tracking-tight text-destructive animate-fade-in-up">{summary.pendingPaymentsCount}</div>
+            <p className="text-xs text-muted-foreground mt-1">Wymagające uwagi</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Koszt miesięczny</CardTitle>
-            <Calendar className="h-4 w-4 text-blue-500" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Koszt miesięczny</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10">
+              <Calendar className="h-4 w-4 text-blue-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-500">{formatCurrency(summary.totalMonthly, userCurrency)}</div>
-            <p className="text-xs text-gray-500">Średni koszt</p>
+            <div className="text-2xl font-bold tracking-tight text-blue-500 animate-fade-in-up">{formatCurrency(summary.totalMonthly, userCurrency)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Średni koszt</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Koszt roczny</CardTitle>
-            <DollarSign className="h-4 w-4 text-green-500" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Koszt roczny</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-emerald-500/10">
+              <DollarSign className="h-4 w-4 text-emerald-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-green-500">{formatCurrency(summary.totalYearly, userCurrency)}</div>
-            <p className="text-xs text-gray-500">Prognoza</p>
+            <div className="text-2xl font-bold tracking-tight text-emerald-500 animate-fade-in-up">{formatCurrency(summary.totalYearly, userCurrency)}</div>
+            <p className="text-xs text-muted-foreground mt-1">Prognoza</p>
           </CardContent>
         </Card>
       </div>
 
       {/* Filters */}
-      <div className="flex flex-col sm:flex-row gap-4 items-end bg-card p-4 rounded-lg border shadow-sm">
+      {/* Filters */}
+      <div className="filter-bar flex flex-col sm:flex-row gap-4 items-end">
         <div className="grid gap-2 w-full sm:w-auto">
-          <Label>Szukaj nazwy</Label>
+          <Label className="text-xs font-medium text-muted-foreground">Szukaj nazwy</Label>
           <div className="relative">
-            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-gray-500" />
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
             <Input
               placeholder="np. ChatGPT Pro"
               className="pl-9 w-full sm:w-[300px]"
@@ -476,7 +485,7 @@ const AI = () => {
           </div>
         </div>
         <div className="grid gap-2 w-full sm:w-auto">
-          <Label>Status</Label>
+          <Label className="text-xs font-medium text-muted-foreground">Status</Label>
           <Select
             value={filterStatus}
             onValueChange={setFilterStatus}
@@ -493,16 +502,17 @@ const AI = () => {
             </SelectContent>
           </Select>
         </div>
-        <Button variant="outline" className="gap-2 ml-auto" onClick={() => { setFilterName(''); setFilterStatus('all'); }}>
+        <Button variant="outline" className="gap-2 ml-auto hover:bg-muted/80 transition-colors" onClick={() => { setFilterName(''); setFilterStatus('all'); }}>
           <Filter className="h-4 w-4" /> Resetuj filtry
         </Button>
       </div>
 
       {/* Table */}
-      <div className="rounded-md border bg-card">
-        <Table>
+      {/* Table */}
+      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+        <Table className="premium-table">
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-muted/30 hover:bg-muted/30">
               <TableHead>Nazwa</TableHead>
               <TableHead>Status płatności</TableHead>
               <TableHead>Status</TableHead>
@@ -577,15 +587,18 @@ const AI = () => {
       </div>
 
       {/* Charts Section */}
+      {/* Charts */}
       {sortedData.length > 0 && (
-        <Card className="col-span-4">
-          <CardHeader>
+        <Card className="col-span-4 shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Analiza AI
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <BarChart3 className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-lg">Analiza AI</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8 pt-6">
             <div className="grid gap-6 md:grid-cols-2">
               {/* All AI services - Each service as separate bar */}
               <div className="space-y-2">

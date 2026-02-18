@@ -196,7 +196,7 @@ const Subscriptions = () => {
       try {
         const subscriptions = await apiClient.getSubscriptions()
         logger.debug('Loaded subscriptions from API', { count: subscriptions?.length, subscriptions });
-        
+
         // Ensure subscriptions is an array
         if (!Array.isArray(subscriptions)) {
           logger.error('Subscriptions is not an array', { subscriptions });
@@ -204,7 +204,7 @@ const Subscriptions = () => {
           setInitialDataLoaded(true)
           return
         }
-        
+
         // Mapowanie danych z API do formatu komponentu
         const mappedData = subscriptions.map((sub: ApiSubscription) => {
           // Parse documents from JSON string if needed
@@ -217,7 +217,7 @@ const Subscriptions = () => {
               attachments = [];
             }
           }
-          
+
           return {
             id: sub.id,
             name: sub.name,
@@ -254,23 +254,23 @@ const Subscriptions = () => {
     logger.debug('Filtering data', { dataCount: data.length, filters });
     const filtered = data.filter((sub) => {
       // Filtrowanie po nazwie (case-insensitive, częściowe dopasowanie)
-      const nameMatch = !filters.name || 
+      const nameMatch = !filters.name ||
         (sub.name && sub.name.toLowerCase().includes(filters.name.toLowerCase().trim()));
-      
+
       // Filtrowanie po cyklu (obsługa różnych formatów)
-      const cycleMatch = !filters.cycle || 
+      const cycleMatch = !filters.cycle ||
         sub.cycle === filters.cycle ||
         (filters.cycle === 'miesięczny' && (sub.cycle === 'monthly' || sub.cycle === 'miesięczny')) ||
         (filters.cycle === 'roczny' && (sub.cycle === 'yearly' || sub.cycle === 'roczny'));
-      
+
       // Filtrowanie po statusie
       const statusMatch = !filters.status || sub.status === filters.status;
-      
+
       // Filtrowanie po kategorii/tagu
-      const tagMatch = !filters.tag || 
+      const tagMatch = !filters.tag ||
         sub.tag === filters.tag ||
         sub.category === filters.tag;
-      
+
       return nameMatch && cycleMatch && statusMatch && tagMatch;
     });
     logger.debug('Filtered data result', { filteredCount: filtered.length, originalCount: data.length });
@@ -324,7 +324,7 @@ const Subscriptions = () => {
             attachments = [];
           }
         }
-        
+
         return {
           id: sub.id,
           name: sub.name,
@@ -392,7 +392,7 @@ const Subscriptions = () => {
             attachments = [];
           }
         }
-        
+
         return {
           id: sub.id,
           name: sub.name,
@@ -433,10 +433,10 @@ const Subscriptions = () => {
     // Używamy wszystkich danych (data) dla summary, aby pokazywać całkowite wartości
     // Filtry są używane tylko w tabeli i wykresach
     const allSubscriptions = data || [];
-    
+
     // Używamy wszystkich subskrypcji, nie tylko aktywnych, dla podsumowania
     const subscriptionsToUse = allSubscriptions;
-    
+
     const totalMonthly = subscriptionsToUse
       .filter((sub) => sub.cycle === 'miesięczny' || sub.cycle === 'monthly')
       .reduce((sum, sub) => sum + parseAmount(sub.amount), 0)
@@ -449,7 +449,7 @@ const Subscriptions = () => {
     const totalMonthlyWithYearly = totalMonthly + monthlyFromYearly
 
     const categoryTotals = SUBSCRIPTION_TAGS.reduce((acc, tag) => {
-      const categorySubscriptions = subscriptionsToUse.filter((sub) => 
+      const categorySubscriptions = subscriptionsToUse.filter((sub) =>
         sub.tag === tag.value || sub.category === tag.value
       )
       const monthlyTotal = categorySubscriptions
@@ -478,23 +478,24 @@ const Subscriptions = () => {
 
   return (
     <div className="space-y-6 p-4 md:p-6">
+      {/* Header */}
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <TableFiltersPanel 
-          fields={filterFields} 
-          values={filters} 
+        <TableFiltersPanel
+          fields={filterFields}
+          values={filters}
           onChange={setFilters}
           onReset={handleResetFilters}
         />
-        <Button onClick={openAddModal} className="w-full md:w-auto gap-2">
+        <Button onClick={openAddModal} className="w-full md:w-auto gap-2 shadow-sm hover:shadow-md transition-shadow">
           <Plus className="h-4 w-4" />
           Dodaj subskrypcję
         </Button>
       </div>
 
-      <div className="rounded-md border bg-card">
-        <Table>
+      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+        <Table className="premium-table">
           <TableHeader>
-            <TableRow>
+            <TableRow className="bg-muted/30 hover:bg-muted/30">
               <TableHead>Nazwa</TableHead>
               <TableHead>Kwota</TableHead>
               <TableHead>Cykl</TableHead>
@@ -609,53 +610,65 @@ const Subscriptions = () => {
         </Table>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
+      {/* Summary Stats */}
+      <div className="grid gap-4 md:grid-cols-3 stagger-children">
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Suma miesięczna</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Suma miesięczna</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <DollarSign className="h-4 w-4 text-primary" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold tracking-tight animate-fade-in-up">
               {formatCurrency(summary.totalMonthlyWithYearly, userCurrency)}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">Łącznie z rocznymi</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Płatności miesięczne</CardTitle>
-            <CalendarIcon className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Płatności miesięczne</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-blue-500/10">
+              <CalendarIcon className="h-4 w-4 text-blue-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold tracking-tight animate-fade-in-up">
               {formatCurrency(summary.totalMonthly, userCurrency)}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">Cykl miesięczny</p>
           </CardContent>
         </Card>
-        <Card>
+        <Card className="stat-card">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Płatności roczne</CardTitle>
-            <Trophy className="h-4 w-4 text-muted-foreground" />
+            <CardTitle className="text-sm font-medium text-muted-foreground">Płatności roczne</CardTitle>
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-500/10">
+              <Trophy className="h-4 w-4 text-amber-500" />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">
+            <div className="text-2xl font-bold tracking-tight animate-fade-in-up">
               {formatCurrency(summary.totalYearly, userCurrency)}
             </div>
+            <p className="text-xs text-muted-foreground mt-1">Cykl roczny</p>
           </CardContent>
         </Card>
       </div>
 
-      <div className="grid gap-4 md:grid-cols-3">
+      {/* Category breakdown */}
+      <div className="grid gap-3 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-6 stagger-children">
         {SUBSCRIPTION_TAGS.map((tag) => (
-          <Card key={tag.value}>
+          <Card key={tag.value} className="stat-card group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">{tag.label} (miesięcznie)</CardTitle>
-              <TagIcon className={cn("h-4 w-4", tag.color.split(' ')[1])} />
+              <CardTitle className="text-xs font-medium text-muted-foreground">{tag.label}</CardTitle>
+              <TagIcon className={cn("h-3.5 w-3.5 transition-transform group-hover:scale-110", tag.color.split(' ')[1])} />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-lg font-bold tracking-tight">
                 {formatCurrency(summary.categoryTotals[tag.value] || 0, userCurrency)}
               </div>
+              <p className="text-[10px] text-muted-foreground mt-0.5">/ miesiąc</p>
             </CardContent>
           </Card>
         ))}
@@ -663,14 +676,16 @@ const Subscriptions = () => {
 
       {/* Charts Section */}
       {filteredData.length > 0 && (
-        <Card className="col-span-4">
-          <CardHeader>
+        <Card className="col-span-4 shadow-sm">
+          <CardHeader className="border-b border-border/50 pb-4">
             <CardTitle className="flex items-center gap-2">
-              <BarChart3 className="h-5 w-5" />
-              Analiza subskrypcji
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10">
+                <BarChart3 className="h-4 w-4 text-primary" />
+              </div>
+              <span className="text-lg">Analiza subskrypcji</span>
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-6">
+          <CardContent className="space-y-8 pt-6">
             <div className="grid gap-6 md:grid-cols-2">
               {/* Subscriptions by category */}
               <div className="space-y-2">
@@ -720,29 +735,29 @@ const Subscriptions = () => {
                     <ChartContainer config={categoryConfig} className="max-h-[300px] w-full">
                       <BarChart data={categoryData} layout="vertical" margin={{ left: 0 }}>
                         <CartesianGrid horizontal={false} />
-                        <YAxis 
-                          dataKey="category" 
-                          type="category" 
-                          tickLine={false} 
-                          axisLine={false} 
-                          width={120} 
+                        <YAxis
+                          dataKey="category"
+                          type="category"
+                          tickLine={false}
+                          axisLine={false}
+                          width={120}
                           style={{ fontSize: '12px' }}
                           tickFormatter={(value) => categoryData.find(d => d.category === value)?.categoryLabel || value}
                         />
                         <XAxis type="number" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                        <ChartTooltip 
-                          cursor={false} 
-                          content={<ChartTooltipContent 
-                            hideLabel 
+                        <ChartTooltip
+                          cursor={false}
+                          content={<ChartTooltipContent
+                            hideLabel
                             formatter={(value: number) => formatCurrency(value, userCurrency)}
-                          />} 
+                          />}
                         />
-                        <Bar dataKey="total" layout="vertical" radius={5}>
-                          <LabelList 
-                            dataKey="total" 
-                            position="right" 
-                            className="fill-foreground font-bold" 
-                            fontSize={12} 
+                        <Bar dataKey="total" layout="vertical" radius={8}>
+                          <LabelList
+                            dataKey="total"
+                            position="right"
+                            className="fill-foreground font-semibold"
+                            fontSize={11}
                             formatter={(v: number) => formatCurrency(v, userCurrency)}
                           />
                         </Bar>
@@ -801,11 +816,11 @@ const Subscriptions = () => {
                   return categoryData.length > 0 ? (
                     <ChartContainer config={categoryConfig} className="mx-auto aspect-square max-h-[300px]">
                       <PieChart>
-                        <ChartTooltip 
-                          content={<ChartTooltipContent 
+                        <ChartTooltip
+                          content={<ChartTooltipContent
                             hideLabel
                             formatter={(value: number) => formatCurrency(value, userCurrency)}
-                          />} 
+                          />}
                         />
                         <Pie
                           data={categoryData}
@@ -842,10 +857,10 @@ const Subscriptions = () => {
                   return 0;
                 };
 
-                const monthlyTotal = monthlySubs.reduce((sum, sub) => 
+                const monthlyTotal = monthlySubs.reduce((sum, sub) =>
                   sum + parseAmount(sub.amount), 0
                 );
-                const yearlyTotal = yearlySubs.reduce((sum, sub) => 
+                const yearlyTotal = yearlySubs.reduce((sum, sub) =>
                   sum + parseAmount(sub.amount), 0
                 );
 
@@ -883,9 +898,9 @@ const Subscriptions = () => {
                         axisLine={false}
                         tickMargin={8}
                       />
-                      <ChartTooltip 
-                        cursor={false} 
-                        content={<ChartTooltipContent 
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent
                           indicator="dot"
                           formatter={(value: number, name: string) => {
                             if (name === 'total') {
@@ -893,15 +908,15 @@ const Subscriptions = () => {
                             }
                             return [value, 'Ilość'];
                           }}
-                        />} 
+                        />}
                       />
                       <ChartLegend content={<ChartLegendContent />} />
                       <Bar dataKey="total" fill="var(--color-total)" radius={[4, 4, 0, 0]}>
-                        <LabelList 
-                          dataKey="total" 
-                          position="top" 
-                          className="fill-foreground font-bold" 
-                          fontSize={12} 
+                        <LabelList
+                          dataKey="total"
+                          position="top"
+                          className="fill-foreground font-bold"
+                          fontSize={12}
                           formatter={(v: number) => formatCurrency(v, userCurrency)}
                         />
                       </Bar>
