@@ -9,7 +9,7 @@ services:
   #     MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
   #     MYSQL_DATABASE: ${DB_NAME:-Finanse}
   #     MYSQL_USER: ${DB_USER:-Saas}
-  #     MYSQL_PASSWORD: ${DB_PASSWORD:-Finanse2025}
+  #     MYSQL_PASSWORD: ${DB_PASSWORD}
   #   ports:
   #     - "${DB_PORT:-3306}:3306"
   #   volumes:
@@ -42,7 +42,7 @@ services:
       DB_HOST: ${DB_HOST:-192.168.0.9}  # Ustaw IP zewnętrznej bazy danych
       DB_PORT: ${DB_PORT:-3306}
       DB_USER: ${DB_USER:-Saas}
-      DB_PASSWORD: ${DB_PASSWORD:-Finanse2025}
+      DB_PASSWORD: ${DB_PASSWORD:?DB_PASSWORD is required}
       DB_NAME: ${DB_NAME:-Finanse}
       DB_CONNECTION_LIMIT: ${DB_CONNECTION_LIMIT:-10}
       

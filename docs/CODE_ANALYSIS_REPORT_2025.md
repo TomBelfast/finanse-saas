@@ -44,7 +44,7 @@ const defaultConfig: DatabaseConfig = {
   host: process.env.DB_HOST || '192.168.0.9',
   port: parseInt(process.env.DB_PORT || '3306', 10),
   user: process.env.DB_USER || 'Saas',
-  password: process.env.DB_PASSWORD || 'Finanse2025', // ⚠️ Hardcoded password
+  password: process.env.DB_PASSWORD, // ✅ Fixed: no hardcoded fallback
   database: process.env.DB_NAME || 'Finanse',
 };
 ```

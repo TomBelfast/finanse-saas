@@ -22,7 +22,7 @@ USE_MARIADB=true
 DB_HOST=192.168.0.9
 DB_PORT=3306
 DB_USER=Saas
-DB_PASSWORD=Finanse2025
+DB_PASSWORD=<YOUR_DB_PASSWORD>  # Ustaw hasło z .env
 DB_NAME=Finanse
 ```
 
@@ -59,7 +59,7 @@ Aplikacja automatycznie znajdzie następny wolny port (3003, 3004, itd.)
 1. Sprawdź czy MariaDB działa: `docker ps | grep mariadb`
 2. Sprawdź połączenie: 
 ```bash
-docker exec -i mariadb-akademiasaas mariadb -h 192.168.0.9 -P 3306 -u Saas -pFinanse2025 Finanse -e "SELECT 1;"
+docker exec -i mariadb-akademiasaas mariadb -h 192.168.0.9 -P 3306 -u Saas -p$DB_PASSWORD Finanse -e "SELECT 1;"
 ```
 
 ### Problem: Shared package nie zbudowany
@@ -116,6 +116,6 @@ USE_MARIADB=false
 
 Sprawdź tabele w bazie:
 ```bash
-docker exec -i mariadb-akademiasaas mariadb -h 192.168.0.9 -P 3306 -u Saas -pFinanse2025 Finanse -e "SHOW TABLES;"
+docker exec -i mariadb-akademiasaas mariadb -h 192.168.0.9 -P 3306 -u Saas -p$DB_PASSWORD Finanse -e "SHOW TABLES;"
 ```
 

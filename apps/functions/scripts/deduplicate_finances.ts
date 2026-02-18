@@ -71,10 +71,13 @@ async function deduplicateTable(
 
 async function main() {
     try {
+        if (!process.env.DB_PASSWORD) {
+            throw new Error('DB_PASSWORD environment variable is required');
+        }
         const connection = await mysql.createConnection({
             host: process.env.DB_HOST || '192.168.0.9',
             user: process.env.DB_USER || 'Saas',
-            password: process.env.DB_PASSWORD || 'Finanse2025',
+            password: process.env.DB_PASSWORD,
             database: process.env.DB_NAME || 'Finanse',
             port: Number(process.env.DB_PORT) || 3306,
         });

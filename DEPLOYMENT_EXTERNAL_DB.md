@@ -16,7 +16,7 @@ USE_MARIADB=true
 DB_HOST=192.168.0.9        # ← ZMIEŃ NA IP/HOSTNAME TWOJEJ BAZY DANYCH
 DB_PORT=3306               # Port bazy danych
 DB_USER=Saas               # Użytkownik bazy danych
-DB_PASSWORD=Finanse2025    # Hasło bazy danych
+DB_PASSWORD=<YOUR_DB_PASSWORD>    # Hasło bazy danych
 DB_NAME=Finanse            # Nazwa bazy danych
 DB_CONNECTION_LIMIT=10     # Limit połączeń
 
@@ -70,7 +70,7 @@ Upewnij się, że użytkownik bazy danych (`DB_USER`) ma uprawnienia do:
 
 ```sql
 -- Przykład: Utworzenie użytkownika z dostępem z zewnątrz
-CREATE USER 'Saas'@'%' IDENTIFIED BY 'Finanse2025';
+CREATE USER 'Saas'@'%' IDENTIFIED BY '<YOUR_DB_PASSWORD>';
 GRANT ALL PRIVILEGES ON Finanse.* TO 'Saas'@'%';
 FLUSH PRIVILEGES;
 ```
@@ -81,7 +81,7 @@ FLUSH PRIVILEGES;
 
 ```bash
 # Z serwera Coolify sprawdź, czy możesz połączyć się z bazą:
-mysql -h 192.168.0.9 -P 3306 -u Saas -pFinanse2025 Finanse -e "SELECT 1;"
+mysql -h 192.168.0.9 -P 3306 -u Saas -p$DB_PASSWORD Finanse -e "SELECT 1;"
 ```
 
 ### Po uruchomieniu aplikacji:

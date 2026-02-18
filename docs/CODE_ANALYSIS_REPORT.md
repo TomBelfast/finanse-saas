@@ -219,7 +219,7 @@ const id = `insurance_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
 1. **Hardcoded Database Password w .env.local**
    ```bash
    # apps/functions/.env.local:6
-   DB_PASSWORD=Finanse2025
+   DB_PASSWORD=<YOUR_DB_PASSWORD>
    ```
    - **Status:** ?? OK dla development, ale **NIE COMMITOWA?** do repo
    - **Weryfikacja:** Sprawdzi? `.gitignore` czy `.env.local` jest ignorowany

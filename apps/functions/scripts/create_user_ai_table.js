@@ -1,11 +1,16 @@
 // Script to create user_ai table in MariaDB
 const mysql = require('mysql2/promise');
 
+if (!process.env.DB_PASSWORD) {
+  console.error('❌ DB_PASSWORD environment variable is required');
+  process.exit(1);
+}
+
 const config = {
   host: process.env.DB_HOST || '192.168.0.9',
   port: parseInt(process.env.DB_PORT || '3306', 10),
   user: process.env.DB_USER || 'Saas',
-  password: process.env.DB_PASSWORD || 'Finanse2025',
+  password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME || 'Finanse',
 };
 
@@ -61,12 +66,12 @@ async function createTable() {
   } catch (error) {
     console.error('❌ Błąd podczas tworzenia tabeli:', error.message);
     console.error('Kod błędu:', error.code);
-    
+
     if (error.code === 'ER_TABLE_EXISTS_ERROR') {
       console.log('\n💡 Tabela user_ai już istnieje. To nie jest błąd.');
       process.exit(0);
     }
-    
+
     if (connection) {
       await connection.end();
     }

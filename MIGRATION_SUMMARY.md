@@ -38,7 +38,7 @@
   - `DB_HOST=192.168.0.9`
   - `DB_PORT=3306`
   - `DB_USER=Saas`
-  - `DB_PASSWORD=Finanse2025`
+  - `DB_PASSWORD=<YOUR_DB_PASSWORD>`
   - `DB_NAME=Finanse`
 
 ## 📋 Co jeszcze trzeba zrobić:

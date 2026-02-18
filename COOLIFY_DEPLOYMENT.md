@@ -79,7 +79,7 @@ USE_MARIADB=true
 DB_HOST=192.168.0.9  # IP/host zewnętrznej bazy danych (ZMIEŃ NA SWÓJ!)
 DB_PORT=3306
 DB_USER=Saas
-DB_PASSWORD=Finanse2025
+DB_PASSWORD=<YOUR_DB_PASSWORD>
 DB_NAME=Finanse
 DB_CONNECTION_LIMIT=10
 
@@ -136,7 +136,7 @@ USE_MARIADB=true
 DB_HOST=192.168.0.9  # IP/host zewnętrznej bazy danych (ZMIEŃ NA SWÓJ!)
 DB_PORT=3306
 DB_USER=Saas
-DB_PASSWORD=Finanse2025
+DB_PASSWORD=<YOUR_DB_PASSWORD>
 DB_NAME=Finanse
 DB_CONNECTION_LIMIT=10
 
@@ -222,7 +222,7 @@ USE_MARIADB=true
 DB_HOST=192.168.0.9  # IP/host zewnętrznej bazy danych
 DB_PORT=3306
 DB_USER=Saas
-DB_PASSWORD=Finanse2025
+DB_PASSWORD=<YOUR_DB_PASSWORD>
 DB_NAME=Finanse
 DB_CONNECTION_LIMIT=10
 ```
@@ -327,7 +327,7 @@ Jeśli aplikacja ma działać na **tej samej bazie danych**, która już istniej
 DB_HOST=192.168.0.9  # IP twojej istniejącej bazy danych
 DB_PORT=3306
 DB_USER=Saas
-DB_PASSWORD=Finanse2025
+DB_PASSWORD=<YOUR_DB_PASSWORD>
 DB_NAME=Finanse
 ```
 

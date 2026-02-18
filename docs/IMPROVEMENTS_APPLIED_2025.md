@@ -22,7 +22,7 @@ Zastosowano systematyczne ulepszenia w zakresie bezpieczeństwa, jakości kodu i
 ```typescript
 const defaultConfig: DatabaseConfig = {
   host: process.env.DB_HOST || '192.168.0.9',  // ⚠️ Hardcoded fallback
-  password: process.env.DB_PASSWORD || 'Finanse2025',  // ⚠️ Hardcoded password
+  password: process.env.DB_PASSWORD,  // ✅ Fixed: no hardcoded fallback
   // ...
 };
 ```

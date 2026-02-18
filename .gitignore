@@ -22,3 +22,14 @@ apps/web-app/playwright/.auth/
 apps/web-app/test-results/
 apps/web-app/playwright/videos/
 apps/web-app/playwright/screenshots/
+
+# Security - prevent credential leaks
+debug_*.js
+**/debug_*.js
+**/fix_data.sql
+**/final_check.js
+**/debug_user.js
+**/setPassword.js
+**/test-connection.js
+*.sql
+COOLIFY_ENV_VARIABLES*.txt
