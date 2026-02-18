@@ -388,6 +388,8 @@ export class MariaDBUsersRepository implements UsersRepository {
       }
 
       // Na końcu aktualizujemy główną tabelę użytkowników
+      // Jeśli nowy UID już istnieje (puste konto), usuwamy go, aby móc przenieść stary rekord na to ID
+      await connection.execute('DELETE FROM users WHERE uid = ? AND uid != ?', [newUserId, oldUserId]);
       await connection.execute('UPDATE users SET uid = ?, updated_at = NOW() WHERE uid = ?', [newUserId, oldUserId]);
 
       await connection.commit();

@@ -23,47 +23,48 @@ router.get('/me', verifySupabaseToken, async (req, res) => {
 
     logger.info('GET /api/users/me - Starting', { userId });
     let userData = await usersRepository.findUserById(userId);
+    const email = authReq.auth?.email;
 
-    // Auto-create or Re-link user if not found in database by UID
-    if (!userData) {
-      const email = authReq.auth?.email;
-      logger.info('User not found by UID, checking by email for re-linking', { userId, email });
+    // Agresywne łączenie: Jeśli mamy email, sprawdźmy czy nie ma innego konta (starego) z tym mailem
+    if (email) {
+      const existingUserByEmail = await usersRepository.findUserByEmail(email);
+      // Jeśli znaleźliśmy konto z tym mailem, ale innym UID (starym z Clerk)
+      if (existingUserByEmail && existingUserByEmail.uid !== userId) {
+        logger.info('Collision detected: Old account exists for this email. Relinking data...', {
+          oldUid: existingUserByEmail.uid,
+          newUid: userId
+        });
 
-      if (email) {
-        const existingUserByEmail = await usersRepository.findUserByEmail(email);
-        if (existingUserByEmail) {
-          logger.info('Found existing user by email, re-linking UID from Clerk to Supabase', {
-            oldUid: existingUserByEmail.uid,
-            newUid: userId
-          });
-          await usersRepository.updateUserId(existingUserByEmail.uid, userId);
-          userData = await usersRepository.findUserById(userId);
-        }
-      }
+        // Przenosimy dane ze starego konta na nowe i aktualizujemy rekord w users
+        await usersRepository.updateUserId(existingUserByEmail.uid, userId);
 
-      // If still no userData, create a new one
-      if (!userData) {
-        logger.info('Creating new user from Supabase data', { userId });
-        const newUser: Partial<UserDocument> = {
-          uid: userId,
-          email: authReq.auth?.email || '',
-          firstName: authReq.auth?.user_metadata?.first_name || '',
-          lastName: authReq.auth?.user_metadata?.last_name || '',
-          avatarUrl: null,
-          termsAndPrivacyPolicy: true,
-          lang: 'pl',
-          timezone: 'Europe/Warsaw',
-          defaultCurrency: 'pln',
-          createdAt: new Date(),
-          updatedAt: new Date(),
-          contactEmail: authReq.auth?.email || '',
-          termsAndPolicyAcceptDate: new Date(),
-        };
-
-        await usersRepository.createUser(newUser as UserDocument);
+        // Pobieramy dane ponownie - teraz powinny być to te "odzyskane"
         userData = await usersRepository.findUserById(userId);
-        logger.info('User created successfully from Supabase metadata', { userId });
       }
+    }
+
+    // Jeśli po próbie łączenia nadal nie ma użytkownika, stwórz go
+    if (!userData) {
+      logger.info('Creating new user from Supabase data', { userId });
+      const newUser: Partial<UserDocument> = {
+        uid: userId,
+        email: email || '',
+        firstName: authReq.auth?.user_metadata?.first_name || '',
+        lastName: authReq.auth?.user_metadata?.last_name || '',
+        avatarUrl: null,
+        termsAndPrivacyPolicy: true,
+        lang: 'pl',
+        timezone: 'Europe/Warsaw',
+        defaultCurrency: 'pln',
+        createdAt: new Date(),
+        updatedAt: new Date(),
+        contactEmail: email || '',
+        termsAndPolicyAcceptDate: new Date(),
+      };
+
+      await usersRepository.createUser(newUser as UserDocument);
+      userData = await usersRepository.findUserById(userId);
+      logger.info('User created successfully from Supabase metadata', { userId });
     }
 
     // Normalize defaultCurrency to lowercase if present
