@@ -48,17 +48,21 @@ const Dashboard: React.FC<React.PropsWithChildren<RouteComponentProps>> = ({ chi
 
           <div
             onClick={toggleDrawer}
-            className="flex items-center gap-2 cursor-pointer ml-2 hover:bg-accent hover:text-accent-foreground p-1 rounded-md transition-colors"
+            className="flex items-center gap-3 cursor-pointer ml-3 hover:bg-accent/50 p-1.5 rounded-xl transition-all duration-200 group"
             role="button"
             tabIndex={0}
           >
             <div className="hidden md:flex flex-col items-end text-sm mr-1">
-              <span className="font-semibold leading-none">{details?.firstName} {details?.lastName}</span>
-              <span className="text-xs text-gray-500">Kursant</span>
+              <span className="font-bold leading-none tracking-tight group-hover:text-primary transition-colors">
+                {details?.firstName} {details?.lastName}
+              </span>
+              <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-semibold mt-0.5">Kursant</span>
             </div>
-            <Avatar className="cursor-pointer">
+            <Avatar className="h-9 w-9 border-2 border-transparent group-hover:border-primary/20 transition-all shadow-sm">
               <AvatarImage src={(Array.isArray(details?.avatarUrl) ? details?.avatarUrl[0] : details?.avatarUrl) || undefined} />
-              <AvatarFallback>{getUserInitial(`${details?.firstName} ${details?.lastName}`)}</AvatarFallback>
+              <AvatarFallback className="bg-primary/10 text-primary font-bold">
+                {getUserInitial(`${details?.firstName} ${details?.lastName}`)}
+              </AvatarFallback>
             </Avatar>
           </div>
         </SiteHeader>

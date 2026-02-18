@@ -75,20 +75,22 @@ const Reports: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto space-y-6 pb-10">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+    <div className="container mx-auto space-y-8 p-4 md:p-6 pb-12 stagger-children">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 animate-fade-in-up">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight">Analytics & Reports</h2>
-          <p className="text-muted-foreground">View detailed analytics and generate reports.</p>
+          <h2 className="text-4xl font-extrabold tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+            Analytics & Reports
+          </h2>
+          <p className="text-muted-foreground mt-1">View detailed analytics and generate reports.</p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex flex-wrap items-center gap-3">
           <Popover>
             <PopoverTrigger asChild>
               <Button
                 id="date"
                 variant={"outline"}
                 className={cn(
-                  "w-[260px] justify-start text-left font-normal",
+                  "w-[260px] justify-start text-left font-normal shadow-sm hover:shadow-md transition-shadow",
                   !date && "text-muted-foreground"
                 )}
               >
@@ -118,8 +120,8 @@ const Reports: React.FC = () => {
               />
             </PopoverContent>
           </Popover>
-          <Button onClick={handleDownloadReport}>
-            <Download className="mr-2 h-4 w-4" />
+          <Button onClick={handleDownloadReport} className="gap-2 shadow-sm hover:shadow-md transition-shadow">
+            <Download className="h-4 w-4" />
             Download
           </Button>
         </div>
@@ -132,71 +134,75 @@ const Reports: React.FC = () => {
         userCurrency={userCurrency}
       />
 
-      <Card className="col-span-4">
-        <CardContent className="p-6">
-          <Tabs defaultValue="overview" className="space-y-4">
-            <TabsList>
-              <TabsTrigger value="overview" className="flex items-center gap-2">
-                <BarChart3 className="h-4 w-4" /> Przegląd
-              </TabsTrigger>
-              <TabsTrigger value="loans" className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" /> Kredyty
-              </TabsTrigger>
-              <TabsTrigger value="finances" className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" /> Finanse
-              </TabsTrigger>
-              <TabsTrigger value="insurances" className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" /> Ubezpieczenia
-              </TabsTrigger>
-              <TabsTrigger value="ai" className="flex items-center gap-2">
-                <DollarSign className="h-4 w-4" /> AI
-              </TabsTrigger>
-            </TabsList>
+      <Card className="col-span-4 shadow-md border-border/40 overflow-hidden animate-fade-in-up">
+        <CardContent className="p-0">
+          <Tabs defaultValue="overview" className="space-y-0">
+            <div className="bg-muted/30 p-2 border-b border-border/50 overflow-x-auto no-scrollbar">
+              <TabsList className="bg-transparent gap-1">
+                <TabsTrigger value="overview" className="flex items-center gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <BarChart3 className="h-4 w-4" /> Przegląd
+                </TabsTrigger>
+                <TabsTrigger value="loans" className="flex items-center gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <DollarSign className="h-4 w-4 text-primary" /> Kredyty
+                </TabsTrigger>
+                <TabsTrigger value="finances" className="flex items-center gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <DollarSign className="h-4 w-4 text-blue-500" /> Finanse
+                </TabsTrigger>
+                <TabsTrigger value="insurances" className="flex items-center gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <DollarSign className="h-4 w-4 text-emerald-500" /> Ubezpieczenia
+                </TabsTrigger>
+                <TabsTrigger value="ai" className="flex items-center gap-2 px-4 py-2 rounded-lg data-[state=active]:bg-background data-[state=active]:shadow-sm">
+                  <DollarSign className="h-4 w-4 text-purple-500" /> AI
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
-            <TabsContent value="overview" className="space-y-4">
-              <ReportsOverviewTab
-                totals={totals}
-                categoryChartData={categoryChartData}
-                barChartData={barChartData}
-                loans={loans}
-                subscriptions={subscriptions}
-                insurances={insurances}
-                ai={ai}
-                userCurrency={userCurrency}
-                currencyFormatter={currencyFormatter}
-              />
-            </TabsContent>
+            <div className="p-6 pt-2">
+              <TabsContent value="overview" className="space-y-4">
+                <ReportsOverviewTab
+                  totals={totals}
+                  categoryChartData={categoryChartData}
+                  barChartData={barChartData}
+                  loans={loans}
+                  subscriptions={subscriptions}
+                  insurances={insurances}
+                  ai={ai}
+                  userCurrency={userCurrency}
+                  currencyFormatter={currencyFormatter}
+                />
+              </TabsContent>
 
-            <TabsContent value="loans" className="space-y-4">
-              <ReportsLoansTab
-                activeLoansData={activeLoansData}
-                currencyFormatter={currencyFormatter}
-              />
-            </TabsContent>
+              <TabsContent value="loans" className="space-y-4">
+                <ReportsLoansTab
+                  activeLoansData={activeLoansData}
+                  currencyFormatter={currencyFormatter}
+                />
+              </TabsContent>
 
-            <TabsContent value="finances" className="space-y-4">
-              <ReportsFinancesTab
-                subscriptions={subscriptions}
-                userCurrency={userCurrency}
-                parseAmount={parseAmount}
-              />
-            </TabsContent>
+              <TabsContent value="finances" className="space-y-4">
+                <ReportsFinancesTab
+                  subscriptions={subscriptions}
+                  userCurrency={userCurrency}
+                  parseAmount={parseAmount}
+                />
+              </TabsContent>
 
-            <TabsContent value="insurances" className="space-y-4">
-              <ReportsInsurancesTab
-                insurances={insurances}
-                userCurrency={userCurrency}
-                parseAmount={parseAmount}
-              />
-            </TabsContent>
+              <TabsContent value="insurances" className="space-y-4">
+                <ReportsInsurancesTab
+                  insurances={insurances}
+                  userCurrency={userCurrency}
+                  parseAmount={parseAmount}
+                />
+              </TabsContent>
 
-            <TabsContent value="ai" className="space-y-4">
-              <ReportsAITab
-                ai={ai}
-                userCurrency={userCurrency}
-                parseAmount={parseAmount}
-              />
-            </TabsContent>
+              <TabsContent value="ai" className="space-y-4">
+                <ReportsAITab
+                  ai={ai}
+                  userCurrency={userCurrency}
+                  parseAmount={parseAmount}
+                />
+              </TabsContent>
+            </div>
           </Tabs>
         </CardContent>
       </Card>

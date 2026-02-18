@@ -11,6 +11,7 @@ import {
 } from "lucide-react"
 import { useLocation, useHistory } from "react-router-dom"
 import { useTranslation } from "react-i18next"
+import { cn } from "~/lib/utils"
 
 import {
     Sidebar,
@@ -41,37 +42,50 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ]
 
     return (
-        <Sidebar variant="inset" {...props}>
-            <SidebarHeader>
-                <div className="flex items-center gap-2 px-4 py-2">
-                    <div className="flex h-8 w-8 items-center justify-center rounded-md bg-sidebar-primary text-sidebar-primary-foreground">
-                        <span className="text-lg font-bold">F</span>
+        <Sidebar variant="inset" {...props} className="border-r border-border/50">
+            <SidebarHeader className="h-[--header-height] flex justify-center">
+                <div className="flex items-center gap-3 px-4 py-2">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-primary to-primary/60 text-primary-foreground shadow-lg shadow-primary/20">
+                        <span className="text-xl font-black italic">F</span>
                     </div>
-                    <div className="grid flex-1 text-left text-sm leading-tight">
-                        <span className="truncate font-semibold">Finance</span>
+                    <div className="grid flex-1 text-left leading-tight">
+                        <span className="truncate font-extrabold text-lg tracking-tight bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">Finanse Saas</span>
+                        <span className="truncate text-[10px] uppercase tracking-widest text-muted-foreground font-medium">System Zarządzania</span>
                     </div>
                 </div>
             </SidebarHeader>
-            <SidebarContent>
+            <SidebarContent className="px-2">
                 <SidebarGroup>
-                    <SidebarGroupLabel>Menu</SidebarGroupLabel>
+                    <SidebarGroupLabel className="px-4 text-[10px] uppercase tracking-[0.2em] font-bold text-muted-foreground/70 mb-2">Główna nawigacja</SidebarGroupLabel>
                     <SidebarGroupContent>
-                        <SidebarMenu>
-                            {items.map((item) => (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton
-                                        asChild
-                                        isActive={location.pathname === item.url}
-                                        tooltip={item.title}
-                                        onClick={() => history.push(item.url)}
-                                    >
-                                        <a href={item.url} onClick={(e) => e.preventDefault()}>
-                                            <item.icon />
-                                            <span>{item.title}</span>
-                                        </a>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            ))}
+                        <SidebarMenu className="gap-1">
+                            {items.map((item) => {
+                                const active = location.pathname === item.url;
+                                return (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton
+                                            asChild
+                                            isActive={active}
+                                            tooltip={item.title}
+                                            onClick={() => history.push(item.url)}
+                                            className={cn(
+                                                "h-11 px-4 rounded-xl transition-all duration-200 group",
+                                                active
+                                                    ? "bg-primary/10 text-primary shadow-sm shadow-primary/5 font-semibold"
+                                                    : "hover:bg-accent/50 text-muted-foreground hover:text-foreground"
+                                            )}
+                                        >
+                                            <a href={item.url} onClick={(e) => e.preventDefault()} className="flex items-center gap-3">
+                                                <item.icon className={cn(
+                                                    "h-5 w-5 transition-transform duration-200",
+                                                    !active && "group-hover:scale-110"
+                                                )} />
+                                                <span className="text-sm tracking-tight">{item.title}</span>
+                                            </a>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                );
+                            })}
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>

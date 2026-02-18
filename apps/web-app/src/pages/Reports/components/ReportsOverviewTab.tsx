@@ -4,6 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "~/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "~/components/ui/table";
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from "~/components/ui/chart";
 import { PieChart, Pie, Cell, BarChart, Bar, CartesianGrid, XAxis, YAxis } from 'recharts';
+import { PieChart as PieIcon, BarChart3, List } from 'lucide-react';
 import { ApiLoan, ApiSubscription, ApiInsurance, ApiAI } from '~/types/api';
 import { ReportsTotals, ChartConfig } from '../types/reportsTypes';
 
@@ -42,141 +43,140 @@ export const ReportsOverviewTab: React.FC<ReportsOverviewTabProps> = memo(({
     return (statusMap[l.status] || l.status) === 'aktywna';
   }).length;
 
-  const activeInsurancesCount = insurances.filter((i: ApiInsurance) => 
+  const activeInsurancesCount = insurances.filter((i: ApiInsurance) =>
     i.status === 'active' || i.status === 'pending'
   ).length;
 
-  const activeAICount = ai.filter((a: ApiAI) => 
+  const activeAICount = ai.filter((a: ApiAI) =>
     a.status === 'active' || a.status === 'pending'
   ).length;
 
   return (
-    <div className="space-y-4">
-      <h3 className="text-lg font-medium">Podsumowanie wszystkich sekcji</h3>
-      <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Rozkład kosztów miesięcznych</CardTitle>
+    <div className="space-y-6 pt-4">
+      <div className="grid gap-6 md:grid-cols-2">
+        <Card className="shadow-sm border-border/50">
+          <CardHeader className="border-b border-border/50 pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <PieIcon className="h-4 w-4" />
+              </div>
+              <span className="text-lg">Rozkład kosztów</span>
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {categoryChartData.data.length > 0 ? (
-              <div className="w-full overflow-visible p-4">
-                <ChartContainer config={categoryChartData.config} className="mx-auto aspect-square max-h-[400px] w-full [&_.recharts-pie-label-text]:fill-foreground [&_.recharts-pie-label-line]:stroke-foreground">
-                  <PieChart margin={{ top: 60, right: 120, bottom: 60, left: 120 }}>
+              <div className="w-full overflow-visible">
+                <ChartContainer config={categoryChartData.config} className="mx-auto aspect-square max-h-[350px] w-full">
+                  <PieChart>
                     <ChartTooltip content={<ChartTooltipContent hideLabel formatter={currencyFormatter} />} />
-                    <Pie 
-                      data={categoryChartData.data} 
-                      dataKey="value" 
-                      label={(entry: { cx: number; cy: number; midAngle: number; innerRadius: number; outerRadius: number; name: string }) => {
-                          const { cx, cy, midAngle, innerRadius, outerRadius } = entry;
-                          const RADIAN = Math.PI / 180;
-                          const radius = outerRadius + 20;
-                          const x = cx + radius * Math.cos(-midAngle * RADIAN);
-                          const y = cy + radius * Math.sin(-midAngle * RADIAN);
-                          
-                          return (
-                            <text 
-                              x={x} 
-                              y={y} 
-                              fill="currentColor" 
-                              textAnchor={x > cx ? 'start' : 'end'} 
-                              dominantBaseline="central"
-                              style={{ fontSize: '13px', fontWeight: 500, whiteSpace: 'nowrap' }}
-                              className="fill-foreground"
-                            >
-                              {entry.name}
-                            </text>
-                          );
-                        }}
-                        labelLine={{ stroke: 'currentColor', strokeWidth: 1 }}
-                        nameKey="name"
-                        cx="50%"
-                        cy="50%"
-                        outerRadius={90}
-                        innerRadius={0}
-                      >
-                        {categoryChartData.data.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={entry.fill} />
-                        ))}
-                      </Pie>
-                    </PieChart>
-                  </ChartContainer>
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">Brak danych</p>
-              )}
+                    <Pie
+                      data={categoryChartData.data}
+                      dataKey="value"
+                      labelLine={false}
+                      label={(entry) => `${entry.name}`}
+                      nameKey="name"
+                      cx="50%"
+                      cy="50%"
+                      outerRadius={80}
+                      innerRadius={40}
+                      paddingAngle={2}
+                    >
+                      {categoryChartData.data.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={entry.fill} stroke="transparent" />
+                      ))}
+                    </Pie>
+                  </PieChart>
+                </ChartContainer>
+              </div>
+            ) : (
+              <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">Brak danych</div>
+            )}
           </CardContent>
         </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle className="text-base">Porównanie kosztów miesięcznych</CardTitle>
+
+        <Card className="shadow-sm border-border/50">
+          <CardHeader className="border-b border-border/50 pb-4">
+            <CardTitle className="flex items-center gap-2">
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                <BarChart3 className="h-4 w-4" />
+              </div>
+              <span className="text-lg">Porównanie kosztów</span>
+            </CardTitle>
           </CardHeader>
-          <CardContent>
+          <CardContent className="pt-6">
             {barChartData.data.length > 0 ? (
               <ChartContainer config={barChartData.config} className="max-h-[300px] w-full">
                 <BarChart data={barChartData.data}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis dataKey="name" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                  <YAxis tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                  <ChartTooltip content={<ChartTooltipContent hideLabel formatter={currencyFormatter} />} />
-                  <Bar dataKey="value" radius={[4, 4, 0, 0]}>
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" opacity={0.3} />
+                  <XAxis dataKey="name" tickLine={false} axisLine={false} tickMargin={10} style={{ fontSize: '12px' }} />
+                  <YAxis tickLine={false} axisLine={false} tickMargin={10} style={{ fontSize: '12px' }} />
+                  <ChartTooltip cursor={{ fill: 'rgba(var(--primary), 0.05)' }} content={<ChartTooltipContent hideLabel formatter={currencyFormatter} />} />
+                  <Bar dataKey="value" radius={[4, 4, 0, 0]} barSize={40}>
                     {barChartData.data.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                      <Cell key={`cell-${index}`} fill={entry.fill} className="hover:opacity-80 transition-opacity" />
                     ))}
                   </Bar>
                 </BarChart>
               </ChartContainer>
             ) : (
-              <p className="text-sm text-muted-foreground">Brak danych</p>
+              <div className="flex h-[300px] items-center justify-center text-sm text-muted-foreground">Brak danych</div>
             )}
           </CardContent>
         </Card>
       </div>
-      <div className="rounded-md border">
-        <Table>
+
+      <Card className="shadow-sm overflow-hidden border-border/50">
+        <CardHeader className="bg-muted/30 border-b border-border/50">
+          <CardTitle className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 text-primary">
+              <List className="h-4 w-4" />
+            </div>
+            <span className="text-lg">Szczegółowe zestawienie</span>
+          </CardTitle>
+        </CardHeader>
+        <Table className="premium-table">
           <TableHeader>
             <TableRow>
               <TableHead>Kategoria</TableHead>
               <TableHead>Miesięcznie</TableHead>
               <TableHead>Rocznie</TableHead>
-              <TableHead>Liczba elementów</TableHead>
+              <TableHead className="text-right">Elementy</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             <TableRow>
               <TableCell className="font-medium">Kredyty</TableCell>
-              <TableCell>{formatCurrency(totals.loansMonthly, userCurrency)}</TableCell>
+              <TableCell className="font-semibold">{formatCurrency(totals.loansMonthly, userCurrency)}</TableCell>
               <TableCell>{formatCurrency(totals.loansMonthly * 12, userCurrency)}</TableCell>
-              <TableCell>{activeLoansCount}</TableCell>
+              <TableCell className="text-right">{activeLoansCount}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">Finanse</TableCell>
-              <TableCell>{formatCurrency(totals.subscriptionsMonthly, userCurrency)}</TableCell>
+              <TableCell className="font-semibold">{formatCurrency(totals.subscriptionsMonthly, userCurrency)}</TableCell>
               <TableCell>{formatCurrency(totals.subscriptionsYearly + totals.subscriptionsMonthly * 12, userCurrency)}</TableCell>
-              <TableCell>{subscriptions.length}</TableCell>
+              <TableCell className="text-right">{subscriptions.length}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">Ubezpieczenia</TableCell>
-              <TableCell>{formatCurrency(totals.insurancesMonthly, userCurrency)}</TableCell>
+              <TableCell className="font-semibold">{formatCurrency(totals.insurancesMonthly, userCurrency)}</TableCell>
               <TableCell>{formatCurrency(totals.insurancesYearly + totals.insurancesMonthly * 12, userCurrency)}</TableCell>
-              <TableCell>{activeInsurancesCount}</TableCell>
+              <TableCell className="text-right">{activeInsurancesCount}</TableCell>
             </TableRow>
             <TableRow>
               <TableCell className="font-medium">AI</TableCell>
-              <TableCell>{formatCurrency(totals.aiMonthly, userCurrency)}</TableCell>
+              <TableCell className="font-semibold">{formatCurrency(totals.aiMonthly, userCurrency)}</TableCell>
               <TableCell>{formatCurrency(totals.aiYearly + totals.aiMonthly * 12, userCurrency)}</TableCell>
-              <TableCell>{activeAICount}</TableCell>
+              <TableCell className="text-right">{activeAICount}</TableCell>
             </TableRow>
-            <TableRow className="font-bold">
-              <TableCell>RAZEM</TableCell>
-              <TableCell>{formatCurrency(totals.totalMonthly, userCurrency)}</TableCell>
-              <TableCell>{formatCurrency(totals.totalYearly + totals.totalMonthly * 12, userCurrency)}</TableCell>
-              <TableCell>{loans.length + subscriptions.length + insurances.length + ai.length}</TableCell>
+            <TableRow className="bg-primary/5 hover:bg-primary/10 transition-colors border-t-2">
+              <TableCell className="font-bold text-primary italic underline-offset-4 decoration-primary/30 decoration-2">RAZEM</TableCell>
+              <TableCell className="font-bold text-primary">{formatCurrency(totals.totalMonthly, userCurrency)}</TableCell>
+              <TableCell className="font-bold text-primary">{formatCurrency(totals.totalYearly + totals.totalMonthly * 12, userCurrency)}</TableCell>
+              <TableCell className="text-right font-bold text-primary">{loans.length + subscriptions.length + insurances.length + ai.length}</TableCell>
             </TableRow>
           </TableBody>
         </Table>
-      </div>
+      </Card>
     </div>
   );
 });
-
