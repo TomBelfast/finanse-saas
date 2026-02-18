@@ -73,7 +73,7 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
             .single();
 
           if (permError || !permission) {
-            logger.warn('[AuthChecker] Access denied - no active permission for app', { appId, userId: user.id });
+            logger.warn('[AuthChecker] Access denied - no active permission for app', { appId, userId: user.id, error: permError });
             toast.error('Brak uprawnień do korzystania z tej aplikacji.');
             await supabase.auth.signOut();
             dispatch(userActions.logOutUser());

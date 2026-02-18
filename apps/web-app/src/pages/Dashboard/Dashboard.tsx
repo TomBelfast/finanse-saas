@@ -3,7 +3,6 @@ import { Route, RouteComponentProps, Switch } from 'react-router-dom';
 import { useSelector } from 'react-redux';
 import { useTranslation } from 'react-i18next';
 import { Avatar, AvatarFallback, AvatarImage } from '~/components/ui/avatar';
-import { useUser } from '@clerk/clerk-react';
 
 import { AppStore, getUserInitial } from '@akademiasaas/shared';
 import { SidebarProvider, SidebarInset } from '~/components/ui/sidebar';
@@ -28,7 +27,6 @@ const Dashboard: React.FC<React.PropsWithChildren<RouteComponentProps>> = ({ chi
   const { t } = useTranslation('dashboard');
   const [isDrawerOpen, setIsDrawerOpen] = useState(false);
   const { details } = useSelector((store: AppStore) => store.user);
-  const { user } = useUser();
 
   const toggleDrawer = () => {
     setIsDrawerOpen(!isDrawerOpen);
@@ -59,7 +57,7 @@ const Dashboard: React.FC<React.PropsWithChildren<RouteComponentProps>> = ({ chi
               <span className="text-xs text-gray-500">Kursant</span>
             </div>
             <Avatar className="cursor-pointer">
-              <AvatarImage src={user?.imageUrl} />
+              <AvatarImage src={(Array.isArray(details?.avatarUrl) ? details?.avatarUrl[0] : details?.avatarUrl) || undefined} />
               <AvatarFallback>{getUserInitial(`${details?.firstName} ${details?.lastName}`)}</AvatarFallback>
             </Avatar>
           </div>

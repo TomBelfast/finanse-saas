@@ -13,7 +13,7 @@ import { useTranslation } from 'react-i18next';
 import { useSelector } from 'react-redux';
 import { AppStore, getUserInitial, userActions } from '@akademiasaas/shared';
 import { useAppDispatch } from '~/initializeStore';
-import { useUser, useAuth } from '@clerk/clerk-react';
+import { useSupabaseAuth } from '~/providers/SupabaseAuthProvider';
 import { LogOut, User } from 'lucide-react';
 import { logger } from '~/utils/logger';
 
@@ -27,8 +27,7 @@ type Props = OwnProps;
 const ProfileDrawer: FunctionComponent<Props> = ({ toggleDrawer, isOpen }) => {
   const { t } = useTranslation('dashboard');
   const { details } = useSelector((store: AppStore) => store.user);
-  const { user } = useUser();
-  const { signOut } = useAuth();
+  const { signOut } = useSupabaseAuth();
   const dispatch = useAppDispatch();
 
   const logoutUser = async () => {
@@ -58,7 +57,7 @@ const ProfileDrawer: FunctionComponent<Props> = ({ toggleDrawer, isOpen }) => {
           <div className="flex flex-col items-center gap-4">
             <div className="relative">
               <Avatar className="h-24 w-24 rounded-lg">
-                <AvatarImage src={user?.imageUrl} />
+                <AvatarImage src={(Array.isArray(details?.avatarUrl) ? details?.avatarUrl[0] : details?.avatarUrl) || undefined} />
                 <AvatarFallback className="rounded-lg text-lg">
                   {getUserInitial(`${details?.firstName} ${details?.lastName}`)}
                 </AvatarFallback>
