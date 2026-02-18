@@ -1,18 +1,19 @@
-import { Moon, Sun, Monitor } from 'lucide-react'
-import { useTheme } from '~/hooks/useTheme'
+import { Moon, Sun, Monitor, Sparkles, Coffee, Crown, Terminal, Ghost, Waves } from 'lucide-react'
+import { useTheme, type Theme } from '~/hooks/useTheme'
 import { cn } from '~/lib/utils'
 
 export function ThemeToggle() {
     const { theme, setTheme } = useTheme()
 
-    const themes = [
-        { value: 'light' as const, icon: Sun, label: 'Jasny' },
-        { value: 'dark' as const, icon: Moon, label: 'Ciemny' },
-        { value: 'system' as const, icon: Monitor, label: 'System' },
+    const themes: { value: Theme, icon: any, label: string }[] = [
+        { value: 'light', icon: Sun, label: 'Jasny' },
+        { value: 'dark', icon: Moon, label: 'Ciemny' },
+        { value: 'system', icon: Monitor, label: 'System' },
+        { value: 'warmth', icon: Coffee, label: 'Neutralny' },
     ]
 
     return (
-        <div className="flex items-center gap-1 rounded-lg bg-muted p-1">
+        <div className="flex flex-wrap items-center gap-1 rounded-lg bg-muted p-1">
             {themes.map(({ value, icon: Icon, label }) => (
                 <button
                     key={value}
@@ -38,13 +39,25 @@ export function ThemeToggle() {
 export function ThemeToggleCompact() {
     const { theme, setTheme } = useTheme()
 
+    const themes: Theme[] = ['light', 'dark', 'system', 'warmth']
+
     const toggleTheme = () => {
-        if (theme === 'light') setTheme('dark')
-        else if (theme === 'dark') setTheme('system')
-        else setTheme('light')
+        const currentIndex = themes.indexOf(theme)
+        const nextIndex = (currentIndex + 1) % themes.length
+        setTheme(themes[nextIndex])
     }
 
-    const Icon = theme === 'dark' ? Moon : theme === 'light' ? Sun : Monitor
+    const getIcon = () => {
+        switch (theme) {
+            case 'light': return Sun
+            case 'dark': return Moon
+            case 'system': return Monitor
+            case 'warmth': return Coffee
+            default: return Monitor
+        }
+    }
+
+    const Icon = getIcon()
 
     return (
         <button
@@ -56,7 +69,7 @@ export function ThemeToggleCompact() {
                 'focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                 'transition-colors'
             )}
-            title={`Motyw: ${theme === 'light' ? 'Jasny' : theme === 'dark' ? 'Ciemny' : 'Systemowy'}`}
+            title={`Motyw: ${theme}`}
         >
             <Icon className="h-5 w-5" />
         </button>

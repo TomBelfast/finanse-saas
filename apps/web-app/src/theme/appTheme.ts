@@ -1,16 +1,16 @@
 import { AliasToken } from 'antd/es/theme/interface';
 
 export const appTheme: Partial<AliasToken> = {
-  colorPrimary: '#2f90d6',
-  colorLink: '#2f90d6',
-  colorSuccess: '#1bc5bd',
-  colorWarning: '#ffa800',
-  colorError: '#f64e60',
-  colorInfo: '#2c4790',
+  colorPrimary: '#10a37f', // ChatGPT Emerald
+  colorLink: '#10a37f',
+  colorSuccess: '#10a37f',
+  colorWarning: '#f59e0b',
+  colorError: '#ef4444',
+  colorInfo: '#10a37f',
   colorTextDisabled: '#b5b5c3',
   colorWhite: '#fff',
-  colorInfoBg: '#e6f7ff',
-  colorInfoBorder: '#91d5ff',
+  colorInfoBg: '#ecfdf5',
+  colorInfoBorder: '#6ee7b7',
   borderRadius: 16,
   borderRadiusLG: 20,
   borderRadiusSM: 12,

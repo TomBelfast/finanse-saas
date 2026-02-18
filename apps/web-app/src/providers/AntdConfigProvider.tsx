@@ -14,7 +14,7 @@ export const AntdConfigProvider = ({ children }: { children: React.ReactNode }) 
         const updateTheme = () => {
             if (theme === 'dark') {
                 setIsDarkMode(true);
-            } else if (theme === 'light') {
+            } else if (['light', 'warmth'].includes(theme)) {
                 setIsDarkMode(false);
             } else {
                 setIsDarkMode(checkSystemTheme());
@@ -34,11 +34,22 @@ export const AntdConfigProvider = ({ children }: { children: React.ReactNode }) 
         return () => mediaQuery.removeEventListener('change', handleChange);
     }, [theme]);
 
+    // Map theme to primary color
+    const getPrimaryColor = () => {
+        switch (theme) {
+            case 'warmth': return '#2f90d6';
+            default: return appTheme.colorPrimary;
+        }
+    }
+
     return (
         <ConfigProvider
             locale={pl}
             theme={{
-                token: appTheme,
+                token: {
+                    ...appTheme,
+                    colorPrimary: getPrimaryColor(),
+                },
                 algorithm: isDarkMode ? antdTheme.darkAlgorithm : antdTheme.defaultAlgorithm,
             }}
         >

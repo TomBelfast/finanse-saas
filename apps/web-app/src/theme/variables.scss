@@ -1,43 +1,35 @@
 $p-normal: 24px;
-$primary-color: #2f90d6;
+$primary-color: #10a37f; // ChatGPT Emerald
 $light-color: #ffffff;
-$success-color: #1bc5bd;
-$info-color: #8950fc;
-$warning-color: #ffa800;
-$error-color: #f64e60;
-$success-green: #87d068;
-$success-color-light: #c9f7f5;
-$primary-text-color: rgba(0, 0, 0, 0.85);
-$secondary-text-color: rgba(0, 0, 0, 0.45);
+$success-color: #10a37f;
+$info-color: #10a37f;
+$warning-color: #f59e0b;
+$error-color: #ef4444;
+$success-green: #10a37f;
+$success-color-light: #ecfdf5;
+$primary-text-color: rgba(255, 255, 255, 0.95);
+$secondary-text-color: rgba(255, 255, 255, 0.65);
 
-// Enhanced 3D Shadows
-$boxShadow: 0 4px 8px rgba(0, 0, 0, 0.08),
-  0 12px 24px rgba(0, 0, 0, 0.14),
-  0 24px 48px rgba(0, 0, 0, 0.16);
+// Enhanced 3D Shadows adjusted for dark mode
+$boxShadow: 0 4px 12px rgba(0, 0, 0, 0.25),
+  0 12px 24px rgba(0, 0, 0, 0.35);
 
-$boxShadow3D: 0 8px 16px rgba(0, 0, 0, 0.10),
-  0 16px 32px rgba(0, 0, 0, 0.16),
-  0 32px 64px rgba(0, 0, 0, 0.20),
-  0 64px 128px rgba(0, 0, 0, 0.14);
+$boxShadow3D: 0 8px 16px rgba(0, 0, 0, 0.3),
+  0 16px 32px rgba(0, 0, 0, 0.4),
+  0 32px 64px rgba(0, 0, 0, 0.5);
 
-$boxShadowLight: 0 4px 12px rgba(0, 0, 0, 0.10),
-  0 8px 20px rgba(0, 0, 0, 0.08);
-
-$boxShadowHover: 0 12px 24px rgba(0, 0, 0, 0.16),
-  0 24px 48px rgba(0, 0, 0, 0.20);
-
-// Modern Gradients
-$gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-$gradient-success: linear-gradient(135deg, #1bc5bd 0%, #0e9f96 100%);
-$gradient-surface: linear-gradient(145deg, #ffffff 0%, #f8f9fa 100%);
-$gradient-card: linear-gradient(145deg, #ffffff 0%, #fafbfc 100%);
+// Modern Gradients - Cinematic Matrix / ChatGPT
+$gradient-primary: linear-gradient(135deg, #10a37f 0%, #059669 100%);
+$gradient-success: linear-gradient(135deg, #10a37f 0%, #0d9488 100%);
+$gradient-surface: linear-gradient(145deg, #2d2f31 0%, #212121 100%);
+$gradient-card: linear-gradient(145deg, #363636 0%, #2d2d2d 100%);
 
 // Border & Spacing
 $border-radius: 16px;
 $border-radius-sm: 12px;
 $border-radius-lg: 20px;
-$border-color: #d9d9d9;
-$background-color: #fafafa;
+$border-color: rgba(255, 255, 255, 0.1);
+$background-color: #212121;
 $defaultBorder: 1px solid $border-color;
 
 $sm-break-point: 576px;

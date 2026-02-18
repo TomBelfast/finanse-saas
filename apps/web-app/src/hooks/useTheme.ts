@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 
-type Theme = 'light' | 'dark' | 'system'
+export type Theme = 'light' | 'dark' | 'system' | 'warmth'
 
 export function useTheme() {
     const [theme, setTheme] = useState<Theme>(() => {
@@ -14,7 +14,8 @@ export function useTheme() {
         const root = window.document.documentElement
 
         const applyTheme = (newTheme: Theme) => {
-            root.classList.remove('light', 'dark')
+            root.classList.remove('light', 'dark', 'warmth')
+            root.setAttribute('data-theme', newTheme)
 
             if (newTheme === 'system') {
                 const systemTheme = window.matchMedia('(prefers-color-scheme: dark)').matches
