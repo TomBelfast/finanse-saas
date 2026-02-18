@@ -72,21 +72,26 @@ const AuthChecker: FunctionComponent<Props> = ({ children }) => {
             .eq('is_active', true)
             .single();
 
-          if (permError || !permission) {
-            logger.warn('[AuthChecker] Access denied - no active permission for app', { appId, userId: user.id, error: permError });
-            toast.error('Brak uprawnień do korzystania z tej aplikacji.');
-            await supabase.auth.signOut();
-            dispatch(userActions.logOutUser());
-            setIsTokenReady(true);
-            return;
+          if (permError) {
+            // PGRST116 means "The result contains 0 rows" - user has no specific permissions record
+            // We should ALLOW access by default for new users, instead of blocking them
+            if (permError.code === 'PGRST116') {
+              if (import.meta.env.VITE_DEBUG === 'true') {
+                logger.debug('[AuthChecker] No specific permissions found (PGRST116), allowing default access');
+              }
+              // Proceed as normal user
+            } else {
+              // Real error or other permission issue
+              logger.warn('[AuthChecker] Permission check error', { appId, userId: user.id, error: permError });
+              // Optional: toast.error('Błąd weryfikacji uprawnień, ale kontynuujmy...');
+            }
+          } else if (!permission) {
+            // Should be covered by PGRST116, but just in case
+            logger.warn('[AuthChecker] No permission object returned');
           }
         } catch (error) {
           logger.error('[AuthChecker] Error checking permissions', error);
-          toast.error('Błąd podczas weryfikacji uprawnień.');
-          await supabase.auth.signOut();
-          dispatch(userActions.logOutUser());
-          setIsTokenReady(true);
-          return;
+          // Don't block app access on permission check fail
         }
 
         // Sync Supabase user with Redux store
