@@ -37,9 +37,11 @@ interface SubscriptionRow extends RowDataPacket {
 /**
  * Helper to extract Date from various formats
  */
-function toDate(value: Date | string | number): Date {
-  if (value instanceof Date) return value;
-  return new Date(value);
+function toDate(value: Date | string | number): string {
+  const date = value instanceof Date ? value : new Date(value);
+  // Format as 'YYYY-MM-DD HH:mm:ss' which is safe for MariaDB/MySQL
+  // ISO string '2023-01-01T00:00:00.000Z' is sometimes rejected by stricter SQL modes or older versions
+  return date.toISOString().slice(0, 19).replace('T', ' ');
 }
 
 export class MariaDBUserSubscriptionRepository {
