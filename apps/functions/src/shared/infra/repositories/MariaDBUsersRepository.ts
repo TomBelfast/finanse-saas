@@ -54,6 +54,10 @@ export class MariaDBUsersRepository implements UsersRepository {
     return JSON.stringify(field);
   }
 
+  private sanitize(value: any): any {
+    return value === undefined ? null : value;
+  }
+
   private mapRowToUserDocument(row: UserRow): UserDocument {
     return {
       uid: row.uid,
@@ -134,26 +138,26 @@ export class MariaDBUsersRepository implements UsersRepository {
         default_currency, onboarding, created_at, updated_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`,
       [
-        userData.uid,
-        userData.email,
-        userData.contactEmail,
-        userData.firstName,
-        userData.lastName,
+        this.sanitize(userData.uid),
+        this.sanitize(userData.email),
+        this.sanitize(userData.contactEmail),
+        this.sanitize(userData.firstName),
+        this.sanitize(userData.lastName),
         this.formatJSONField(userData.avatarUrl),
         this.formatJSONField(userData.mobileFcmTokens),
         this.formatJSONField(userData.webFcmTokens),
-        userData.termsAndPolicyAcceptDate,
-        userData.termsAndPrivacyPolicy,
-        userData.stripeCustomerId,
-        userData.country,
+        this.sanitize(userData.termsAndPolicyAcceptDate),
+        this.sanitize(userData.termsAndPrivacyPolicy ? 1 : 0),
+        this.sanitize(userData.stripeCustomerId),
+        this.sanitize(userData.country),
         this.formatJSONField(userData.features),
-        userData.ip,
+        this.sanitize(userData.ip),
         this.formatJSONField(userData.subscription),
-        userData.lang,
-        userData.timezone,
+        this.sanitize(userData.lang),
+        this.sanitize(userData.timezone),
         this.formatJSONField(userData.invoiceData),
-        userData.phoneNumber,
-        userData.defaultCurrency,
+        this.sanitize(userData.phoneNumber),
+        this.sanitize(userData.defaultCurrency),
         this.formatJSONField(userData.onboarding),
       ]
     );
