@@ -168,7 +168,7 @@ const AI = () => {
         let attachments = [];
         try {
           attachments = typeof row.documents === 'string' ? JSON.parse(row.documents) : (row.documents ? (Array.isArray(row.documents) ? row.documents : []) : []);
-        } catch (e) { 
+        } catch (e) {
           logger.error('Error parsing attachments', e instanceof Error ? e : new Error(String(e)));
         }
 
@@ -240,7 +240,7 @@ const AI = () => {
   const summary = useMemo(() => {
     // Używamy wszystkich danych (data) dla summary, aby pokazywać całkowite wartości
     const allAI = data || [];
-    
+
     const activeAI = allAI.filter(ai => ai.status === 'active');
     // Filtrujemy tylko AI z statusem "do_zaplaty" - ignorujemy "zapłacono"
     const pendingPayments = activeAI.filter(ai => ai.paymentStatus === 'do_zaplaty');
@@ -593,7 +593,7 @@ const AI = () => {
                 {(() => {
                   // Używamy wszystkich AI, nie tylko przefiltrowanych, aby pokazać wszystkie elementy
                   const allAI = data || [];
-                  
+
                   const COLORS = [
                     "hsl(var(--chart-1))",
                     "hsl(var(--chart-2))",
@@ -607,10 +607,10 @@ const AI = () => {
                     .filter(ai => ai.amountDue)
                     .map((ai, index) => {
                       // Dla rocznych, dzielimy przez 12, dla miesięcznych bierzemy pełną kwotę
-                      const monthlyAmount = ai.renewalCycle === 'yearly' 
-                        ? (ai.amountDue || 0) / 12 
+                      const monthlyAmount = ai.renewalCycle === 'yearly'
+                        ? (ai.amountDue || 0) / 12
                         : (ai.amountDue || 0);
-                      
+
                       return {
                         name: ai.name || `Usługa ${index + 1}`,
                         amount: monthlyAmount,
@@ -638,26 +638,26 @@ const AI = () => {
                     <ChartContainer config={aiConfig} className="max-h-[300px] w-full">
                       <BarChart data={chartData} layout="vertical" margin={{ left: 0 }}>
                         <CartesianGrid horizontal={false} />
-                        <YAxis 
-                          dataKey="name" 
-                          type="category" 
-                          tickLine={false} 
-                          axisLine={false} 
-                          width={150} 
+                        <YAxis
+                          dataKey="name"
+                          type="category"
+                          tickLine={false}
+                          axisLine={false}
+                          width={150}
                           style={{ fontSize: '12px' }}
                         />
                         <XAxis type="number" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                        <ChartTooltip 
-                          cursor={false} 
-                          content={<ChartTooltipContent 
-                            hideLabel 
+                        <ChartTooltip
+                          cursor={false}
+                          content={<ChartTooltipContent
+                            hideLabel
                             formatter={(value: unknown, _name: unknown, props?: { payload?: { paymentStatus?: string } }) => {
                               const numValue = typeof value === 'number' ? value : Number(value) || 0;
                               const paymentStatus = props?.payload?.paymentStatus || '';
                               return [formatCurrency(numValue, userCurrency), paymentStatus];
                             }}
                             labelFormatter={(label) => label}
-                          />} 
+                          />}
                         />
                         <Bar dataKey="amount" layout="vertical" radius={5}>
                           {chartData.map((entry, index) => (
@@ -678,7 +678,7 @@ const AI = () => {
                 {(() => {
                   // Używamy wszystkich AI, nie tylko przefiltrowanych
                   const allAI = data || [];
-                  
+
                   const COLORS = [
                     "hsl(var(--chart-1))",
                     "hsl(var(--chart-2))",
@@ -698,10 +698,10 @@ const AI = () => {
                       // Używamy amountDue jeśli istnieje, w przeciwnym razie amount
                       const baseAmount = ai.amountDue || ai.amount || 0;
                       // Dla rocznych, dzielimy przez 12, dla miesięcznych bierzemy pełną kwotę
-                      const monthlyAmount = ai.renewalCycle === 'yearly' 
-                        ? baseAmount / 12 
+                      const monthlyAmount = ai.renewalCycle === 'yearly'
+                        ? baseAmount / 12
                         : baseAmount;
-                      
+
                       return {
                         name: ai.name || `Usługa ${index + 1}`,
                         total: monthlyAmount,
@@ -741,15 +741,16 @@ const AI = () => {
                   return chartDataWithPercentages.length > 0 && totalSum > 0 ? (
                     <ChartContainer config={aiConfig} className="[&_.recharts-pie-label-text]:fill-foreground mx-auto aspect-square max-h-[300px]">
                       <PieChart>
-                        <ChartTooltip 
-                          content={<ChartTooltipContent 
+                        <ChartTooltip
+                          content={<ChartTooltipContent
                             hideLabel
-                            formatter={(value: unknown) => {
-                              const paymentStatus = props.payload?.paymentStatus || '';
-                              return [formatCurrency(value, userCurrency), paymentStatus];
+                            formatter={(value: unknown, _name: unknown, props?: { payload?: { paymentStatus?: string } }) => {
+                              const numValue = typeof value === 'number' ? value : Number(value) || 0;
+                              const paymentStatus = props?.payload?.paymentStatus || '';
+                              return [formatCurrency(numValue, userCurrency), paymentStatus];
                             }}
                             labelFormatter={(label) => label}
-                          />} 
+                          />}
                         />
                         <Pie
                           data={chartDataWithPercentages}
@@ -778,7 +779,7 @@ const AI = () => {
               {(() => {
                 // Używamy wszystkich AI, nie tylko przefiltrowanych
                 const allAI = data || [];
-                
+
                 const COLORS = [
                   "hsl(var(--chart-1))",
                   "hsl(var(--chart-2))",
@@ -792,10 +793,10 @@ const AI = () => {
                   .filter(ai => ai.amountDue)
                   .map((ai, index) => {
                     // Dla rocznych, dzielimy przez 12, dla miesięcznych bierzemy pełną kwotę
-                    const monthlyAmount = ai.renewalCycle === 'yearly' 
-                      ? (ai.amountDue || 0) / 12 
+                    const monthlyAmount = ai.renewalCycle === 'yearly'
+                      ? (ai.amountDue || 0) / 12
                       : (ai.amountDue || 0);
-                    
+
                     return {
                       name: ai.name || `Usługa ${index + 1}`,
                       amount: monthlyAmount,
@@ -824,25 +825,25 @@ const AI = () => {
                   <ChartContainer config={cycleConfig} className="max-h-[300px] w-full">
                     <BarChart data={chartData} layout="vertical" margin={{ left: 0 }}>
                       <CartesianGrid horizontal={false} />
-                      <YAxis 
-                        dataKey="name" 
-                        type="category" 
-                        tickLine={false} 
-                        axisLine={false} 
-                        width={150} 
+                      <YAxis
+                        dataKey="name"
+                        type="category"
+                        tickLine={false}
+                        axisLine={false}
+                        width={150}
                         style={{ fontSize: '12px' }}
                       />
                       <XAxis type="number" tickLine={false} axisLine={false} style={{ fontSize: '12px' }} />
-                      <ChartTooltip 
-                        cursor={false} 
-                        content={<ChartTooltipContent 
-                          hideLabel 
+                      <ChartTooltip
+                        cursor={false}
+                        content={<ChartTooltipContent
+                          hideLabel
                           formatter={(value: unknown) => {
                             const numValue = typeof value === 'number' ? value : Number(value) || 0;
                             return formatCurrency(numValue, userCurrency);
                           }}
                           labelFormatter={(label) => label}
-                        />} 
+                        />}
                       />
                       <Bar dataKey="amount" layout="vertical" radius={5}>
                         {chartData.map((entry, index) => (
