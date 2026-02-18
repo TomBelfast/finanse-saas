@@ -20,6 +20,9 @@ importers:
       '@manypkg/cli':
         specifier: ^0.21.2
         version: 0.21.4
+      '@supabase/supabase-js':
+        specifier: ^2.97.0
+        version: 2.97.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@typescript-eslint/eslint-plugin':
         specifier: ^8.26.1
         version: 8.35.0(@typescript-eslint/parser@8.35.0(eslint@8.57.0)(typescript@5.8.3))(eslint@8.57.0)(typescript@5.8.3)
@@ -61,7 +64,7 @@ importers:
         version: 5.5.0(zod@3.25.67)
       '@clerk/clerk-sdk-node':
         specifier: ^5.0.0
-        version: 5.1.6(react-dom@18.2.0(react@19.2.3))(react@19.2.3)
+        version: 5.1.6(react-dom@18.2.0(react@19.2.4))(react@19.2.4)
       '@google-cloud/pubsub':
         specifier: ^2.7.0
         version: 2.19.4(encoding@0.1.13)
@@ -80,6 +83,9 @@ importers:
       '@sendgrid/mail':
         specifier: ^7.4.0
         version: 7.7.0
+      '@supabase/supabase-js':
+        specifier: ^2.97.0
+        version: 2.97.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@types/facebook-nodejs-business-sdk':
         specifier: ^20.0.2
         version: 20.0.3
@@ -558,6 +564,9 @@ importers:
       '@stripe/stripe-js':
         specifier: ^1.35.0
         version: 1.54.2
+      '@supabase/supabase-js':
+        specifier: ^2.97.0
+        version: 2.97.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
       '@svgr/webpack':
         specifier: ^5.5.0
         version: 5.5.0
@@ -4842,6 +4851,30 @@ packages:
   '@stripe/stripe-js@1.54.2':
     resolution: {integrity: sha512-R1PwtDvUfs99cAjfuQ/WpwJ3c92+DAMy9xGApjqlWQMj0FKQabUAys2swfTRNzuYAYJh7NqK2dzcYVNkKLEKUg==}
 
+  '@supabase/auth-js@2.97.0':
+    resolution: {integrity: sha512-2Og/1lqp+AIavr8qS2X04aSl8RBY06y4LrtIAGxat06XoXYiDxKNQMQzWDAKm1EyZFZVRNH48DO5YvIZ7la5fQ==}
+    engines: {node: '>=20.0.0'}
+
+  '@supabase/functions-js@2.97.0':
+    resolution: {integrity: sha512-fSaA0ZeBUS9hMgpGZt5shIZvfs3Mvx2ZdajQT4kv/whubqDBAp3GU5W8iIXy21MRvKmO2NpAj8/Q6y+ZkZyF/w==}
+    engines: {node: '>=20.0.0'}
+
+  '@supabase/postgrest-js@2.97.0':
+    resolution: {integrity: sha512-g4Ps0eaxZZurvfv/KGoo2XPZNpyNtjth9aW8eho9LZWM0bUuBtxPZw3ZQ6ERSpEGogshR+XNgwlSPIwcuHCNww==}
+    engines: {node: '>=20.0.0'}
+
+  '@supabase/realtime-js@2.97.0':
+    resolution: {integrity: sha512-37Jw0NLaFP0CZd7qCan97D1zWutPrTSpgWxAw6Yok59JZoxp4IIKMrPeftJ3LZHmf+ILQOPy3i0pRDHM9FY36Q==}
+    engines: {node: '>=20.0.0'}
+
+  '@supabase/storage-js@2.97.0':
+    resolution: {integrity: sha512-9f6NniSBfuMxOWKwEFb+RjJzkfMdJUwv9oHuFJKfe/5VJR8cd90qw68m6Hn0ImGtwG37TUO+QHtoOechxRJ1Yg==}
+    engines: {node: '>=20.0.0'}
+
+  '@supabase/supabase-js@2.97.0':
+    resolution: {integrity: sha512-kTD91rZNO4LvRUHv4x3/4hNmsEd2ofkYhuba2VMUPRVef1RCmnHtm7rIws38Fg0yQnOSZOplQzafn0GSiy6GVg==}
+    engines: {node: '>=20.0.0'}
+
   '@surma/rollup-plugin-off-main-thread@2.2.3':
     resolution: {integrity: sha512-lR8q/9W7hZpMWweNiAKU7NQerBnzQQLvi8qnTDU/fxItPhtZVMbPV3lbCwjhIlNBe9Bbr5V+KHshvWmVSG9cxQ==}
 
@@ -5406,6 +5439,9 @@ packages:
 
   '@types/pbf@3.0.5':
     resolution: {integrity: sha512-j3pOPiEcWZ34R6a6mN07mUkM4o4Lwf6hPNt8eilOeZhTFbxFXmKhvXl9Y28jotFPaI1bpPDJsbCprUoNke6OrA==}
+
+  '@types/phoenix@1.6.7':
+    resolution: {integrity: sha512-oN9ive//QSBkf19rfDv45M7eZPi0eEXylht2OLEXicu5b4KoQ1OzXIw+xDSGWxSxe1JmepRR/ZH283vsu518/Q==}
 
   '@types/prettier@2.7.3':
     resolution: {integrity: sha512-+68kP9yzs4LMp7VNh8gdzMSPZFL44MLGqiHWvttYJe+6qnuVr4Ek9wSBQoveqY/r+LwjCcU29kNVkidwim+kYA==}
@@ -9281,6 +9317,10 @@ packages:
 
   i18next@19.9.2:
     resolution: {integrity: sha512-0i6cuo6ER6usEOtKajUUDj92zlG+KArFia0857xxiEHAQcUwh/RtOQocui1LPJwunSYT574Pk64aNva1kwtxZg==}
+
+  iceberg-js@0.8.1:
+    resolution: {integrity: sha512-1dhVQZXhcHje7798IVM+xoo/1ZdVfzOMIc8/rgVSijRK38EDqOJoGula9N/8ZI5RD8QTxNQtK/Gozpr+qUqRRA==}
+    engines: {node: '>=20.0.0'}
 
   iconv-lite@0.4.24:
     resolution: {integrity: sha512-v3MXnZAcvnywkTUEZomIActle7RXXeedOR31wwl7VlyoXO4Qi9arvSenNQWne1TcRwhCL1HwLI21bEqdpj8/rA==}
@@ -13485,8 +13525,8 @@ packages:
     resolution: {integrity: sha512-/3IjMdb2L9QbBdWiW5e3P2/npwMBaU9mHCSCUzNln0ZCYbcfTsGbTJrU/kGemdH2IWmB2ioZ+zkxtmq6g09fGQ==}
     engines: {node: '>=0.10.0'}
 
-  react@19.2.3:
-    resolution: {integrity: sha512-Ku/hhYbVjOQnXDZFv2+RibmLFGwFdeeKHFcOTlrt7xplBnya5OGn/hIRDsqDiSUcfORsDC7MPxwork8jBwsIWA==}
+  react@19.2.4:
+    resolution: {integrity: sha512-9nfp2hYpCwOjAN+8TZFGhtWEwgvWHXqESH8qT89AT/lWklpLON22Lc8pEtnpsZz7VmawabSU0gCjnj8aC0euHQ==}
     engines: {node: '>=0.10.0'}
 
   reactcss@1.2.3:
@@ -15331,8 +15371,8 @@ packages:
     resolution: {integrity: sha512-gptHNQghINnc/vTGIk0SOFGFNXw7JVrlRUtConJRlvaw6DuX0wO5Jeko9sWrMBhh+PsYAZ7oXAiOnf/UKogyiw==}
     engines: {node: '>= 10.0.0'}
 
-  unlayer-types@1.353.0:
-    resolution: {integrity: sha512-DCuxsgP2geuTxLnWNQjrME3D7upRJf4ke/Nd9aAXDsPx/6KXoPltsw1h8+nFkeMHKCBobqh8Dn6CzkGeWBVBBA==}
+  unlayer-types@1.372.0:
+    resolution: {integrity: sha512-VkxM4XkjZAqRXywuY0ZI8feONHEKv/IfuQOWBqho7qpv4/+y4PlzsFAaGklx3D4aZoxa/xCKgJV3FSx69FMQug==}
 
   unpipe@1.0.0:
     resolution: {integrity: sha512-pjy2bYhSsufwWlKwPc+l3cN7+wuJlK6uz0YdJEOlQDbl6jo/YlPi4mb8agUkVC8BF7V8NuzeyPNqRksA3hztKQ==}
@@ -17726,10 +17766,10 @@ snapshots:
 
   '@bomdi/codebox@1.0.12': {}
 
-  '@clerk/backend@1.34.0(react-dom@18.2.0(react@19.2.3))(react@19.2.3)':
+  '@clerk/backend@1.34.0(react-dom@18.2.0(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@clerk/shared': 3.39.0(react-dom@18.2.0(react@19.2.3))(react@19.2.3)
-      '@clerk/types': 4.101.6(react-dom@18.2.0(react@19.2.3))(react@19.2.3)
+      '@clerk/shared': 3.39.0(react-dom@18.2.0(react@19.2.4))(react@19.2.4)
+      '@clerk/types': 4.101.6(react-dom@18.2.0(react@19.2.4))(react@19.2.4)
       cookie: 1.0.2
       snakecase-keys: 8.0.1
       tslib: 2.8.1
@@ -17744,28 +17784,28 @@ snapshots:
       react-dom: 18.2.0(react@18.2.0)
       tslib: 2.8.1
 
-  '@clerk/clerk-sdk-node@5.1.6(react-dom@18.2.0(react@19.2.3))(react@19.2.3)':
+  '@clerk/clerk-sdk-node@5.1.6(react-dom@18.2.0(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@clerk/backend': 1.34.0(react-dom@18.2.0(react@19.2.3))(react@19.2.3)
-      '@clerk/shared': 2.22.0(react-dom@18.2.0(react@19.2.3))(react@19.2.3)
-      '@clerk/types': 4.101.6(react-dom@18.2.0(react@19.2.3))(react@19.2.3)
+      '@clerk/backend': 1.34.0(react-dom@18.2.0(react@19.2.4))(react@19.2.4)
+      '@clerk/shared': 2.22.0(react-dom@18.2.0(react@19.2.4))(react@19.2.4)
+      '@clerk/types': 4.101.6(react-dom@18.2.0(react@19.2.4))(react@19.2.4)
       tslib: 2.4.1
     transitivePeerDependencies:
       - react
       - react-dom
       - svix
 
-  '@clerk/shared@2.22.0(react-dom@18.2.0(react@19.2.3))(react@19.2.3)':
+  '@clerk/shared@2.22.0(react-dom@18.2.0(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@clerk/types': 4.101.6(react-dom@18.2.0(react@19.2.3))(react@19.2.3)
+      '@clerk/types': 4.101.6(react-dom@18.2.0(react@19.2.4))(react@19.2.4)
       dequal: 2.0.3
       glob-to-regexp: 0.4.1
       js-cookie: 3.0.5
       std-env: 3.9.0
-      swr: 2.3.7(react@19.2.3)
+      swr: 2.3.7(react@19.2.4)
     optionalDependencies:
-      react: 19.2.3
-      react-dom: 18.2.0(react@19.2.3)
+      react: 19.2.4
+      react-dom: 18.2.0(react@19.2.4)
 
   '@clerk/shared@3.39.0(react-dom@18.2.0(react@18.2.0))(react@18.2.0)':
     dependencies:
@@ -17779,21 +17819,21 @@ snapshots:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
 
-  '@clerk/shared@3.39.0(react-dom@18.2.0(react@19.2.3))(react@19.2.3)':
+  '@clerk/shared@3.39.0(react-dom@18.2.0(react@19.2.4))(react@19.2.4)':
     dependencies:
       csstype: 3.1.3
       dequal: 2.0.3
       glob-to-regexp: 0.4.1
       js-cookie: 3.0.5
       std-env: 3.9.0
-      swr: 2.3.4(react@19.2.3)
+      swr: 2.3.4(react@19.2.4)
     optionalDependencies:
-      react: 19.2.3
-      react-dom: 18.2.0(react@19.2.3)
+      react: 19.2.4
+      react-dom: 18.2.0(react@19.2.4)
 
-  '@clerk/types@4.101.6(react-dom@18.2.0(react@19.2.3))(react@19.2.3)':
+  '@clerk/types@4.101.6(react-dom@18.2.0(react@19.2.4))(react@19.2.4)':
     dependencies:
-      '@clerk/shared': 3.39.0(react-dom@18.2.0(react@19.2.3))(react@19.2.3)
+      '@clerk/shared': 3.39.0(react-dom@18.2.0(react@19.2.4))(react@19.2.4)
     transitivePeerDependencies:
       - react
       - react-dom
@@ -21046,6 +21086,44 @@ snapshots:
 
   '@stripe/stripe-js@1.54.2': {}
 
+  '@supabase/auth-js@2.97.0':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/functions-js@2.97.0':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/postgrest-js@2.97.0':
+    dependencies:
+      tslib: 2.8.1
+
+  '@supabase/realtime-js@2.97.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@types/phoenix': 1.6.7
+      '@types/ws': 8.18.1
+      tslib: 2.8.1
+      ws: 8.18.2(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
+  '@supabase/storage-js@2.97.0':
+    dependencies:
+      iceberg-js: 0.8.1
+      tslib: 2.8.1
+
+  '@supabase/supabase-js@2.97.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)':
+    dependencies:
+      '@supabase/auth-js': 2.97.0
+      '@supabase/functions-js': 2.97.0
+      '@supabase/postgrest-js': 2.97.0
+      '@supabase/realtime-js': 2.97.0(bufferutil@4.0.9)(utf-8-validate@5.0.10)
+      '@supabase/storage-js': 2.97.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
+
   '@surma/rollup-plugin-off-main-thread@2.2.3':
     dependencies:
       ejs: 3.1.10
@@ -21703,6 +21781,8 @@ snapshots:
   '@types/parse-json@4.0.2': {}
 
   '@types/pbf@3.0.5': {}
+
+  '@types/phoenix@1.6.7': {}
 
   '@types/prettier@2.7.3': {}
 
@@ -26634,6 +26714,8 @@ snapshots:
     dependencies:
       '@babel/runtime': 7.27.6
 
+  iceberg-js@0.8.1: {}
+
   iconv-lite@0.4.24:
     dependencies:
       safer-buffer: 2.1.2
@@ -29850,7 +29932,7 @@ snapshots:
 
   notion-blocks-react-renderer@1.4.0:
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
   npm-bundled@1.1.2:
     dependencies:
@@ -32114,10 +32196,10 @@ snapshots:
       react: 18.2.0
       scheduler: 0.23.2
 
-  react-dom@18.2.0(react@19.2.3):
+  react-dom@18.2.0(react@19.2.4):
     dependencies:
       loose-envify: 1.4.0
-      react: 19.2.3
+      react: 19.2.4
       scheduler: 0.23.2
     optional: true
 
@@ -32131,7 +32213,7 @@ snapshots:
   react-email-editor@1.7.11(react@18.2.0):
     dependencies:
       react: 18.2.0
-      unlayer-types: 1.353.0
+      unlayer-types: 1.372.0
 
   react-error-boundary@3.1.4(react@18.2.0):
     dependencies:
@@ -32325,7 +32407,7 @@ snapshots:
     dependencies:
       loose-envify: 1.4.0
 
-  react@19.2.3: {}
+  react@19.2.4: {}
 
   reactcss@1.2.3(react@18.2.0):
     dependencies:
@@ -33794,17 +33876,17 @@ snapshots:
       react: 18.2.0
       use-sync-external-store: 1.5.0(react@18.2.0)
 
-  swr@2.3.4(react@19.2.3):
+  swr@2.3.4(react@19.2.4):
     dependencies:
       dequal: 2.0.3
-      react: 19.2.3
-      use-sync-external-store: 1.5.0(react@19.2.3)
+      react: 19.2.4
+      use-sync-external-store: 1.5.0(react@19.2.4)
 
-  swr@2.3.7(react@19.2.3):
+  swr@2.3.7(react@19.2.4):
     dependencies:
       dequal: 2.0.3
-      react: 19.2.3
-      use-sync-external-store: 1.5.0(react@19.2.3)
+      react: 19.2.4
+      use-sync-external-store: 1.5.0(react@19.2.4)
 
   symbol-observable@1.2.0: {}
 
@@ -34476,7 +34558,7 @@ snapshots:
 
   universalify@2.0.1: {}
 
-  unlayer-types@1.353.0: {}
+  unlayer-types@1.372.0: {}
 
   unpipe@1.0.0: {}
 
@@ -34553,9 +34635,9 @@ snapshots:
     dependencies:
       react: 18.2.0
 
-  use-sync-external-store@1.5.0(react@19.2.3):
+  use-sync-external-store@1.5.0(react@19.2.4):
     dependencies:
-      react: 19.2.3
+      react: 19.2.4
 
   use@3.1.1: {}
 

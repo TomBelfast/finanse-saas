@@ -1,6 +1,6 @@
 import express from 'express';
 import { getDatabasePool } from '../../../shared/infra/database';
-import { verifyClerkToken } from '../../auth/infra/restRoutes';
+import { verifySupabaseToken } from '../../auth/infra/restRoutes';
 import { AuthenticatedRequest, getUserIdFromRequest, InsuranceRow, LoanRow, SubscriptionRow } from '../../../shared/types/express';
 import { logger } from '../../../shared/utils/logger';
 import { handleError, createErrorResponse } from '../../../shared/utils/errorHandler';
@@ -37,7 +37,7 @@ const toMySQLDate = (dateValue: string | undefined | null, fallback: string): st
 // Database index on user_subscriptions(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
 // Redis cache implemented with 5 minute TTL
 // Returns data directly from database in snake_case format (no transformation)
-router.get('/subscriptions', verifyClerkToken, async (req, res) => {
+router.get('/subscriptions', verifySupabaseToken, async (req, res) => {
   try {
     const authReq = req as AuthenticatedRequest;
     const userId = getUserIdFromRequest(authReq);
@@ -54,7 +54,7 @@ router.get('/subscriptions', verifyClerkToken, async (req, res) => {
     // Try to get from cache first
     const cacheKey = RedisCache.generateKey('user', userId, { type: 'subscriptions' });
     const cached = await redisCache.get<unknown[]>(cacheKey);
-    
+
     if (cached) {
       logger.debug('Get subscriptions: Cache hit', { userId });
       res.json(cached);
@@ -65,7 +65,7 @@ router.get('/subscriptions', verifyClerkToken, async (req, res) => {
     logger.info('Get subscriptions: Fetching for user', { userId });
     const query = 'SELECT * FROM user_subscriptions WHERE user_id = ? ORDER BY created_at DESC';
     const [rows] = await pool.execute<SubscriptionRow[]>(query, [userId]);
-    
+
     // Convert Date objects to ISO strings for JSON response
     const subscriptions = rows.map((row) => ({
       ...row,
@@ -76,10 +76,10 @@ router.get('/subscriptions', verifyClerkToken, async (req, res) => {
       updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
       is_automatic_renewal: Boolean(row.is_automatic_renewal),
     }));
-    
+
     // Cache the result for 5 minutes
     await redisCache.set(cacheKey, subscriptions, 300);
-    
+
     logger.info('Get subscriptions: Success', { userId, count: subscriptions.length });
     res.json(subscriptions);
   } catch (error: unknown) {
@@ -92,7 +92,7 @@ router.get('/subscriptions', verifyClerkToken, async (req, res) => {
 });
 
 // Create subscription
-router.post('/subscriptions', verifyClerkToken, async (req, res) => {
+router.post('/subscriptions', verifySupabaseToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
@@ -139,7 +139,7 @@ router.post('/subscriptions', verifyClerkToken, async (req, res) => {
       renewal_date, provider, description, status, is_automatic_renewal,
       category, documents, created_at, updated_at
     ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, NOW(), NOW())`;
-    
+
     const params = [
       id,
       userId,
@@ -193,7 +193,7 @@ router.post('/subscriptions', verifyClerkToken, async (req, res) => {
 });
 
 // Update subscription
-router.put('/subscriptions/:id', verifyClerkToken, async (req, res) => {
+router.put('/subscriptions/:id', verifySupabaseToken, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
@@ -298,11 +298,11 @@ router.put('/subscriptions/:id', verifyClerkToken, async (req, res) => {
       updated_at: rows[0].updated_at instanceof Date ? rows[0].updated_at.toISOString() : rows[0].updated_at,
       is_automatic_renewal: Boolean(rows[0].is_automatic_renewal),
     };
-    
+
     // Invalidate cache for this user's subscriptions
     const cacheKey = RedisCache.generateKey('user', userId, { type: 'subscriptions' });
     await redisCache.delete(cacheKey);
-    
+
     res.json(subscription);
     return;
   } catch (error: unknown) {
@@ -316,7 +316,7 @@ router.put('/subscriptions/:id', verifyClerkToken, async (req, res) => {
 });
 
 // Delete subscription
-router.delete('/subscriptions/:id', verifyClerkToken, async (req, res) => {
+router.delete('/subscriptions/:id', verifySupabaseToken, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
@@ -338,11 +338,11 @@ router.delete('/subscriptions/:id', verifyClerkToken, async (req, res) => {
 
     // Delete directly from database
     await pool.execute('DELETE FROM user_subscriptions WHERE id = ?', [id]);
-    
+
     // Invalidate cache for this user's subscriptions
     const cacheKey = RedisCache.generateKey('user', userId, { type: 'subscriptions' });
     await redisCache.delete(cacheKey);
-    
+
     res.json({ success: true });
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -359,21 +359,21 @@ router.delete('/subscriptions/:id', verifyClerkToken, async (req, res) => {
 // OPTIMIZATION: Consider adding pagination (limit/offset) for users with many insurances
 // Database index on user_insurances(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
 // Redis cache implemented with 5 minute TTL
-router.get('/insurances', verifyClerkToken, async (req, res) => {
+router.get('/insurances', verifySupabaseToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
-    
+
     // Optional pagination parameters
     const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string, 10), 1000) : undefined;
     const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
-    
+
     let query = 'SELECT * FROM user_insurances WHERE user_id = ? ORDER BY created_at DESC';
     const params: unknown[] = [userId];
-    
+
     if (limit !== undefined) {
       query += ' LIMIT ?';
       params.push(limit);
@@ -382,21 +382,21 @@ router.get('/insurances', verifyClerkToken, async (req, res) => {
         params.push(offset);
       }
     }
-    
+
     // Try to get from cache first (only if no pagination)
     if (limit === undefined && offset === undefined) {
       const cacheKey = RedisCache.generateKey('user', userId, { type: 'insurances' });
       const cached = await redisCache.get<InsuranceRow[]>(cacheKey);
-      
+
       if (cached) {
         logger.debug('Get insurances: Cache hit', { userId });
         res.json(cached);
         return;
       }
     }
-    
+
     const [rows] = await pool.execute<InsuranceRow[]>(query, params);
-    
+
     // Convert Date objects to ISO strings for JSON response (snake_case format, no camelCase transformation)
     const insurances = rows.map((row) => ({
       ...row,
@@ -406,13 +406,13 @@ router.get('/insurances', verifyClerkToken, async (req, res) => {
       created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
       updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
     }));
-    
+
     // Cache the result for 5 minutes (only if no pagination)
     if (limit === undefined && offset === undefined) {
       const cacheKey = RedisCache.generateKey('user', userId, { type: 'insurances' });
       await redisCache.set(cacheKey, insurances, 300);
     }
-    
+
     res.json(insurances);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -424,7 +424,7 @@ router.get('/insurances', verifyClerkToken, async (req, res) => {
 });
 
 // Create insurance
-router.post('/insurances', verifyClerkToken, async (req, res) => {
+router.post('/insurances', verifySupabaseToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
@@ -500,11 +500,11 @@ router.post('/insurances', verifyClerkToken, async (req, res) => {
       res.status(500).json({ error: 'Failed to retrieve created insurance' });
       return;
     }
-    
+
     // Invalidate cache for this user's insurances
     const cacheKey = RedisCache.generateKey('user', userId, { type: 'insurances' });
     await redisCache.delete(cacheKey);
-    
+
     res.status(201).json(rows[0]);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -517,7 +517,7 @@ router.post('/insurances', verifyClerkToken, async (req, res) => {
 });
 
 // Update insurance
-router.put('/insurances/:id', verifyClerkToken, async (req, res) => {
+router.put('/insurances/:id', verifySupabaseToken, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
@@ -599,11 +599,11 @@ router.put('/insurances/:id', verifyClerkToken, async (req, res) => {
       res.status(404).json({ error: 'Insurance not found' });
       return;
     }
-    
+
     // Invalidate cache for this user's insurances
     const cacheKey = RedisCache.generateKey('user', userId, { type: 'insurances' });
     await redisCache.delete(cacheKey);
-    
+
     res.json(rows[0]);
     return;
   } catch (error: unknown) {
@@ -617,7 +617,7 @@ router.put('/insurances/:id', verifyClerkToken, async (req, res) => {
 });
 
 // Delete insurance
-router.delete('/insurances/:id', verifyClerkToken, async (req, res) => {
+router.delete('/insurances/:id', verifySupabaseToken, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
@@ -650,33 +650,33 @@ router.delete('/insurances/:id', verifyClerkToken, async (req, res) => {
 // OPTIMIZATION: Pagination (limit/offset) implemented
 // Database index on user_loans(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
 // Redis cache implemented with 5 minute TTL
-router.get('/loans', verifyClerkToken, async (req, res) => {
+router.get('/loans', verifySupabaseToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
-    
+
     // Optional pagination parameters
     const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string, 10), 1000) : undefined;
     const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
-    
+
     // Try to get from cache first (only if no pagination)
     if (limit === undefined && offset === undefined) {
       const cacheKey = RedisCache.generateKey('user', userId, { type: 'loans' });
       const cached = await redisCache.get<LoanRow[]>(cacheKey);
-      
+
       if (cached) {
         logger.debug('Get loans: Cache hit', { userId });
         res.json(cached);
         return;
       }
     }
-    
+
     let query = 'SELECT * FROM user_loans WHERE user_id = ? ORDER BY created_at DESC';
     const params: unknown[] = [userId];
-    
+
     if (limit !== undefined) {
       query += ' LIMIT ?';
       params.push(limit);
@@ -685,9 +685,9 @@ router.get('/loans', verifyClerkToken, async (req, res) => {
         params.push(offset);
       }
     }
-    
+
     const [rows] = await pool.execute<LoanRow[]>(query, params);
-    
+
     // Convert Date objects to ISO strings for JSON response (snake_case format, no camelCase transformation)
     const loans = rows.map((row) => ({
       ...row,
@@ -697,13 +697,13 @@ router.get('/loans', verifyClerkToken, async (req, res) => {
       created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
       updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
     }));
-    
+
     // Cache the result for 5 minutes (only if no pagination)
     if (limit === undefined && offset === undefined) {
       const cacheKey = RedisCache.generateKey('user', userId, { type: 'loans' });
       await redisCache.set(cacheKey, loans, 300);
     }
-    
+
     res.json(loans);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -715,7 +715,7 @@ router.get('/loans', verifyClerkToken, async (req, res) => {
 });
 
 // Create loan
-router.post('/loans', verifyClerkToken, async (req, res) => {
+router.post('/loans', verifySupabaseToken, async (req, res) => {
   try {
     logger.info('Create loan: Starting', {
       hasAuth: !!(req as AuthenticatedRequest).auth,
@@ -818,7 +818,7 @@ router.post('/loans', verifyClerkToken, async (req, res) => {
 });
 
 // Update loan
-router.put('/loans/:id', verifyClerkToken, async (req, res) => {
+router.put('/loans/:id', verifySupabaseToken, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
@@ -910,7 +910,7 @@ router.put('/loans/:id', verifyClerkToken, async (req, res) => {
 });
 
 // Delete loan
-router.delete('/loans/:id', verifyClerkToken, async (req, res) => {
+router.delete('/loans/:id', verifySupabaseToken, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
@@ -943,33 +943,33 @@ router.delete('/loans/:id', verifyClerkToken, async (req, res) => {
 // OPTIMIZATION: Pagination (limit/offset) implemented
 // Database index on user_ai(user_id, created_at) added in migration 2025_01_18_add_composite_indexes.sql
 // Redis cache implemented with 5 minute TTL
-router.get('/ai', verifyClerkToken, async (req, res) => {
+router.get('/ai', verifySupabaseToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
       res.status(401).json({ error: 'Unauthorized' });
       return;
     }
-    
+
     // Optional pagination parameters
     const limit = req.query.limit ? Math.min(parseInt(req.query.limit as string, 10), 1000) : undefined;
     const offset = req.query.offset ? parseInt(req.query.offset as string, 10) : undefined;
-    
+
     // Try to get from cache first (only if no pagination)
     if (limit === undefined && offset === undefined) {
       const cacheKey = RedisCache.generateKey('user', userId, { type: 'ai' });
       const cached = await redisCache.get<InsuranceRow[]>(cacheKey);
-      
+
       if (cached) {
         logger.debug('Get AI: Cache hit', { userId });
         res.json(cached);
         return;
       }
     }
-    
+
     let query = 'SELECT * FROM user_ai WHERE user_id = ? ORDER BY created_at DESC';
     const params: unknown[] = [userId];
-    
+
     if (limit !== undefined) {
       query += ' LIMIT ?';
       params.push(limit);
@@ -978,9 +978,9 @@ router.get('/ai', verifyClerkToken, async (req, res) => {
         params.push(offset);
       }
     }
-    
+
     const [rows] = await pool.execute<InsuranceRow[]>(query, params);
-    
+
     // Convert Date objects to ISO strings for JSON response (snake_case format, no camelCase transformation)
     const aiItems = rows.map((row) => ({
       ...row,
@@ -990,13 +990,13 @@ router.get('/ai', verifyClerkToken, async (req, res) => {
       created_at: row.created_at instanceof Date ? row.created_at.toISOString() : row.created_at,
       updated_at: row.updated_at instanceof Date ? row.updated_at.toISOString() : row.updated_at,
     }));
-    
+
     // Cache the result for 5 minutes (only if no pagination)
     if (limit === undefined && offset === undefined) {
       const cacheKey = RedisCache.generateKey('user', userId, { type: 'ai' });
       await redisCache.set(cacheKey, aiItems, 300);
     }
-    
+
     res.json(aiItems);
   } catch (error: unknown) {
     const { error: errorMessage, statusCode } = createErrorResponse(error, {
@@ -1008,7 +1008,7 @@ router.get('/ai', verifyClerkToken, async (req, res) => {
 });
 
 // Create AI item
-router.post('/ai', verifyClerkToken, async (req, res) => {
+router.post('/ai', verifySupabaseToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
@@ -1089,7 +1089,7 @@ router.post('/ai', verifyClerkToken, async (req, res) => {
 });
 
 // Update AI item
-router.put('/ai/:id', verifyClerkToken, async (req, res) => {
+router.put('/ai/:id', verifySupabaseToken, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
@@ -1178,7 +1178,7 @@ router.put('/ai/:id', verifyClerkToken, async (req, res) => {
 });
 
 // Delete AI item
-router.delete('/ai/:id', verifyClerkToken, async (req, res) => {
+router.delete('/ai/:id', verifySupabaseToken, async (req, res) => {
   try {
     const { id } = req.params;
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);

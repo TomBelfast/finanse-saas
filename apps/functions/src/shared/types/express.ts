@@ -1,28 +1,28 @@
 import { Request, Response, NextFunction } from 'express'
 
 /**
- * Clerk authentication data attached to request by ClerkExpressRequireAuth middleware
+ * Supabase authentication data attached to request
  */
-export interface ClerkAuth {
+export interface SupabaseAuth {
     userId: string
-    sessionClaims?: {
-        email?: string
-        firstName?: string
-        lastName?: string
-        imageUrl?: string
+    email?: string
+    user_metadata?: {
+        first_name?: string
+        last_name?: string
+        [key: string]: any
     }
 }
 
 /**
- * Express Request with Clerk authentication data
+ * Express Request with Supabase authentication data
  */
 export interface AuthenticatedRequest extends Request {
-    auth?: ClerkAuth
+    auth?: SupabaseAuth
 }
 
 /**
  * Extracts user ID from authenticated request
- * @param req - Express request with Clerk auth
+ * @param req - Express request with Supabase auth
  * @returns User ID or null if not authenticated
  */
 export function getUserIdFromRequest(req: AuthenticatedRequest): string | null {
@@ -32,7 +32,7 @@ export function getUserIdFromRequest(req: AuthenticatedRequest): string | null {
 /**
  * Type guard to check if request has valid authentication
  */
-export function isAuthenticated(req: AuthenticatedRequest): req is AuthenticatedRequest & { auth: ClerkAuth } {
+export function isAuthenticated(req: AuthenticatedRequest): req is AuthenticatedRequest & { auth: SupabaseAuth } {
     return !!req.auth?.userId
 }
 

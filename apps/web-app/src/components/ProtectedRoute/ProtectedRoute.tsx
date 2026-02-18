@@ -3,7 +3,7 @@ import { Redirect, Route, RouteProps, useHistory } from 'react-router-dom'
 import { useSelector } from 'react-redux'
 import { AppStore, RequestStatus, UserStatus } from '@akademiasaas/shared'
 import { Loader2 } from 'lucide-react'
-import { useAuth } from '@clerk/clerk-react'
+import { useSupabaseAuth } from '~/providers/SupabaseAuthProvider'
 import { logger } from '~/utils/logger'
 
 if (import.meta.env.VITE_DEBUG === 'true') {
@@ -17,7 +17,10 @@ const LoadingSpinner = () => (
 )
 
 const ProtectedRoute = ({ component: Component, render, ...rest }: RouteProps) => {
-  const { isSignedIn, isLoaded } = useAuth()
+  const { session, isLoading } = useSupabaseAuth()
+  const isSignedIn = !!session
+  const isLoaded = !isLoading
+
   const {
     data: user,
     status,
@@ -48,7 +51,7 @@ const ProtectedRoute = ({ component: Component, render, ...rest }: RouteProps) =
 
   if (!isLoaded) {
     if (import.meta.env.VITE_DEBUG === 'true') {
-      logger.debug('[ProtectedRoute] Clerk loading');
+      logger.debug('[ProtectedRoute] Supabase loading');
     }
     return <LoadingSpinner />
   }
@@ -60,8 +63,7 @@ const ProtectedRoute = ({ component: Component, render, ...rest }: RouteProps) =
     return <LoadingSpinner />
   }
 
-  // Check Clerk authentication status (not Redux user state)
-  // Redux user might not be synced yet, but Clerk auth is sufficient
+  // Check Supabase authentication status
   if (!isSignedIn) {
     if (import.meta.env.VITE_DEBUG === 'true') {
       logger.debug('[ProtectedRoute] Redirect to auth - not signed in', { isSignedIn, userId: user?.uid });

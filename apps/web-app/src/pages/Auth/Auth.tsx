@@ -19,27 +19,24 @@ import logoWhite from '../../assets/icons/logo-white.png';
 import bg from '../../assets/images/auth-bg.jpg';
 import ImpersonationModal from '~/components/ImpersonationModal/ImpersonationModal';
 import { APP_NAME, APP_URL } from '@akademiasaas/shared';
+import AuthCallback from '~/pages/Auth/components/AuthCallback/AuthCallback';
 
-interface OwnProps {}
+interface OwnProps { }
 
-type Props = OwnProps;
-
-const Auth: FunctionComponent<Props> = () => {
+const Auth: FunctionComponent<OwnProps> = () => {
   const { i18n } = useTranslation();
   const location = useLocation();
   const searchParams = new URLSearchParams(location.search);
   const showImpersonateModal = searchParams.get('impersonate') === 'true';
   const [isOpen, setIsOpen] = React.useState(showImpersonateModal);
   const isPolish = i18n.language === 'pl';
-  const isClerkScreen =
-    location.pathname.startsWith('/auth/login') || location.pathname.startsWith('/auth/register');
 
   const heroContent = isPolish
     ? {
       badge: 'Panel finansowy',
       title: 'Miej finanse firmy pod kontrola kazdego dnia.',
       subtitle:
-          'Subskrypcje, pozyczki i ubezpieczenia w jednym miejscu, bez chaosu w arkuszach.',
+        'Subskrypcje, pozyczki i ubezpieczenia w jednym miejscu, bez chaosu w arkuszach.',
       highlights: [
         'Szybki podglad na kluczowe koszty',
         'Czytelne raporty i statystyki',
@@ -50,7 +47,7 @@ const Auth: FunctionComponent<Props> = () => {
       badge: 'Finance workspace',
       title: 'Keep your company finances clear and under control.',
       subtitle:
-          'Track subscriptions, loans and insurance from one focused dashboard.',
+        'Track subscriptions, loans and insurance from one focused dashboard.',
       highlights: [
         'Fast overview of recurring costs',
         'Clean reports and monthly trends',
@@ -60,6 +57,7 @@ const Auth: FunctionComponent<Props> = () => {
 
   const authRoutes = (
     <Switch>
+      <Route exact path="/auth/callback" component={AuthCallback} />
       <Route exact path="/auth/forgot-password/:email?" component={ForgotPassword} />
       <Route path="/auth/login" component={Login} />
       <Route exact path="/auth/register" component={Register} />
@@ -70,6 +68,12 @@ const Auth: FunctionComponent<Props> = () => {
       <Redirect from="/auth" exact to="/auth/login" />
     </Switch>
   );
+
+  const isAuthCallback = location.pathname === '/auth/callback';
+
+  if (isAuthCallback) {
+    return <AuthCallback />;
+  }
 
   return (
     <>
@@ -126,31 +130,10 @@ const Auth: FunctionComponent<Props> = () => {
               </Select>
             </div>
 
-            {isClerkScreen ? (
-              <div className="mx-auto w-full max-w-[500px] animate-in fade-in slide-in-from-bottom-4 duration-700">
-                {authRoutes}
-              </div>
-            ) : (
-              <div className="mx-auto w-full max-w-md rounded-3xl border border-white/20 bg-white/95 p-4 shadow-[0_40px_90px_-50px_rgba(2,6,23,0.8)] backdrop-blur-sm sm:p-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-                <div className="mb-6 mt-2 flex items-center justify-center px-2">
-                  <a href={APP_URL} target="_blank" rel="nofollow noreferrer">
-                    <img src={logoBlack} alt={APP_NAME} className="h-12 w-auto" />
-                  </a>
-                </div>
+            <div className="mx-auto w-full max-w-[500px] animate-in fade-in slide-in-from-bottom-4 duration-700">
+              {authRoutes}
+            </div>
 
-                <div className="mb-4 text-center">
-                  <p className="text-lg font-semibold text-slate-900">
-                    {isPolish ? 'Witaj ponownie' : 'Welcome back'}
-                  </p>
-                  <p className="text-sm text-slate-500">
-                    {isPolish
-                      ? 'Zaloguj sie, aby przejsc do panelu.'
-                      : 'Sign in to continue to your dashboard.'}
-                  </p>
-                </div>
-                {authRoutes}
-              </div>
-            )}
             <div className="mt-6 text-center text-xs text-slate-300 lg:hidden">{heroContent.badge}</div>
           </div>
         </div>

@@ -19,7 +19,7 @@ export function isAdmin(userId: string): boolean {
 
 /**
  * Middleware that requires the user to be an admin
- * Must be used after verifyClerkToken middleware
+ * Must be used after verifySupabaseToken middleware
  */
 export function requireAdmin(req: Request, res: Response, next: NextFunction): void {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest)

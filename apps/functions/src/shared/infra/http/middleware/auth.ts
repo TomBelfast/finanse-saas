@@ -22,15 +22,15 @@ declare global {
 
 /**
  * Legacy auth middleware placeholder.
- * This middleware is deprecated - use verifyClerkToken instead.
+ * This middleware is deprecated - use verifySupabaseToken instead.
  */
 export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
 ): Promise<void | Response> => {
-  logger.warn('Legacy authMiddleware called - this is deprecated, use verifyClerkToken');
+  logger.warn('Legacy authMiddleware called - this is deprecated, use verifySupabaseToken');
   return res.status(501).json({
-    error: 'This authentication method is deprecated. Please use Clerk authentication.'
+    error: 'This authentication method is deprecated. Please use Supabase authentication.'
   });
 };

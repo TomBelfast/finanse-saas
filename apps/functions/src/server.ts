@@ -21,14 +21,14 @@ const getAllowedOrigins = (): string[] => {
   if (envOrigins) {
     return envOrigins.split(',').map(origin => origin.trim());
   }
-  
+
   // Development: Allow all origins for local development
   // Production: Must set CORS_ALLOWED_ORIGINS environment variable
   if (process.env.NODE_ENV === 'production') {
     logger.warn('CORS_ALLOWED_ORIGINS not set in production - this is insecure!');
     return [];
   }
-  
+
   // Development fallback
   return ['*'];
 };
@@ -44,22 +44,22 @@ app.use(cors({
       logger.debug('CORS: Request with no origin (direct API call)', { isDevelopment });
       return callback(null, true);
     }
-    
+
     // Check if origin is allowed
     if (allowedOrigins.includes('*')) {
       logger.debug('CORS: Allowing all origins (*)', { origin });
       return callback(null, true);
     }
-    
+
     if (origin && allowedOrigins.includes(origin)) {
       logger.debug('CORS: Allowed origin', { origin });
       return callback(null, true);
     }
-    
+
     // Origin not allowed
-    logger.warn('CORS: Blocked origin', { 
-      origin, 
-      allowedOrigins: allowedOrigins.length > 0 ? allowedOrigins : 'none configured' 
+    logger.warn('CORS: Blocked origin', {
+      origin,
+      allowedOrigins: allowedOrigins.length > 0 ? allowedOrigins : 'none configured'
     });
     callback(new Error(`CORS: Origin ${origin} is not allowed. Allowed origins: ${allowedOrigins.join(', ') || 'none configured'}`));
   },
@@ -76,7 +76,7 @@ app.use(cors({
 app.options('*', (req, res) => {
   const origin = req.headers.origin;
   const isAllowed = !origin || allowedOrigins.includes('*') || allowedOrigins.includes(origin);
-  
+
   if (isAllowed) {
     res.header('Access-Control-Allow-Origin', origin || '*');
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
@@ -134,18 +134,11 @@ if (require.main === module) {
     logger.info(`🚀 API Server running on http://${HOST === '0.0.0.0' ? 'localhost' : HOST}:${PORT}`);
     logger.info(`📊 Database: MariaDB (${process.env.DB_NAME || 'Finanse'})`);
     logger.info(`🌐 CORS: Enabled for all origins`);
-    // Log Clerk configuration status
-    if (process.env.CLERK_SECRET_KEY) {
-      logger.info(`✅ Clerk: CLERK_SECRET_KEY is configured`);
+    // Log Supabase configuration status
+    if (process.env.VITE_SUPABASE_URL) {
+      logger.info(`✅ Supabase: URL is configured`);
     } else {
-      logger.warn(`⚠️  Clerk: CLERK_SECRET_KEY is NOT configured - API authentication will fail!`);
-      logger.warn(`   Add CLERK_SECRET_KEY to apps/functions/.env.local and restart the server`);
-    }
-    if (process.env.CLERK_PUBLISHABLE_KEY) {
-      logger.info(`✅ Clerk: CLERK_PUBLISHABLE_KEY is configured`);
-    } else {
-      logger.warn(`⚠️  Clerk: CLERK_PUBLISHABLE_KEY is NOT configured - Clerk Core 2 requires this!`);
-      logger.warn(`   Add CLERK_PUBLISHABLE_KEY to apps/functions/.env.local and restart the server`);
+      logger.warn(`⚠️  Supabase: URL is NOT configured - API authentication will fail!`);
     }
   });
 }

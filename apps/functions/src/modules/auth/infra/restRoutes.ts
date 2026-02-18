@@ -1,43 +1,53 @@
 import express, { RequestHandler } from 'express';
-import { ClerkExpressRequireAuth } from '@clerk/clerk-sdk-node';
 import { createUsersRepository } from '../../../shared/infra/repositories/repositoryFactory';
 import { db } from '../../../config/bootstrap';
 import { UserDocument } from '@akademiasaas/shared';
-import { AuthenticatedRequest, getUserIdFromRequest, ClerkAuth } from '../../../shared/types/express';
+import { AuthenticatedRequest, getUserIdFromRequest } from '../../../shared/types/express';
 import { logger } from '../../../shared/utils/logger';
 import { validateBody, updateUserSchema } from '../../../shared/validation/schemas';
+import { supabase } from '../../../config/supabase';
 
 const router = express.Router();
 const usersRepository = createUsersRepository(db);
 
-// Middleware to verify Clerk token
-// Note: Clerk Core 2 requires BOTH CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY
-// If you see "Publishable key is missing" error, add both keys to apps/functions/.env.local
-// IMPORTANT: loadEnv.ts must be imported in server.ts BEFORE this module is imported
-if (!process.env.CLERK_SECRET_KEY) {
-  logger.warn('⚠️  CLERK_SECRET_KEY is not set in process.env - Clerk authentication will fail!');
-  logger.warn('   Make sure loadEnv.ts is imported in server.ts BEFORE importing this module');
-  logger.warn('   Check if .env.local exists and contains CLERK_SECRET_KEY');
-} else {
-  logger.info(`✅ CLERK_SECRET_KEY is configured (${process.env.CLERK_SECRET_KEY.substring(0, 20)}...)`);
-}
+// Middleware to verify Supabase token
+export const verifySupabaseToken: RequestHandler = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    res.status(401).json({ error: 'Missing authorization header' });
+    return;
+  }
 
-if (!process.env.CLERK_PUBLISHABLE_KEY) {
-  logger.warn('⚠️  CLERK_PUBLISHABLE_KEY is not set in process.env - Clerk authentication will fail!');
-  logger.warn('   Clerk Core 2 requires BOTH CLERK_SECRET_KEY and CLERK_PUBLISHABLE_KEY');
-  logger.warn('   Add CLERK_PUBLISHABLE_KEY to apps/functions/.env.local');
-} else {
-  logger.info(`✅ CLERK_PUBLISHABLE_KEY is configured (${process.env.CLERK_PUBLISHABLE_KEY.substring(0, 20)}...)`);
-}
+  const token = authHeader.split(' ')[1];
+  if (!token) {
+    res.status(401).json({ error: 'Missing token' });
+    return;
+  }
 
-// Clerk Core 2 requires both secretKey and publishableKey
-export const verifyClerkToken = ClerkExpressRequireAuth({
-  secretKey: process.env.CLERK_SECRET_KEY,
-  publishableKey: process.env.CLERK_PUBLISHABLE_KEY,
-} as Parameters<typeof ClerkExpressRequireAuth>[0]) as unknown as RequestHandler;
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+
+    if (error || !user) {
+      logger.error('Supabase auth error', error);
+      res.status(401).json({ error: 'Invalid token' });
+      return;
+    }
+
+    (req as AuthenticatedRequest).auth = {
+      userId: user.id,
+      email: user.email,
+      user_metadata: user.user_metadata,
+    };
+
+    next();
+  } catch (error: any) {
+    logger.error('Auth middleware error', error);
+    res.status(500).json({ error: 'Internal server error during authentication' });
+  }
+};
 
 // Get current user (protected route)
-router.get('/me', verifyClerkToken, async (req, res) => {
+router.get('/me', verifySupabaseToken, async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
@@ -49,14 +59,14 @@ router.get('/me', verifyClerkToken, async (req, res) => {
 
     // If user doesn't exist in our database, create it
     if (!userData) {
-      const clerkUser = (req as AuthenticatedRequest).auth as ClerkAuth;
+      const supabaseAuth = (req as AuthenticatedRequest).auth!;
       const userDoc: UserDocument = {
         uid: userId,
-        email: clerkUser.sessionClaims?.email || '',
+        email: supabaseAuth.email || '',
         contactEmail: null,
-        firstName: clerkUser.sessionClaims?.firstName || '',
-        lastName: clerkUser.sessionClaims?.lastName || '',
-        avatarUrl: clerkUser.sessionClaims?.imageUrl ? [clerkUser.sessionClaims.imageUrl] : null,
+        firstName: supabaseAuth.user_metadata?.first_name || '',
+        lastName: supabaseAuth.user_metadata?.last_name || '',
+        avatarUrl: null,
         mobileFcmTokens: null,
         webFcmTokens: null,
         termsAndPolicyAcceptDate: new Date(),
@@ -95,7 +105,7 @@ router.get('/me', verifyClerkToken, async (req, res) => {
 });
 
 // Update user (protected route)
-router.put('/me', verifyClerkToken, validateBody(updateUserSchema), async (req, res) => {
+router.put('/me', verifySupabaseToken, validateBody(updateUserSchema), async (req, res) => {
   try {
     const userId = getUserIdFromRequest(req as AuthenticatedRequest);
     if (!userId) {
@@ -115,5 +125,5 @@ router.put('/me', verifyClerkToken, validateBody(updateUserSchema), async (req, 
   }
 });
 
-// Export verifyClerkToken for use in other routes
+// Export router
 export { router as authRouter };
